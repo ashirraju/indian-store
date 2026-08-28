@@ -208,15 +208,15 @@
           </div>
         </div>
 
-        <!-- Sub-menus Navigation Bar -->
+        <!-- Sub-menus Navigation Bar (Top Sticky/Header Bar) -->
         <div class="dept-submenus-wrapper">
-          <span class="submenus-label">Categories:</span>
+          <span class="submenus-label">Sub Categories:</span>
           <div class="dept-submenus-bar">
             @for (sub of getSubMenusForCategory(dept); track sub) {
               <button
                 class="submenu-pill-btn"
                 [class.active]="activeSubMenu() === sub"
-                (click)="activeSubMenu.set(sub)"
+                (click)="scrollToSubSection(sub)"
               >
                 @if (sub === 'Supersaver') {
                   <span class="pill-badge-icon">⚡</span>
@@ -229,79 +229,141 @@
           </div>
         </div>
 
-        <!-- Department Products Grid -->
-        <div class="department-products-grid">
-          @for (prod of getFilteredDepartmentProducts(dept); track prod.id) {
-            <div class="product-card">
-              <!-- Image Media Box -->
-              <div class="card-media" (click)="selectedProduct.set(prod)">
-                <img [src]="prod.imageUrl" [alt]="prod.name" class="prod-img" loading="lazy" />
-
-                <div class="card-badges">
-                  @if (prod.isBestseller) {
-                    <span class="badge-bestseller">BESTSELLER</span>
-                  }
-                  @if (prod.isOrganic) {
-                    <span class="badge-organic">ORGANIC</span>
-                  }
-                </div>
-
-                <button
-                  class="wishlist-heart-btn"
-                  [class.active]="store.isInWishlist(prod.id)"
-                  (click)="store.toggleWishlist(prod); $event.stopPropagation()"
-                  [title]="store.isInWishlist(prod.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
-                >
-                  <span class="material-symbols-outlined">
-                    {{ store.isInWishlist(prod.id) ? 'favorite' : 'favorite_border' }}
-                  </span>
-                </button>
-
-                <span class="origin-tag">📍 {{ prod.originRegion }}</span>
-              </div>
-
-              <!-- Details Body -->
-              <div class="card-body">
-                <span class="cat-chip">{{ prod.category }}</span>
-                <h4 class="prod-name" (click)="selectedProduct.set(prod)" [title]="prod.name">{{ prod.name }}</h4>
-
-                <div class="meta-row">
-                  <span class="stars">★ {{ prod.rating }}</span>
-                  <span class="reviews">({{ prod.reviewsCount }})</span>
-                  <span class="weight-tag">• {{ prod.weight }}</span>
-                </div>
-
-                <p class="prod-desc">{{ prod.description }}</p>
-
-                <div class="card-footer">
-                  <div class="price-box">
-                    <span class="current-price">₹{{ prod.price }}</span>
-                    @if (prod.originalPrice) {
-                      <span class="orig-price">₹{{ prod.originalPrice }}</span>
-                    }
+        <!-- Department Sub-sections Container (Items under each Sub-section) -->
+        <div class="dept-subsections-container">
+          @for (subSection of getSubSectionsForDepartment(dept); track subSection) {
+            @if (getProductsBySubSection(dept, subSection).length > 0) {
+              <div [id]="'sub-section-' + slugify(subSection)" class="dept-subsection-block card-surface">
+                <!-- Sub-section Header -->
+                <div class="subsection-header">
+                  <div class="subsection-title-box">
+                    <span class="subsection-icon">
+                      @switch (subSection) {
+                        @case ('Supersaver') { ⚡ }
+                        @case ('Organic') { 🌿 }
+                        @case ('Atta & flours') { 🌾 }
+                        @case ('Rice') { 🍚 }
+                        @case ('Whole grains') { 🌾 }
+                        @case ('Poha') { 🥣 }
+                        @case ('Millet & other flours') { 🌾 }
+                        @default { 📦 }
+                      }
+                    </span>
+                    <div>
+                      <h3 class="subsection-name">{{ subSection }}</h3>
+                      <span class="subsection-count">{{ getProductsBySubSection(dept, subSection).length }} Authentic Products Available</span>
+                    </div>
                   </div>
 
-                  <div class="card-actions-group" (click)="$event.stopPropagation()">
-                    @if (store.getCartQuantity(prod.id) === 0) {
-                      <button class="add-cart-btn" (click)="store.addToCart(prod, 1)">
-                        <span class="material-symbols-outlined">add_shopping_cart</span>
-                        Add
-                      </button>
-                    } @else {
-                      <div class="qty-counter-pill">
-                        <button class="qty-btn-minus" (click)="store.updateCartQuantity(prod.id, -1)" title="Decrease">
-                          <span class="material-symbols-outlined">remove</span>
-                        </button>
-                        <span class="qty-val">{{ store.getCartQuantity(prod.id) }}</span>
-                        <button class="qty-btn-plus" (click)="store.updateCartQuantity(prod.id, 1)" title="Increase">
-                          <span class="material-symbols-outlined">add</span>
-                        </button>
+                  <span class="subsection-tag-pill">{{ dept }}</span>
+                </div>
+
+                <!-- Carousel Relative Container with Middle Vertically-Centered Side Arrows -->
+                <div class="carousel-relative-container">
+                  <!-- Left Arrow (Shown Only When Scroll Left is Enabled) -->
+                  @if (canScrollLeft('sub-' + slugify(subSection))) {
+                    <button
+                      class="carousel-arrow-btn prev-btn"
+                      (click)="scrollCategoryLeft('sub-carousel-' + slugify(subSection), 'sub-' + slugify(subSection))"
+                      title="Scroll Left"
+                    >
+                      <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                  }
+
+                  <!-- Single-Line Horizontal Product Carousel -->
+                  <div
+                    [id]="'sub-carousel-' + slugify(subSection)"
+                    class="product-single-line-carousel"
+                    (scroll)="onCarouselScroll('sub-' + slugify(subSection), $event)"
+                  >
+                    @for (prod of getProductsBySubSection(dept, subSection); track prod.id) {
+                      <div class="product-card">
+                        <!-- Image Media Box -->
+                        <div class="card-media" (click)="selectedProduct.set(prod)">
+                          <img [src]="prod.imageUrl" [alt]="prod.name" class="prod-img" loading="lazy" />
+
+                          <div class="card-badges">
+                            @if (prod.isBestseller) {
+                              <span class="badge-bestseller">BESTSELLER</span>
+                            }
+                            @if (prod.isOrganic) {
+                              <span class="badge-organic">ORGANIC</span>
+                            }
+                          </div>
+
+                          <button
+                            class="wishlist-heart-btn"
+                            [class.active]="store.isInWishlist(prod.id)"
+                            (click)="store.toggleWishlist(prod); $event.stopPropagation()"
+                            [title]="store.isInWishlist(prod.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
+                          >
+                            <span class="material-symbols-outlined">
+                              {{ store.isInWishlist(prod.id) ? 'favorite' : 'favorite_border' }}
+                            </span>
+                          </button>
+
+                          <span class="origin-tag">📍 {{ prod.originRegion }}</span>
+                        </div>
+
+                        <!-- Details Body -->
+                        <div class="card-body">
+                          <span class="cat-chip">{{ subSection }}</span>
+                          <h4 class="prod-name" (click)="selectedProduct.set(prod)" [title]="prod.name">{{ prod.name }}</h4>
+
+                          <div class="meta-row">
+                            <span class="stars">★ {{ prod.rating }}</span>
+                            <span class="reviews">({{ prod.reviewsCount }})</span>
+                            <span class="weight-tag">• {{ prod.weight }}</span>
+                          </div>
+
+                          <p class="prod-desc">{{ prod.description }}</p>
+
+                          <div class="card-footer">
+                            <div class="price-box">
+                              <span class="current-price">₹{{ prod.price }}</span>
+                              @if (prod.originalPrice) {
+                                <span class="orig-price">₹{{ prod.originalPrice }}</span>
+                              }
+                            </div>
+
+                            <div class="card-actions-group" (click)="$event.stopPropagation()">
+                              @if (store.getCartQuantity(prod.id) === 0) {
+                                <button class="add-cart-btn" (click)="store.addToCart(prod, 1)">
+                                  <span class="material-symbols-outlined">add_shopping_cart</span>
+                                  Add
+                                </button>
+                              } @else {
+                                <div class="qty-counter-pill">
+                                  <button class="qty-btn-minus" (click)="store.updateCartQuantity(prod.id, -1)" title="Decrease">
+                                    <span class="material-symbols-outlined">remove</span>
+                                  </button>
+                                  <span class="qty-val">{{ store.getCartQuantity(prod.id) }}</span>
+                                  <button class="qty-btn-plus" (click)="store.updateCartQuantity(prod.id, 1)" title="Increase">
+                                    <span class="material-symbols-outlined">add</span>
+                                  </button>
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     }
                   </div>
+
+                  <!-- Right Arrow (Shown Only When Scroll Right is Enabled) -->
+                  @if (canScrollRight('sub-' + slugify(subSection), getProductsBySubSection(dept, subSection).length)) {
+                    <button
+                      class="carousel-arrow-btn next-btn"
+                      (click)="scrollCategoryRight('sub-carousel-' + slugify(subSection), 'sub-' + slugify(subSection))"
+                      title="Scroll Right"
+                    >
+                      <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                  }
                 </div>
               </div>
-            </div>
+            }
           } @empty {
             <div class="empty-filter-state">
               <span class="material-symbols-outlined empty-icon">filter_alt_off</span>

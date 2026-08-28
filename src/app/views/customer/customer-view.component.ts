@@ -163,35 +163,40 @@ export class CustomerViewComponent {
     return this.departmentSubMenus[catName] || ['All', 'Supersaver', 'Organic'];
   }
 
-  getFilteredDepartmentProducts(categoryName: string): Product[] {
+  getSubSectionsForDepartment(categoryName: string): string[] {
+    const allSubs = this.departmentSubMenus[categoryName] || ['Supersaver', 'Organic'];
+    const active = this.activeSubMenu();
+    if (active && active !== 'All') {
+      return allSubs.filter(s => s === active);
+    }
+    return allSubs.filter(s => s !== 'All');
+  }
+
+  getProductsBySubSection(categoryName: string, subSectionName: string): Product[] {
     const list = this.getProductsByCategory(categoryName);
-    const subMenu = this.activeSubMenu();
+    const lower = subSectionName.toLowerCase();
 
-    let filtered = list;
-    if (subMenu && subMenu !== 'All') {
-      const lower = subMenu.toLowerCase();
-
-      if (lower === 'supersaver') {
-        filtered = list.filter(p => (p.originalPrice && p.originalPrice > p.price) || p.isBestseller);
-      } else if (lower === 'organic') {
-        filtered = list.filter(p => p.isOrganic);
-      } else if (lower === 'atta & flours') {
-        filtered = list.filter(p => /atta|flour|wheat|chakki|sharbati/i.test(p.name + ' ' + (p.tags || []).join(' ')));
-      } else if (lower === 'rice') {
-        filtered = list.filter(p => /rice|basmati|sona masoori|paddy|idli/i.test(p.name + ' ' + (p.tags || []).join(' ')));
-      } else if (lower === 'whole grains') {
-        filtered = list.filter(p => /grain|whole|multigrain|wheat|brown/i.test(p.name + ' ' + (p.tags || []).join(' ')));
-      } else if (lower === 'poha') {
-        filtered = list.filter(p => /poha|flakes|beaten/i.test(p.name + ' ' + (p.tags || []).join(' ')));
-      } else if (lower === 'millet & other flours') {
-        filtered = list.filter(p => /millet|rava|suji|ragi|oats|bajra|jowar/i.test(p.name + ' ' + (p.tags || []).join(' ')));
-      } else {
-        filtered = list.filter(p =>
-          p.name.toLowerCase().includes(lower) ||
-          (p.tags && p.tags.some(t => t.toLowerCase().includes(lower))) ||
-          p.description.toLowerCase().includes(lower)
-        );
-      }
+    let filtered: Product[] = [];
+    if (lower === 'supersaver') {
+      filtered = list.filter(p => (p.originalPrice && p.originalPrice > p.price) || p.isBestseller);
+    } else if (lower === 'organic') {
+      filtered = list.filter(p => p.isOrganic);
+    } else if (lower === 'atta & flours') {
+      filtered = list.filter(p => /atta|flour|wheat|chakki|sharbati/i.test(p.name + ' ' + (p.tags || []).join(' ')));
+    } else if (lower === 'rice') {
+      filtered = list.filter(p => /rice|basmati|sona masoori|paddy|idli/i.test(p.name + ' ' + (p.tags || []).join(' ')));
+    } else if (lower === 'whole grains') {
+      filtered = list.filter(p => /grain|whole|multigrain|wheat|brown/i.test(p.name + ' ' + (p.tags || []).join(' ')));
+    } else if (lower === 'poha') {
+      filtered = list.filter(p => /poha|flakes|beaten/i.test(p.name + ' ' + (p.tags || []).join(' ')));
+    } else if (lower === 'millet & other flours') {
+      filtered = list.filter(p => /millet|rava|suji|ragi|oats|bajra|jowar/i.test(p.name + ' ' + (p.tags || []).join(' ')));
+    } else {
+      filtered = list.filter(p =>
+        p.name.toLowerCase().includes(lower) ||
+        (p.tags && p.tags.some(t => t.toLowerCase().includes(lower))) ||
+        p.description.toLowerCase().includes(lower)
+      );
     }
 
     const sort = this.departmentSortBy();
@@ -201,6 +206,20 @@ export class CustomerViewComponent {
       if (sort === 'rating') return b.rating - a.rating;
       return (b.reviewsCount || 0) - (a.reviewsCount || 0);
     });
+  }
+
+  scrollToSubSection(subName: string) {
+    this.activeSubMenu.set(subName);
+    if (subName === 'All') {
+      return;
+    }
+    setTimeout(() => {
+      const id = 'sub-section-' + this.slugify(subName);
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 50);
   }
 
   scrollToCategories() {
