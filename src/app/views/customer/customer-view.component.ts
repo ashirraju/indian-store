@@ -53,6 +53,156 @@ export class CustomerViewComponent {
     return text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
   }
 
+  readonly activeDepartment = signal<string | null>(null);
+  readonly activeSubMenu = signal<string>('All');
+  readonly departmentSortBy = signal<'popular' | 'price-low' | 'price-high' | 'rating'>('popular');
+
+  readonly departmentSubMenus: Record<string, string[]> = {
+    'Atta, rice & grains': [
+      'All',
+      'Supersaver',
+      'Atta & flours',
+      'Rice',
+      'Whole grains',
+      'Poha',
+      'Millet & other flours',
+      'Organic'
+    ],
+    'Dal & pulses': [
+      'All',
+      'Supersaver',
+      'Toor & Arhar Dal',
+      'Moong Dal',
+      'Chana Dal',
+      'Urad & Rajma',
+      'Organic'
+    ],
+    'Oil & ghee': [
+      'All',
+      'Supersaver',
+      'Pure Desi Ghee',
+      'Mustard Oil',
+      'Sunflower Oil',
+      'Cold Pressed',
+      'Organic'
+    ],
+    'Tea & coffee': [
+      'All',
+      'Supersaver',
+      'CTC Tea',
+      'Green Tea',
+      'Filter Coffee',
+      'Instant Coffee',
+      'Organic'
+    ],
+    'Chips & biscuits': [
+      'All',
+      'Supersaver',
+      'Traditional Snacks',
+      'Potato Chips',
+      'Khakhra & Namkeen',
+      'Biscuits & Cookies',
+      'Sweets'
+    ],
+    'Bath & body': [
+      'All',
+      'Supersaver',
+      'Soaps & Bodywash',
+      'Shampoos',
+      'Hair Oils',
+      'Ayurvedic Skincare'
+    ],
+    'Make up & cosmetics': [
+      'All',
+      'Supersaver',
+      'Lipstick & Lip Care',
+      'Face & Foundation',
+      'Eye Makeup',
+      'Skin Toners & Serums'
+    ],
+    'Laundry detergents': [
+      'All',
+      'Supersaver',
+      'Liquid Detergents',
+      'Detergent Powders',
+      'Fabric Conditioners',
+      'Stain Removers'
+    ],
+    'Baby care': [
+      'All',
+      'Supersaver',
+      'Diapers & Wipes',
+      'Baby Shampoo & Wash',
+      'Baby Creams & Lotions',
+      'Organic'
+    ],
+    'Pet care': [
+      'All',
+      'Supersaver',
+      'Dog Food',
+      'Cat Food',
+      'Pet Treats',
+      'Grooming & Shampoos'
+    ]
+  };
+
+  openDepartmentView(categoryName: string) {
+    this.store.activeDepartment.set(categoryName);
+    this.activeSubMenu.set('All');
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  closeDepartmentView() {
+    this.store.activeDepartment.set(null);
+    this.activeSubMenu.set('All');
+  }
+
+  getSubMenusForCategory(catName: string): string[] {
+    return this.departmentSubMenus[catName] || ['All', 'Supersaver', 'Organic'];
+  }
+
+  getFilteredDepartmentProducts(categoryName: string): Product[] {
+    const list = this.getProductsByCategory(categoryName);
+    const subMenu = this.activeSubMenu();
+
+    let filtered = list;
+    if (subMenu && subMenu !== 'All') {
+      const lower = subMenu.toLowerCase();
+
+      if (lower === 'supersaver') {
+        filtered = list.filter(p => (p.originalPrice && p.originalPrice > p.price) || p.isBestseller);
+      } else if (lower === 'organic') {
+        filtered = list.filter(p => p.isOrganic);
+      } else if (lower === 'atta & flours') {
+        filtered = list.filter(p => /atta|flour|wheat|chakki|sharbati/i.test(p.name + ' ' + (p.tags || []).join(' ')));
+      } else if (lower === 'rice') {
+        filtered = list.filter(p => /rice|basmati|sona masoori|paddy|idli/i.test(p.name + ' ' + (p.tags || []).join(' ')));
+      } else if (lower === 'whole grains') {
+        filtered = list.filter(p => /grain|whole|multigrain|wheat|brown/i.test(p.name + ' ' + (p.tags || []).join(' ')));
+      } else if (lower === 'poha') {
+        filtered = list.filter(p => /poha|flakes|beaten/i.test(p.name + ' ' + (p.tags || []).join(' ')));
+      } else if (lower === 'millet & other flours') {
+        filtered = list.filter(p => /millet|rava|suji|ragi|oats|bajra|jowar/i.test(p.name + ' ' + (p.tags || []).join(' ')));
+      } else {
+        filtered = list.filter(p =>
+          p.name.toLowerCase().includes(lower) ||
+          (p.tags && p.tags.some(t => t.toLowerCase().includes(lower))) ||
+          p.description.toLowerCase().includes(lower)
+        );
+      }
+    }
+
+    const sort = this.departmentSortBy();
+    return [...filtered].sort((a, b) => {
+      if (sort === 'price-low') return a.price - b.price;
+      if (sort === 'price-high') return b.price - a.price;
+      if (sort === 'rating') return b.rating - a.rating;
+      return (b.reviewsCount || 0) - (a.reviewsCount || 0);
+    });
+  }
+
   scrollToCategories() {
     const el = document.getElementById('categories-section');
     if (el) el.scrollIntoView({ behavior: 'smooth' });

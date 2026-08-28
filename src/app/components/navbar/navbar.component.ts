@@ -33,14 +33,7 @@ export class NavbarComponent {
 
   onMenuClick(item: { path: string; label: string }) {
     if (item.path.startsWith('/category/')) {
-      this.store.navigateTo('/store');
-      setTimeout(() => {
-        const slug = this.slugify(item.label);
-        const el = document.getElementById('cat-section-' + slug);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 100);
+      this.store.openDepartment(item.label);
     } else {
       this.store.navigateTo(item.path);
     }

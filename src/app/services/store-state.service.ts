@@ -23,6 +23,7 @@ export class StoreStateService {
   readonly isWishlistOpen = signal<boolean>(false);
   readonly isOrdersModalOpen = signal<boolean>(false);
   readonly isCategoryPanelOpen = signal<boolean>(false);
+  readonly activeDepartment = signal<string | null>(null);
   readonly selectedProductForModal = signal<Product | null>(null);
   readonly selectedOrderForTracking = signal<Order | null>(null);
   readonly wishlist = signal<Product[]>([
@@ -389,6 +390,40 @@ export class StoreStateService {
       isBestseller: false,
       originRegion: 'Andhra Pradesh, India',
       tags: ['Sona Masoori', 'Rice']
+    },
+    {
+      id: 'p-103c',
+      name: 'Organic Tattva Coarse Wheat Suji Rava (500g)',
+      category: 'Atta, rice & grains',
+      price: 65,
+      originalPrice: 80,
+      rating: 4.8,
+      reviewsCount: 94,
+      imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80',
+      description: 'Unbleached natural semolina / rava made from selected durum wheat grains for upma and halwa.',
+      weight: '500g Pack',
+      stock: 95,
+      isOrganic: true,
+      isBestseller: false,
+      originRegion: 'Rajasthan, India',
+      tags: ['Suji', 'Rava', 'Millet & other flours']
+    },
+    {
+      id: 'p-103d-millet',
+      name: 'Pure Desi Bajra & Jowar Millet Flour (1kg)',
+      category: 'Atta, rice & grains',
+      price: 139,
+      originalPrice: 165,
+      rating: 4.9,
+      reviewsCount: 128,
+      imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80',
+      description: 'Gluten-free traditional pearl millet flour rich in dietary iron, magnesium, and dietary fiber.',
+      weight: '1kg Bag',
+      stock: 70,
+      isOrganic: true,
+      isBestseller: true,
+      originRegion: 'Gujarat, India',
+      tags: ['Millet', 'Jowar', 'Bajra', 'Millet & other flours']
     },
 
     // 2. Dal & pulses
@@ -911,6 +946,15 @@ export class StoreStateService {
   moveToCartFromWishlist(product: Product) {
     this.addToCart(product, 1);
     this.removeFromWishlist(product.id);
+  }
+
+  openDepartment(deptName: string) {
+    this.activeDepartment.set(deptName);
+    this.navigateTo('/store');
+  }
+
+  closeDepartment() {
+    this.activeDepartment.set(null);
   }
 
   navigateTo(path: string) {

@@ -102,7 +102,7 @@
   @else {
 
     <!-- 1. OFFERS & PROMOTIONS SECTION ("then show offers and all") -->
-    <section class="offers-section">
+    <section class="offers-section" *ngIf="false">
       <!-- Main Hero Banner -->
       <div class="hero-banner">
         <div class="hero-content">
@@ -149,157 +149,322 @@
 
    
 
-    <!-- 2. ITEMS CATEGORIZED BY CATEGORY SECTION -->
-    <section id="categories-section" class="categorized-products-section">
-      <div class="section-main-header">
-        <div>
-          <h2 class="section-title">Explore Store Items Categorized by Heritage Collections</h2>
-          <p class="section-subtitle">Browse products organized cleanly by regional categories</p>
+    <!-- DEDICATED DEPARTMENT EXPLORER VIEW (WHEN EXPLORE MORE IS CLICKED) -->
+    @if (store.activeDepartment(); as dept) {
+      <section class="department-explorer-section">
+        <!-- Breadcrumb & Back Navigation -->
+        <div class="dept-nav-header">
+          <button class="back-to-store-btn" (click)="closeDepartmentView()">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Back to All Categories
+          </button>
+          <div class="dept-breadcrumbs">
+            <span>Store</span> &rsaquo; <span>Departments</span> &rsaquo; <strong class="active-crumb">{{ dept }}</strong>
+          </div>
         </div>
-      </div>
 
-      <div class="main-products-column">
-        @for (catName of categoryListWithoutAll(); track catName) {
-          @if (getProductsByCategory(catName).length > 0) {
-            <div [id]="'cat-section-' + slugify(catName)" class="category-block card-surface">
-              <!-- Category Section Header -->
-              <div class="cat-block-header">
-                <div class="cat-title-box">
-                  <span class="material-symbols-outlined cat-icon">
-                    @switch (catName) {
-                      @case ('Atta, rice & grains') { grain }
-                      @case ('Dal & pulses') { rice_bowl }
-                      @case ('Oil & ghee') { opacity }
-                      @case ('Tea & coffee') { coffee }
-                      @case ('Chips & biscuits') { cookie }
-                      @case ('Bath & body') { soap }
-                      @case ('Make up & cosmetics') { face_retouching_natural }
-                      @case ('Laundry detergents') { local_laundry_service }
-                      @case ('Baby care') { child_care }
-                      @case ('Pet care') { pets }
-                      @default { storefront }
-                    }
-                  </span>
-                  <div>
-                    <h3 class="cat-name">{{ catName }}</h3>
-                    <span class="cat-count">{{ getProductsByCategory(catName).length }} Authentic Products Available</span>
-                  </div>
-                </div>
-
-                <button class="view-all-cat-btn" (click)="scrollToCategorySection(catName)">
-                  Explore {{ catName }} →
-                </button>
-              </div>
-
-              <!-- Carousel Relative Container with Middle Vertically-Centered Side Arrows -->
-              <div class="carousel-relative-container">
-                <!-- Left Arrow (Shown Only When Scroll Left is Enabled) -->
-                @if (canScrollLeft(slugify(catName))) {
-                  <button
-                    class="carousel-arrow-btn prev-btn"
-                    (click)="scrollCategoryLeft('carousel-' + slugify(catName), slugify(catName))"
-                    title="Scroll Left"
-                  >
-                    <span class="material-symbols-outlined">chevron_left</span>
-                  </button>
+        <!-- Department Hero Banner -->
+        <div class="dept-hero-banner card-surface">
+          <div class="dept-hero-content">
+            <div class="dept-badge-icon">
+              <span class="material-symbols-outlined">
+                @switch (dept) {
+                  @case ('Atta, rice & grains') { grain }
+                  @case ('Dal & pulses') { rice_bowl }
+                  @case ('Oil & ghee') { opacity }
+                  @case ('Tea & coffee') { coffee }
+                  @case ('Chips & biscuits') { cookie }
+                  @case ('Bath & body') { soap }
+                  @case ('Make up & cosmetics') { face_retouching_natural }
+                  @case ('Laundry detergents') { local_laundry_service }
+                  @case ('Baby care') { child_care }
+                  @case ('Pet care') { pets }
+                  @default { storefront }
                 }
+              </span>
+            </div>
+            <div>
+              <h1 class="dept-hero-title">{{ dept }}</h1>
+              <p class="dept-hero-desc">
+                Browse our complete collection of {{ getProductsByCategory(dept).length }} authentic products with certified quality and purity.
+              </p>
+            </div>
+          </div>
 
-                <!-- Single-Line Horizontal Product Carousel -->
-                <div
-                  [id]="'carousel-' + slugify(catName)"
-                  class="product-single-line-carousel"
-                  (scroll)="onCarouselScroll(slugify(catName), $event)"
-                >
-                  @for (prod of getProductsByCategory(catName); track prod.id) {
-                    <div class="product-card">
-                      <!-- Image Media Box -->
-                      <div class="card-media" (click)="selectedProduct.set(prod)">
-                        <img [src]="prod.imageUrl" [alt]="prod.name" class="prod-img" loading="lazy" />
+          <!-- Sort Dropdown -->
+          <div class="dept-sort-box">
+            <label for="dept-sort" class="sort-label">Sort by:</label>
+            <select
+              id="dept-sort"
+              class="dept-sort-select"
+              [ngModel]="departmentSortBy()"
+              (ngModelChange)="departmentSortBy.set($event)"
+            >
+              <option value="popular">Most Popular</option>
+              <option value="rating">Highest Rated</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+            </select>
+          </div>
+        </div>
 
-                        <div class="card-badges">
-                          @if (prod.isBestseller) {
-                            <span class="badge-bestseller">BESTSELLER</span>
-                          }
-                          @if (prod.isOrganic) {
-                            <span class="badge-organic">ORGANIC</span>
-                          }
-                        </div>
+        <!-- Sub-menus Navigation Bar -->
+        <div class="dept-submenus-wrapper">
+          <span class="submenus-label">Categories:</span>
+          <div class="dept-submenus-bar">
+            @for (sub of getSubMenusForCategory(dept); track sub) {
+              <button
+                class="submenu-pill-btn"
+                [class.active]="activeSubMenu() === sub"
+                (click)="activeSubMenu.set(sub)"
+              >
+                @if (sub === 'Supersaver') {
+                  <span class="pill-badge-icon">⚡</span>
+                } @else if (sub === 'Organic') {
+                  <span class="pill-badge-icon">🌿</span>
+                }
+                {{ sub }}
+              </button>
+            }
+          </div>
+        </div>
 
-                        <button
-                          class="wishlist-heart-btn"
-                          [class.active]="store.isInWishlist(prod.id)"
-                          (click)="store.toggleWishlist(prod); $event.stopPropagation()"
-                          [title]="store.isInWishlist(prod.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
-                        >
-                          <span class="material-symbols-outlined">
-                            {{ store.isInWishlist(prod.id) ? 'favorite' : 'favorite_border' }}
-                          </span>
-                        </button>
+        <!-- Department Products Grid -->
+        <div class="department-products-grid">
+          @for (prod of getFilteredDepartmentProducts(dept); track prod.id) {
+            <div class="product-card">
+              <!-- Image Media Box -->
+              <div class="card-media" (click)="selectedProduct.set(prod)">
+                <img [src]="prod.imageUrl" [alt]="prod.name" class="prod-img" loading="lazy" />
 
-                        <span class="origin-tag">📍 {{ prod.originRegion }}</span>
-                      </div>
-
-                      <!-- Details Body -->
-                      <div class="card-body">
-                        <span class="cat-chip">{{ prod.category }}</span>
-                        <h4 class="prod-name" (click)="selectedProduct.set(prod)" [title]="prod.name">{{ prod.name }}</h4>
-
-                        <div class="meta-row">
-                          <span class="stars">★ {{ prod.rating }}</span>
-                          <span class="reviews">({{ prod.reviewsCount }})</span>
-                          <span class="weight-tag">• {{ prod.weight }}</span>
-                        </div>
-
-                        <p class="prod-desc">{{ prod.description }}</p>
-
-                        <div class="card-footer">
-                          <div class="price-box">
-                            <span class="current-price">₹{{ prod.price }}</span>
-                            @if (prod.originalPrice) {
-                              <span class="orig-price">₹{{ prod.originalPrice }}</span>
-                            }
-                          </div>
-
-                          <div class="card-actions-group" (click)="$event.stopPropagation()">
-                            @if (store.getCartQuantity(prod.id) === 0) {
-                              <button class="add-cart-btn" (click)="store.addToCart(prod, 1)">
-                                <span class="material-symbols-outlined">add_shopping_cart</span>
-                                Add
-                              </button>
-                            } @else {
-                              <div class="qty-counter-pill">
-                                <button class="qty-btn-minus" (click)="store.updateCartQuantity(prod.id, -1)" title="Decrease">
-                                  <span class="material-symbols-outlined">remove</span>
-                                </button>
-                                <span class="qty-val">{{ store.getCartQuantity(prod.id) }}</span>
-                                <button class="qty-btn-plus" (click)="store.updateCartQuantity(prod.id, 1)" title="Increase">
-                                  <span class="material-symbols-outlined">add</span>
-                                </button>
-                              </div>
-                            }
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                <div class="card-badges">
+                  @if (prod.isBestseller) {
+                    <span class="badge-bestseller">BESTSELLER</span>
+                  }
+                  @if (prod.isOrganic) {
+                    <span class="badge-organic">ORGANIC</span>
                   }
                 </div>
 
-                <!-- Right Arrow (Shown Only When Scroll Right is Enabled) -->
-                @if (canScrollRight(slugify(catName), getProductsByCategory(catName).length)) {
-                  <button
-                    class="carousel-arrow-btn next-btn"
-                    (click)="scrollCategoryRight('carousel-' + slugify(catName), slugify(catName))"
-                    title="Scroll Right"
-                  >
-                    <span class="material-symbols-outlined">chevron_right</span>
-                  </button>
-                }
+                <button
+                  class="wishlist-heart-btn"
+                  [class.active]="store.isInWishlist(prod.id)"
+                  (click)="store.toggleWishlist(prod); $event.stopPropagation()"
+                  [title]="store.isInWishlist(prod.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
+                >
+                  <span class="material-symbols-outlined">
+                    {{ store.isInWishlist(prod.id) ? 'favorite' : 'favorite_border' }}
+                  </span>
+                </button>
+
+                <span class="origin-tag">📍 {{ prod.originRegion }}</span>
+              </div>
+
+              <!-- Details Body -->
+              <div class="card-body">
+                <span class="cat-chip">{{ prod.category }}</span>
+                <h4 class="prod-name" (click)="selectedProduct.set(prod)" [title]="prod.name">{{ prod.name }}</h4>
+
+                <div class="meta-row">
+                  <span class="stars">★ {{ prod.rating }}</span>
+                  <span class="reviews">({{ prod.reviewsCount }})</span>
+                  <span class="weight-tag">• {{ prod.weight }}</span>
+                </div>
+
+                <p class="prod-desc">{{ prod.description }}</p>
+
+                <div class="card-footer">
+                  <div class="price-box">
+                    <span class="current-price">₹{{ prod.price }}</span>
+                    @if (prod.originalPrice) {
+                      <span class="orig-price">₹{{ prod.originalPrice }}</span>
+                    }
+                  </div>
+
+                  <div class="card-actions-group" (click)="$event.stopPropagation()">
+                    @if (store.getCartQuantity(prod.id) === 0) {
+                      <button class="add-cart-btn" (click)="store.addToCart(prod, 1)">
+                        <span class="material-symbols-outlined">add_shopping_cart</span>
+                        Add
+                      </button>
+                    } @else {
+                      <div class="qty-counter-pill">
+                        <button class="qty-btn-minus" (click)="store.updateCartQuantity(prod.id, -1)" title="Decrease">
+                          <span class="material-symbols-outlined">remove</span>
+                        </button>
+                        <span class="qty-val">{{ store.getCartQuantity(prod.id) }}</span>
+                        <button class="qty-btn-plus" (click)="store.updateCartQuantity(prod.id, 1)" title="Increase">
+                          <span class="material-symbols-outlined">add</span>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                </div>
               </div>
             </div>
+          } @empty {
+            <div class="empty-filter-state">
+              <span class="material-symbols-outlined empty-icon">filter_alt_off</span>
+              <h3>No items found for "{{ activeSubMenu() }}"</h3>
+              <p>Try selecting another submenu filter above or reset to All.</p>
+              <button class="reset-filter-btn" (click)="activeSubMenu.set('All')">View All {{ dept }}</button>
+            </div>
           }
-        }
-      </div>
-    </section>
+        </div>
+      </section>
+    } @else {
+      <!-- 2. ITEMS CATEGORIZED BY CATEGORY SECTION (STOREFRONT DEFAULT VIEW) -->
+      <section id="categories-section" class="categorized-products-section">
+        <div class="section-main-header">
+          <div>
+            <h2 class="section-title">Explore Store Items Categorized by Heritage Collections</h2>
+            <p class="section-subtitle">Browse products organized cleanly by regional categories</p>
+          </div>
+        </div>
+
+        <div class="main-products-column">
+          @for (catName of categoryListWithoutAll(); track catName) {
+            @if (getProductsByCategory(catName).length > 0) {
+              <div [id]="'cat-section-' + slugify(catName)" class="category-block card-surface">
+                <!-- Category Section Header -->
+                <div class="cat-block-header">
+                  <div class="cat-title-box">
+                    <span class="material-symbols-outlined cat-icon">
+                      @switch (catName) {
+                        @case ('Atta, rice & grains') { grain }
+                        @case ('Dal & pulses') { rice_bowl }
+                        @case ('Oil & ghee') { opacity }
+                        @case ('Tea & coffee') { coffee }
+                        @case ('Chips & biscuits') { cookie }
+                        @case ('Bath & body') { soap }
+                        @case ('Make up & cosmetics') { face_retouching_natural }
+                        @case ('Laundry detergents') { local_laundry_service }
+                        @case ('Baby care') { child_care }
+                        @case ('Pet care') { pets }
+                        @default { storefront }
+                      }
+                    </span>
+                    <div>
+                      <h3 class="cat-name">{{ catName }}</h3>
+                      <span class="cat-count">{{ getProductsByCategory(catName).length }} Authentic Products Available</span>
+                    </div>
+                  </div>
+
+                  <button class="view-all-cat-btn" (click)="openDepartmentView(catName)">
+                    Explore {{ catName }} →
+                  </button>
+                </div>
+
+                <!-- Carousel Relative Container with Middle Vertically-Centered Side Arrows -->
+                <div class="carousel-relative-container">
+                  <!-- Left Arrow (Shown Only When Scroll Left is Enabled) -->
+                  @if (canScrollLeft(slugify(catName))) {
+                    <button
+                      class="carousel-arrow-btn prev-btn"
+                      (click)="scrollCategoryLeft('carousel-' + slugify(catName), slugify(catName))"
+                      title="Scroll Left"
+                    >
+                      <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                  }
+
+                  <!-- Single-Line Horizontal Product Carousel -->
+                  <div
+                    [id]="'carousel-' + slugify(catName)"
+                    class="product-single-line-carousel"
+                    (scroll)="onCarouselScroll(slugify(catName), $event)"
+                  >
+                    @for (prod of getProductsByCategory(catName); track prod.id) {
+                      <div class="product-card">
+                        <!-- Image Media Box -->
+                        <div class="card-media" (click)="selectedProduct.set(prod)">
+                          <img [src]="prod.imageUrl" [alt]="prod.name" class="prod-img" loading="lazy" />
+
+                          <div class="card-badges">
+                            @if (prod.isBestseller) {
+                              <span class="badge-bestseller">BESTSELLER</span>
+                            }
+                            @if (prod.isOrganic) {
+                              <span class="badge-organic">ORGANIC</span>
+                            }
+                          </div>
+
+                          <button
+                            class="wishlist-heart-btn"
+                            [class.active]="store.isInWishlist(prod.id)"
+                            (click)="store.toggleWishlist(prod); $event.stopPropagation()"
+                            [title]="store.isInWishlist(prod.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
+                          >
+                            <span class="material-symbols-outlined">
+                              {{ store.isInWishlist(prod.id) ? 'favorite' : 'favorite_border' }}
+                            </span>
+                          </button>
+
+                          <span class="origin-tag">📍 {{ prod.originRegion }}</span>
+                        </div>
+
+                        <!-- Details Body -->
+                        <div class="card-body">
+                          <span class="cat-chip">{{ prod.category }}</span>
+                          <h4 class="prod-name" (click)="selectedProduct.set(prod)" [title]="prod.name">{{ prod.name }}</h4>
+
+                          <div class="meta-row">
+                            <span class="stars">★ {{ prod.rating }}</span>
+                            <span class="reviews">({{ prod.reviewsCount }})</span>
+                            <span class="weight-tag">• {{ prod.weight }}</span>
+                          </div>
+
+                          <p class="prod-desc">{{ prod.description }}</p>
+
+                          <div class="card-footer">
+                            <div class="price-box">
+                              <span class="current-price">₹{{ prod.price }}</span>
+                              @if (prod.originalPrice) {
+                                <span class="orig-price">₹{{ prod.originalPrice }}</span>
+                              }
+                            </div>
+
+                            <div class="card-actions-group" (click)="$event.stopPropagation()">
+                              @if (store.getCartQuantity(prod.id) === 0) {
+                                <button class="add-cart-btn" (click)="store.addToCart(prod, 1)">
+                                  <span class="material-symbols-outlined">add_shopping_cart</span>
+                                  Add
+                                </button>
+                              } @else {
+                                <div class="qty-counter-pill">
+                                  <button class="qty-btn-minus" (click)="store.updateCartQuantity(prod.id, -1)" title="Decrease">
+                                    <span class="material-symbols-outlined">remove</span>
+                                  </button>
+                                  <span class="qty-val">{{ store.getCartQuantity(prod.id) }}</span>
+                                  <button class="qty-btn-plus" (click)="store.updateCartQuantity(prod.id, 1)" title="Increase">
+                                    <span class="material-symbols-outlined">add</span>
+                                  </button>
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Right Arrow (Shown Only When Scroll Right is Enabled) -->
+                  @if (canScrollRight(slugify(catName), getProductsByCategory(catName).length)) {
+                    <button
+                      class="carousel-arrow-btn next-btn"
+                      (click)="scrollCategoryRight('carousel-' + slugify(catName), slugify(catName))"
+                      title="Scroll Right"
+                    >
+                      <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </section>
+    }
   }
 
   <!-- PRODUCT DETAIL MODAL -->
