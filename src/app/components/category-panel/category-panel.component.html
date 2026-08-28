@@ -1,0 +1,57 @@
+@if (store.isCategoryPanelOpen()) {
+  <div class="panel-backdrop" (click)="store.isCategoryPanelOpen.set(false)">
+    <aside class="category-panel card-surface" (click)="$event.stopPropagation()">
+      <!-- Header -->
+      <div class="panel-header">
+        <div class="title-box">
+          <span class="material-symbols-outlined header-icon">grid_view</span>
+          <div>
+            <h3>Product Categories</h3>
+            <p class="sub-title">Browse all grocery & lifestyle departments</p>
+          </div>
+        </div>
+        <button class="close-btn" (click)="store.isCategoryPanelOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Categories List Body -->
+      <div class="panel-body">
+        @for (catName of store.categories(); track catName) {
+          @if (catName !== 'All Categories') {
+            <div class="category-card" (click)="selectCategory(catName)">
+              <div class="cat-icon-box">
+                <span class="material-symbols-outlined">
+                  @switch (catName) {
+                    @case ('Flours, Rice & Dals') { rice_bowl }
+                    @case ('Spices & Seasonings') { spa }
+                    @case ('Sweets & Snacks') { bakery_dining }
+                    @case ('Dairy, Frozen & Instant') { local_dining }
+                    @case ('Beverages & Teas') { emoji_food_beverage }
+                    @case ('Pickles, Chutneys & Sauces') { soup_kitchen }
+                    @case ('Puja & Personal Care') { auto_awesome }
+                    @default { storefront }
+                  }
+                </span>
+              </div>
+
+              <div class="cat-info">
+                <h4 class="cat-name">{{ catName }}</h4>
+                <span class="cat-count">{{ getProductsCount(catName) }} Products Available</span>
+              </div>
+
+              <span class="material-symbols-outlined arrow-icon">chevron_right</span>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Footer Action -->
+      <div class="panel-footer">
+        <button class="view-all-btn" (click)="selectCategory('All Categories')">
+          View All Products Catalog
+        </button>
+      </div>
+    </aside>
+  </div>
+}

@@ -147,134 +147,158 @@
       </div>
     </section>
 
-    <!-- Active Order Tracker Strip for Customer -->
-    @if (store.orders().length > 0) {
-      <div class="my-orders-strip card-surface">
-        <div class="strip-info">
-          <span class="material-symbols-outlined text-select">local_shipping</span>
-          <div>
-            <strong>Active Order Tracker (#{{ store.orders()[0].id }})</strong>
-            <p>Status: <span class="badge badge-green">{{ store.orders()[0].status }}</span> • Placed at {{ store.orders()[0].placedAt }}</p>
-          </div>
-        </div>
-        <button class="track-btn" (click)="selectedOrder.set(store.orders()[0])">
-          Track Order Status →
-        </button>
-      </div>
-    }
+   
 
-    <!-- 2. ITEMS CATEGORIZED BY CATEGORY SECTION -->
+    <!-- 2. ITEMS CATEGORIZED BY CATEGORY SECTION WITH RIGHT SIDE CATEGORY PANEL -->
     <section id="categories-section" class="categorized-products-section">
       <div class="section-main-header">
         <div>
           <h2 class="section-title">Explore Store Items Categorized by Heritage Collections</h2>
           <p class="section-subtitle">Browse products organized cleanly by regional categories</p>
         </div>
-
-        <!-- Category Fast Jump Pills -->
-        <div class="category-jump-pills">
-          @for (cat of categoryListWithoutAll(); track cat) {
-            <button class="jump-pill" (click)="scrollToCategorySection(cat)">
-              {{ cat }}
-            </button>
-          }
-        </div>
       </div>
 
-      <!-- CATEGORY SECTIONS -->
-      @for (catName of categoryListWithoutAll(); track catName) {
-        @if (getProductsByCategory(catName).length > 0) {
-          <div [id]="'cat-section-' + slugify(catName)" class="category-block card-surface">
-            <!-- Category Section Header -->
-            <div class="cat-block-header">
-              <div class="cat-title-box">
-                <span class="material-symbols-outlined cat-icon">
-                  @switch (catName) {
-                    @case ('Flours, Rice & Dals') { rice_bowl }
-                    @case ('Spices & Seasonings') { spa }
-                    @case ('Sweets & Snacks') { bakery_dining }
-                    @case ('Dairy, Frozen & Instant') { local_dining }
-                    @case ('Beverages & Teas') { emoji_food_beverage }
-                    @case ('Pickles, Chutneys & Sauces') { soup_kitchen }
-                    @case ('Puja & Personal Care') { auto_awesome }
-                    @default { storefront }
-                  }
-                </span>
-                <div>
-                  <h3 class="cat-name">{{ catName }}</h3>
-                  <span class="cat-count">{{ getProductsByCategory(catName).length }} Authentic Products Available</span>
+      <div class="categorized-layout-grid">
+        <!-- Main Products Column (Left) -->
+        <div class="main-products-column">
+          @for (catName of categoryListWithoutAll(); track catName) {
+            @if (getProductsByCategory(catName).length > 0) {
+              <div [id]="'cat-section-' + slugify(catName)" class="category-block card-surface">
+                <!-- Category Section Header -->
+                <div class="cat-block-header">
+                  <div class="cat-title-box">
+                    <span class="material-symbols-outlined cat-icon">
+                      @switch (catName) {
+                        @case ('Flours, Rice & Dals') { rice_bowl }
+                        @case ('Spices & Seasonings') { spa }
+                        @case ('Sweets & Snacks') { bakery_dining }
+                        @case ('Dairy, Frozen & Instant') { local_dining }
+                        @case ('Beverages & Teas') { emoji_food_beverage }
+                        @case ('Pickles, Chutneys & Sauces') { soup_kitchen }
+                        @case ('Puja & Personal Care') { auto_awesome }
+                        @default { storefront }
+                      }
+                    </span>
+                    <div>
+                      <h3 class="cat-name">{{ catName }}</h3>
+                      <span class="cat-count">{{ getProductsByCategory(catName).length }} Authentic Products Available</span>
+                    </div>
+                  </div>
+                  <button class="view-all-cat-btn" (click)="scrollToCategorySection(catName)">
+                    Explore {{ catName }} →
+                  </button>
                 </div>
-              </div>
-              <button class="view-all-cat-btn" (click)="scrollToCategorySection(catName)">
-                Explore {{ catName }} →
-              </button>
-            </div>
 
-            <!-- Product Grid inside this category -->
-            <div class="product-grid">
-              @for (prod of getProductsByCategory(catName); track prod.id) {
-                <div class="product-card">
-                  <!-- Badges & Wishlist Heart -->
-                  <div class="card-badges">
-                    <div class="badges-left">
-                      @if (prod.isBestseller) {
-                        <span class="badge-bestseller">BESTSELLER</span>
-                      }
-                      @if (prod.isOrganic) {
-                        <span class="badge-organic">ORGANIC</span>
-                      }
-                    </div>
-                    <button
-                      class="wishlist-heart-btn"
-                      [class.active]="store.isInWishlist(prod.id)"
-                      (click)="store.toggleWishlist(prod); $event.stopPropagation()"
-                      [title]="store.isInWishlist(prod.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
-                    >
-                      <span class="material-symbols-outlined">
-                        {{ store.isInWishlist(prod.id) ? 'favorite' : 'favorite_border' }}
-                      </span>
-                    </button>
-                  </div>
-
-                  <!-- Product Image -->
-                  <div class="img-box" (click)="selectedProduct.set(prod)">
-                    <img [src]="prod.imageUrl" [alt]="prod.name" loading="lazy" />
-                    <span class="origin-tag">📍 {{ prod.originRegion }}</span>
-                  </div>
-
-                  <!-- Details -->
-                  <div class="card-details">
-                    <span class="cat-label">{{ prod.category }}</span>
-                    <h4 class="prod-title" (click)="selectedProduct.set(prod)">{{ prod.name }}</h4>
-
-                    <div class="rating-row">
-                      <span class="stars">★ {{ prod.rating }}</span>
-                      <span class="reviews">({{ prod.reviewsCount }} reviews)</span>
-                      <span class="weight-tag">• {{ prod.weight }}</span>
-                    </div>
-
-                    <p class="prod-desc">{{ prod.description }}</p>
-
-                    <div class="card-footer">
-                      <div class="price-box">
-                        <span class="current-price">₹{{ prod.price }}</span>
-                        @if (prod.originalPrice) {
-                          <span class="orig-price">₹{{ prod.originalPrice }}</span>
-                        }
+                <!-- Product Grid inside this category -->
+                <div class="product-grid">
+                  @for (prod of getProductsByCategory(catName); track prod.id) {
+                    <div class="product-card">
+                      <!-- Badges & Wishlist Heart -->
+                      <div class="card-badges">
+                        <div class="badges-left">
+                          @if (prod.isBestseller) {
+                            <span class="badge-bestseller">BESTSELLER</span>
+                          }
+                          @if (prod.isOrganic) {
+                            <span class="badge-organic">ORGANIC</span>
+                          }
+                        </div>
+                        <button
+                          class="wishlist-heart-btn"
+                          [class.active]="store.isInWishlist(prod.id)"
+                          (click)="store.toggleWishlist(prod); $event.stopPropagation()"
+                          [title]="store.isInWishlist(prod.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
+                        >
+                          <span class="material-symbols-outlined">
+                            {{ store.isInWishlist(prod.id) ? 'favorite' : 'favorite_border' }}
+                          </span>
+                        </button>
                       </div>
 
-                      <button class="add-cart-btn" (click)="store.addToCart(prod)">
-                        <span class="material-symbols-outlined">add_shopping_cart</span>
-                        Add
-                      </button>
+                      <!-- Product Image -->
+                      <div class="img-box" (click)="selectedProduct.set(prod)">
+                        <img [src]="prod.imageUrl" [alt]="prod.name" loading="lazy" />
+                        <span class="origin-tag">📍 {{ prod.originRegion }}</span>
+                      </div>
+
+                      <!-- Details -->
+                      <div class="card-details">
+                        <span class="cat-label">{{ prod.category }}</span>
+                        <h4 class="prod-title" (click)="selectedProduct.set(prod)">{{ prod.name }}</h4>
+
+                        <div class="rating-row">
+                          <span class="stars">★ {{ prod.rating }}</span>
+                          <span class="reviews">({{ prod.reviewsCount }} reviews)</span>
+                          <span class="weight-tag">• {{ prod.weight }}</span>
+                        </div>
+
+                        <p class="prod-desc">{{ prod.description }}</p>
+
+                        <div class="card-footer">
+                          <div class="price-box">
+                            <span class="current-price">₹{{ prod.price }}</span>
+                            @if (prod.originalPrice) {
+                              <span class="orig-price">₹{{ prod.originalPrice }}</span>
+                            }
+                          </div>
+
+                          <button class="add-cart-btn" (click)="store.addToCart(prod, 1)">
+                            <span class="material-symbols-outlined">add_shopping_cart</span>
+                            Add
+                          </button>
+                        </div>
+                      </div>
                     </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+        </div>
+
+        <!-- RIGHT SIDE STICKY CATEGORY PANEL -->
+        <aside class="right-category-sidebar">
+          <div class="sidebar-panel-card card-surface">
+            <div class="sidebar-header">
+              <span class="material-symbols-outlined sidebar-icon">grid_view</span>
+              <div>
+                <h3>Categories</h3>
+                <p>Quick Store Navigation</p>
+              </div>
+            </div>
+
+            <div class="sidebar-categories-list">
+              @for (catName of categoryListWithoutAll(); track catName) {
+                <div class="sidebar-cat-item" (click)="scrollToCategorySection(catName)">
+                  <div class="cat-item-left">
+                    <span class="material-symbols-outlined cat-item-icon">
+                      @switch (catName) {
+                        @case ('Flours, Rice & Dals') { rice_bowl }
+                        @case ('Spices & Seasonings') { spa }
+                        @case ('Sweets & Snacks') { bakery_dining }
+                        @case ('Dairy, Frozen & Instant') { local_dining }
+                        @case ('Beverages & Teas') { emoji_food_beverage }
+                        @case ('Pickles, Chutneys & Sauces') { soup_kitchen }
+                        @case ('Puja & Personal Care') { auto_awesome }
+                        @default { storefront }
+                      }
+                    </span>
+                    <span class="cat-item-name">{{ catName }}</span>
                   </div>
+                  <span class="cat-item-count">{{ getProductsByCategory(catName).length }}</span>
                 </div>
               }
             </div>
+
+            <div class="sidebar-footer">
+              <div class="quality-badge-row">
+                <span class="material-symbols-outlined icon">verified</span>
+                <span>100% Certified Organic & Authentic Heritage Items</span>
+              </div>
+            </div>
           </div>
-        }
-      }
+        </aside>
+      </div>
     </section>
   }
 

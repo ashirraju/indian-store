@@ -69,13 +69,17 @@
   }
 }
 
-.main-header {
-  background: #ffffff;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+.sticky-header-wrapper {
   position: sticky;
   top: 0;
   z-index: 990;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+}
+
+.main-header {
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 .header-container {
   max-width: 1400px;
@@ -240,6 +244,10 @@
     border-color: #0296e0;
     color: #0296e0;
   }
+}
+.cat-panel-icon {
+  color: #0296e0;
+  font-size: 18px;
 }
 .heart-icon {
   color: #ef4444;

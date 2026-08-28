@@ -30,6 +30,26 @@
 
       <!-- Orders List Body -->
       <div class="modal-body">
+        <!-- Active Order Tracker Strip inside Orders Modal -->
+        @if (store.orders().length > 0 && store.orders()[0].status !== 'Delivered') {
+          <div class="active-tracker-strip">
+            <div class="strip-info">
+              <span class="material-symbols-outlined tracker-icon">local_shipping</span>
+              <div class="strip-text">
+                <div class="strip-title-row">
+                  <strong>Active Order Tracker (#{{ store.orders()[0].id }})</strong>
+                  <span class="badge-status">{{ store.orders()[0].status }}</span>
+                </div>
+                <p>Placed at {{ store.orders()[0].placedAt }} • Agent: {{ store.orders()[0].assignedDeliveryAgent }}</p>
+              </div>
+            </div>
+            <button class="track-btn-primary" (click)="openLiveTracking(store.orders()[0])">
+              <span class="material-symbols-outlined">distance</span>
+              Track Order Status →
+            </button>
+          </div>
+        }
+
         @for (order of filteredOrders(); track order.id) {
           <div class="order-card card-surface">
             <!-- Top bar -->

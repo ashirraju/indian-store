@@ -22,6 +22,7 @@ export class StoreStateService {
   readonly isCartOpen = signal<boolean>(false);
   readonly isWishlistOpen = signal<boolean>(false);
   readonly isOrdersModalOpen = signal<boolean>(false);
+  readonly isCategoryPanelOpen = signal<boolean>(false);
   readonly selectedProductForModal = signal<Product | null>(null);
   readonly selectedOrderForTracking = signal<Order | null>(null);
   readonly wishlist = signal<Product[]>([
@@ -148,11 +149,8 @@ export class StoreStateService {
   // Dynamic Navigation Menus (Admin Customizable!)
   readonly menus = signal<MenuItem[]>([
     { id: 'm1', label: 'Store Catalog', icon: 'storefront', path: '/store', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 1 },
-    { id: 'm2', label: 'Flours & Dals', icon: 'rice_bowl', path: '/store', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 2 },
-    { id: 'm3', label: 'Spices & Seasonings', icon: 'spa', path: '/store', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 3 },
-    { id: 'm4', label: 'Festive & Sweets', icon: 'auto_awesome', path: '/page/diwali-special', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 4, badge: 'HOT' },
-    { id: 'm5', label: 'Wholesale Request', icon: 'inventory_2', path: '/form/bulk-wholesale', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 5 },
-    { id: 'm6', label: 'Feedback & Support', icon: 'support_agent', path: '/form/customer-feedback', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 6 }
+    { id: 'm2', label: 'Diwali Special', icon: 'auto_awesome', path: '/page/diwali-special', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 2, badge: 'HOT' },
+    { id: 'm3', label: 'Feedback & Support', icon: 'support_agent', path: '/form/customer-feedback', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 3 }
   ]);
 
   // Dynamic Custom Pages (Admin Customizable!)
@@ -706,8 +704,43 @@ export class StoreStateService {
     }, 4000);
   }
 
+  playAddToCartSound() {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const now = ctx.currentTime;
+
+      // Crisp double-chime (C6 -> E6)
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(1046.5, now);
+      gain1.gain.setValueAtTime(0.18, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.15);
+
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(1318.51, now + 0.07);
+      gain2.gain.setValueAtTime(0.22, now + 0.07);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(now + 0.07);
+      osc2.stop(now + 0.28);
+    } catch {
+      // Audio context fallback if audio block occurs
+    }
+  }
+
   // Cart operations
   addToCart(product: Product, quantity = 1) {
+    this.playAddToCartSound();
     const current = this.cart();
     const existingIndex = current.findIndex(i => i.product.id === product.id);
 
