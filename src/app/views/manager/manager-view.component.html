@@ -1,0 +1,198 @@
+<div class="manager-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <span class="role-chip">MANAGER CONSOLE</span>
+      <h2>Store Performance & Product Inventory</h2>
+      <p>Manage product catalog pricing, stock levels, and store analytics.</p>
+    </div>
+    <button class="add-prod-btn" (click)="isAddModalOpen.set(true)">
+      <span class="material-symbols-outlined">add_box</span>
+      Add New Product
+    </button>
+  </div>
+
+  <!-- Metrics Cards -->
+  <div class="metrics-grid">
+    <div class="metric-card card-surface">
+      <div class="metric-icon-box blue">
+        <span class="material-symbols-outlined">payments</span>
+      </div>
+      <div class="metric-info">
+        <span class="metric-label">Total Store Sales</span>
+        <strong class="metric-value">₹{{ totalSalesRevenue() }}</strong>
+        <span class="metric-sub green">↑ 18.4% this week</span>
+      </div>
+    </div>
+
+    <div class="metric-card card-surface">
+      <div class="metric-icon-box orange">
+        <span class="material-symbols-outlined">inventory_2</span>
+      </div>
+      <div class="metric-info">
+        <span class="metric-label">Total Products</span>
+        <strong class="metric-value">{{ store.products().length }} Items</strong>
+        <span class="metric-sub">{{ organicProductCount() }} Organic Certified</span>
+      </div>
+    </div>
+
+    <div class="metric-card card-surface">
+      <div class="metric-icon-box red">
+        <span class="material-symbols-outlined">warning</span>
+      </div>
+      <div class="metric-info">
+        <span class="metric-label">Low Stock Items</span>
+        <strong class="metric-value red-text">{{ lowStockCount() }} Items</strong>
+        <span class="metric-sub">Requires replenishment</span>
+      </div>
+    </div>
+
+    <div class="metric-card card-surface">
+      <div class="metric-icon-box green">
+        <span class="material-symbols-outlined">local_mall</span>
+      </div>
+      <div class="metric-info">
+        <span class="metric-label">Active Orders</span>
+        <strong class="metric-value">{{ store.orders().length }} Orders</strong>
+        <span class="metric-sub">Live pipeline</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Inventory Table -->
+  <div class="table-card card-surface">
+    <div class="table-header">
+      <h3>Catalog Inventory Management</h3>
+      <div class="table-search">
+        <input type="text" placeholder="Search catalog..." [(ngModel)]="searchFilter" />
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="inventory-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Category</th>
+            <th>Price (₹)</th>
+            <th>Stock</th>
+            <th>Origin</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (prod of filteredProducts(); track prod.id) {
+            <tr>
+              <td>
+                <div class="prod-cell">
+                  <img [src]="prod.imageUrl" [alt]="prod.name" class="thumb-img" />
+                  <div>
+                    <strong>{{ prod.name }}</strong>
+                    <span class="weight-label">{{ prod.weight }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="cat-badge">{{ prod.category }}</span>
+              </td>
+              <td>
+                <div class="price-edit-cell">
+                  <span>₹{{ prod.price }}</span>
+                  <button class="edit-sm-btn" (click)="promptEditPrice(prod)">Edit</button>
+                </div>
+              </td>
+              <td>
+                <div class="stock-cell">
+                  <button (click)="adjustStock(prod, -5)">-</button>
+                  <strong [class.low-stock]="prod.stock < 20">{{ prod.stock }}</strong>
+                  <button (click)="adjustStock(prod, 5)">+</button>
+                </div>
+              </td>
+              <td>{{ prod.originRegion }}</td>
+              <td>
+                @if (prod.stock < 20) {
+                  <span class="badge badge-red">Low Stock Alert</span>
+                } @else {
+                  <span class="badge badge-green">In Stock</span>
+                }
+              </td>
+              <td>
+                <button class="del-btn" (click)="store.deleteProduct(prod.id)">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Add Product Modal -->
+  @if (isAddModalOpen()) {
+    <div class="modal-backdrop" (click)="isAddModalOpen.set(false)">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <button class="modal-close" (click)="isAddModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+
+        <h3>Add New Item to Store Catalog</h3>
+
+        <form (submit)="onAddProductSubmit($event)" class="prod-form">
+          <div class="form-group">
+            <label>Product Name *</label>
+            <input type="text" [(ngModel)]="newProdName" name="name" required placeholder="e.g. Organic Turmeric Powder" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Category *</label>
+              <select [(ngModel)]="newProdCategory" name="category" required>
+                @for (cat of store.categories(); track cat) {
+                  @if (cat !== 'All Categories') {
+                    <option [value]="cat">{{ cat }}</option>
+                  }
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Price (₹) *</label>
+              <input type="number" [(ngModel)]="newProdPrice" name="price" required placeholder="399" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Weight / Quantity *</label>
+              <input type="text" [(ngModel)]="newProdWeight" name="weight" required placeholder="250g Pack" />
+            </div>
+            <div class="form-group">
+              <label>Initial Stock *</label>
+              <input type="number" [(ngModel)]="newProdStock" name="stock" required placeholder="50" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Origin Region *</label>
+            <input type="text" [(ngModel)]="newProdOrigin" name="origin" required placeholder="Erode, Tamil Nadu" />
+          </div>
+
+          <div class="form-group">
+            <label>Image URL</label>
+            <input type="text" [(ngModel)]="newProdImage" name="image" placeholder="https://images.unsplash.com/..." />
+          </div>
+
+          <div class="form-group">
+            <label>Description</label>
+            <textarea [(ngModel)]="newProdDesc" name="desc" placeholder="Product details..."></textarea>
+          </div>
+
+          <button type="submit" class="submit-prod-btn">Add Product to Store</button>
+        </form>
+      </div>
+    </div>
+  }
+
+</div>

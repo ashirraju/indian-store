@@ -1,0 +1,500 @@
+<div class="admin-container">
+
+  <!-- Admin Header -->
+  <div class="admin-header">
+    <div>
+      <span class="admin-chip">SUPER ADMIN CONTROL CENTER</span>
+      <h2>Storefront Customization & CMS Suite</h2>
+      <p>Dynamically manage navbar menus, custom pages, interactive forms, and hero banners.</p>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="admin-tabs">
+    <button class="tab-btn" [class.active]="activeTab() === 'menus'" (click)="activeTab.set('menus')">
+      <span class="material-symbols-outlined">menu_book</span>
+      Menu Builder ({{ store.menus().length }})
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'pages'" (click)="activeTab.set('pages')">
+      <span class="material-symbols-outlined">description</span>
+      Page Builder ({{ store.customPages().length }})
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'forms'" (click)="activeTab.set('forms')">
+      <span class="material-symbols-outlined">dynamic_form</span>
+      Form Builder ({{ store.customForms().length }})
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'banners'" (click)="activeTab.set('banners')">
+      <span class="material-symbols-outlined">tune</span>
+      Storefront & Banners
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'submissions'" (click)="activeTab.set('submissions')">
+      <span class="material-symbols-outlined">inbox</span>
+      Submissions ({{ store.formSubmissions().length }})
+    </button>
+  </div>
+
+  <!-- TAB 1: DYNAMIC MENU BUILDER -->
+  @if (activeTab() === 'menus') {
+    <div class="tab-content card-surface">
+      <div class="tab-title-row">
+        <div>
+          <h3>Navigation Menu Manager</h3>
+          <p>Add, edit, reorder or restrict navbar links for specific roles.</p>
+        </div>
+        <button class="primary-admin-btn" (click)="openMenuModal()">
+          <span class="material-symbols-outlined">add</span>
+          Create Menu Link
+        </button>
+      </div>
+
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Menu Label</th>
+            <th>Icon</th>
+            <th>Route Path</th>
+            <th>Visible To Roles</th>
+            <th>Badge</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (menu of store.menus(); track menu.id) {
+            <tr>
+              <td>
+                <strong class="order-num">{{ menu.order }}</strong>
+              </td>
+              <td>
+                <div class="menu-label-cell">
+                  <span class="material-symbols-outlined menu-icon-preview">{{ menu.icon }}</span>
+                  <strong>{{ menu.label }}</strong>
+                </div>
+              </td>
+              <td><code>{{ menu.icon }}</code></td>
+              <td><code>{{ menu.path }}</code></td>
+              <td>
+                <div class="role-tags">
+                  @for (role of menu.visibleRoles; track role) {
+                    <span class="role-tag">{{ role }}</span>
+                  }
+                </div>
+              </td>
+              <td>
+                @if (menu.badge) {
+                  <span class="badge badge-red">{{ menu.badge }}</span>
+                } @else {
+                  <span class="text-muted">-</span>
+                }
+              </td>
+              <td>
+                <div class="action-btns-row">
+                  <button class="icon-action-btn" (click)="openMenuModal(menu)">
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+                  <button class="icon-action-btn red" (click)="store.deleteMenuItem(menu.id)">
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- TAB 2: DYNAMIC PAGE BUILDER -->
+  @else if (activeTab() === 'pages') {
+    <div class="tab-content card-surface">
+      <div class="tab-title-row">
+        <div>
+          <h3>Custom Page Builder</h3>
+          <p>Create rich festival stories, about us pages, or campaign landing pages.</p>
+        </div>
+        <button class="primary-admin-btn" (click)="openPageModal()">
+          <span class="material-symbols-outlined">post_add</span>
+          Create Custom Page
+        </button>
+      </div>
+
+      <div class="pages-grid">
+        @for (page of store.customPages(); track page.id) {
+          <div class="page-admin-card card-surface">
+            <img [src]="page.bannerImage" [alt]="page.title" class="page-thumb" />
+            <div class="page-card-body">
+              <div class="slug-row">
+                <code>/page/{{ page.slug }}</code>
+                <span class="badge badge-green">Published</span>
+              </div>
+              <h4>{{ page.title }}</h4>
+              <p class="subtitle">{{ page.subtitle }}</p>
+
+              <div class="page-card-footer">
+                <button class="preview-btn" (click)="store.navigateTo('/page/' + page.slug)">
+                  View Page Live →
+                </button>
+                <div class="action-btns-row">
+                  <button class="icon-action-btn" (click)="openPageModal(page)">
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+                  <button class="icon-action-btn red" (click)="store.deleteCustomPage(page.id)">
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- TAB 3: DYNAMIC FORM BUILDER -->
+  @else if (activeTab() === 'forms') {
+    <div class="tab-content card-surface">
+      <div class="tab-title-row">
+        <div>
+          <h3>Dynamic Form Builder</h3>
+          <p>Build custom forms for customer inquiries, bulk requests, feedback, or delivery signups.</p>
+        </div>
+        <button class="primary-admin-btn" (click)="openFormModal()">
+          <span class="material-symbols-outlined">add_task</span>
+          Create New Form
+        </button>
+      </div>
+
+      <div class="forms-admin-list">
+        @for (formSchema of store.customForms(); track formSchema.id) {
+          <div class="form-admin-card card-surface">
+            <div class="form-card-top">
+              <div>
+                <span class="form-path">Route: <code>/form/{{ formSchema.slug }}</code></span>
+                <h4>{{ formSchema.title }}</h4>
+                <p>{{ formSchema.description }}</p>
+              </div>
+              <span class="field-count">{{ formSchema.fields.length }} Fields</span>
+            </div>
+
+            <div class="fields-preview-list">
+              @for (field of formSchema.fields; track field.id) {
+                <span class="field-pill">
+                  <strong>{{ field.label }}</strong> ({{ field.type }})
+                  @if (field.required) { * }
+                </span>
+              }
+            </div>
+
+            <div class="form-card-bottom">
+              <button class="preview-btn" (click)="store.navigateTo('/form/' + formSchema.slug)">
+                Test Live Form →
+              </button>
+              <div class="action-btns-row">
+                <button class="icon-action-btn" (click)="openFormModal(formSchema)">
+                  <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button class="icon-action-btn red" (click)="store.deleteDynamicForm(formSchema.id)">
+                  <span class="material-symbols-outlined">delete</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- TAB 4: STOREFRONT & BANNERS -->
+  @else if (activeTab() === 'banners') {
+    <div class="tab-content card-surface">
+      <div class="tab-title-row">
+        <div>
+          <h3>Storefront Banners & Announcements</h3>
+          <p>Live edit customer-facing announcement header, hero headline, and promo banners.</p>
+        </div>
+      </div>
+
+      <form (submit)="onSaveBanners($event)" class="banner-edit-form">
+        <div class="form-group">
+          <label>Top Announcement Bar Text *</label>
+          <input type="text" [(ngModel)]="announcementText" name="announcementText" required />
+        </div>
+
+        <div class="form-group">
+          <label>Announcement Bar Link Target</label>
+          <input type="text" [(ngModel)]="announcementLink" name="announcementLink" placeholder="/page/diwali-special" />
+        </div>
+
+        <div class="form-group">
+          <label>Hero Headline *</label>
+          <input type="text" [(ngModel)]="heroHeadline" name="heroHeadline" required />
+        </div>
+
+        <div class="form-group">
+          <label>Hero Subheadline *</label>
+          <textarea [(ngModel)]="heroSubheadline" name="heroSubheadline" required></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Promo Badge Text *</label>
+            <input type="text" [(ngModel)]="promoBadge" name="promoBadge" required />
+          </div>
+
+          <div class="form-group">
+            <label>Primary Button Text *</label>
+            <input type="text" [(ngModel)]="primaryButtonText" name="primaryButtonText" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Hero Banner Image URL *</label>
+          <input type="text" [(ngModel)]="heroBannerImage" name="heroBannerImage" required />
+        </div>
+
+        <button type="submit" class="primary-admin-btn save-banner-btn">
+          Save Storefront Appearance
+        </button>
+      </form>
+    </div>
+  }
+
+  <!-- TAB 5: SUBMISSIONS VIEWER -->
+  @else if (activeTab() === 'submissions') {
+    <div class="tab-content card-surface">
+      <div class="tab-title-row">
+        <div>
+          <h3>Customer Form Responses</h3>
+          <p>Submissions collected through user-facing dynamic forms.</p>
+        </div>
+      </div>
+
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Submitted At</th>
+            <th>Form Title</th>
+            <th>Submission Data Payload</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (sub of store.formSubmissions(); track sub.id) {
+            <tr>
+              <td><span class="text-muted">{{ sub.submittedAt }}</span></td>
+              <td><strong>{{ sub.formTitle }}</strong></td>
+              <td>
+                <div class="payload-box">
+                  @for (key of getKeys(sub.data); track key) {
+                    <div><strong>{{ key }}:</strong> {{ sub.data[key] }}</div>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+          @if (store.formSubmissions().length === 0) {
+            <tr><td colspan="3" class="text-center text-muted">No form responses received yet.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- MENU MODAL -->
+  @if (isMenuModalOpen()) {
+    <div class="modal-backdrop" (click)="isMenuModalOpen.set(false)">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <button class="modal-close" (click)="isMenuModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+        <h3>{{ editingMenuId ? 'Edit Navigation Menu' : 'Create Navigation Menu' }}</h3>
+
+        <form (submit)="onMenuSubmit($event)" class="modal-form">
+          <div class="form-group">
+            <label>Menu Label *</label>
+            <input type="text" [(ngModel)]="menuLabel" name="label" required placeholder="e.g. Festival Offers" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Material Icon Name *</label>
+              <input type="text" [(ngModel)]="menuIcon" name="icon" required placeholder="e.g. auto_awesome" />
+            </div>
+            <div class="form-group">
+              <label>Route Path *</label>
+              <input type="text" [(ngModel)]="menuPath" name="path" required placeholder="e.g. /page/diwali-special" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Sort Order *</label>
+              <input type="number" [(ngModel)]="menuOrder" name="order" required />
+            </div>
+            <div class="form-group">
+              <label>Badge Text (Optional)</label>
+              <input type="text" [(ngModel)]="menuBadge" name="badge" placeholder="e.g. HOT" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Visible to Roles *</label>
+            <div class="roles-checkboxes">
+              @for (r of allRoles; track r) {
+                <label class="chk-role">
+                  <input type="checkbox" [checked]="isRoleSelected(r)" (change)="toggleRoleSelection(r)" />
+                  <span>{{ r }}</span>
+                </label>
+              }
+            </div>
+          </div>
+
+          <button type="submit" class="primary-admin-btn full-btn">Save Menu Link</button>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- PAGE MODAL -->
+  @if (isPageModalOpen()) {
+    <div class="modal-backdrop" (click)="isPageModalOpen.set(false)">
+      <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+        <button class="modal-close" (click)="isPageModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+        <h3>{{ editingPageId ? 'Edit Custom Page' : 'Create New Custom Page' }}</h3>
+
+        <form (submit)="onPageSubmit($event)" class="modal-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Page Title *</label>
+              <input type="text" [(ngModel)]="pageTitle" name="title" required placeholder="e.g. Artisan Handlooms of India" />
+            </div>
+            <div class="form-group">
+              <label>URL Slug * (/page/slug)</label>
+              <input type="text" [(ngModel)]="pageSlug" name="slug" required placeholder="e.g. handloom-story" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Subtitle / Summary *</label>
+            <input type="text" [(ngModel)]="pageSubtitle" name="subtitle" required placeholder="Brief catchy description..." />
+          </div>
+
+          <div class="form-group">
+            <label>Banner Image URL *</label>
+            <input type="text" [(ngModel)]="pageBanner" name="banner" required />
+          </div>
+
+          <div class="form-group">
+            <label>Page HTML / Body Content *</label>
+            <textarea [(ngModel)]="pageContent" name="content" required rows="6"></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>CTA Button Label</label>
+              <input type="text" [(ngModel)]="pageCtaText" name="ctaText" placeholder="Shop Collection" />
+            </div>
+            <div class="form-group">
+              <label>CTA Button Link</label>
+              <input type="text" [(ngModel)]="pageCtaLink" name="ctaLink" placeholder="/store" />
+            </div>
+          </div>
+
+          <button type="submit" class="primary-admin-btn full-btn">Save Custom Page</button>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- FORM BUILDER MODAL -->
+  @if (isFormModalOpen()) {
+    <div class="modal-backdrop" (click)="isFormModalOpen.set(false)">
+      <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
+        <button class="modal-close" (click)="isFormModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+        <h3>{{ editingFormId ? 'Edit Dynamic Form Schema' : 'Create New Dynamic Form' }}</h3>
+
+        <form (submit)="onFormSubmit($event)" class="modal-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Form Title *</label>
+              <input type="text" [(ngModel)]="formTitle" name="title" required placeholder="e.g. Bulk Corporate Request" />
+            </div>
+            <div class="form-group">
+              <label>URL Slug * (/form/slug)</label>
+              <input type="text" [(ngModel)]="formSlug" name="slug" required placeholder="e.g. bulk-wholesale" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Form Description *</label>
+            <input type="text" [(ngModel)]="formDescription" name="desc" required placeholder="Short instructions for user..." />
+          </div>
+
+          <div class="form-group">
+            <label>Submit Button Text</label>
+            <input type="text" [(ngModel)]="formSubmitText" name="submitText" placeholder="Submit Form" />
+          </div>
+
+          <!-- Fields Builder Section -->
+          <div class="fields-builder-box">
+            <div class="builder-header">
+              <h4>Form Fields Builder</h4>
+              <button type="button" class="add-field-btn" (click)="addFormFieldRow()">
+                + Add Field
+              </button>
+            </div>
+
+            @for (field of formFields; track $index) {
+              <div class="field-row-card">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Field Label</label>
+                    <input type="text" [(ngModel)]="field.label" [name]="'lbl_' + $index" required placeholder="Label..." />
+                  </div>
+                  <div class="form-group">
+                    <label>Field Name Key</label>
+                    <input type="text" [(ngModel)]="field.name" [name]="'key_' + $index" required placeholder="keyName..." />
+                  </div>
+                  <div class="form-group">
+                    <label>Type</label>
+                    <select [(ngModel)]="field.type" [name]="'type_' + $index">
+                      <option value="text">Text Input</option>
+                      <option value="email">Email</option>
+                      <option value="number">Number</option>
+                      <option value="select">Dropdown Select</option>
+                      <option value="textarea">Textarea</option>
+                      <option value="checkbox">Checkbox</option>
+                    </select>
+                  </div>
+                </div>
+
+                @if (field.type === 'select') {
+                  <div class="form-group">
+                    <label>Dropdown Options (comma separated)</label>
+                    <input type="text" [value]="getOptionsString(field.options)" (input)="updateOptions(field, $event)" placeholder="Option 1, Option 2..." />
+                  </div>
+                }
+
+                <div class="field-row-bottom">
+                  <label class="chk-label">
+                    <input type="checkbox" [(ngModel)]="field.required" [name]="'req_' + $index" />
+                    <span>Required Field</span>
+                  </label>
+                  <button type="button" class="del-field-btn" (click)="removeFormFieldRow($index)">
+                    Remove Field
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <button type="submit" class="primary-admin-btn full-btn">Save Dynamic Form</button>
+        </form>
+      </div>
+    </div>
+  }
+
+</div>

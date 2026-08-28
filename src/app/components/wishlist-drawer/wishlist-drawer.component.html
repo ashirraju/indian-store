@@ -1,0 +1,70 @@
+@if (store.isWishlistOpen()) {
+  <div class="drawer-backdrop" (click)="store.isWishlistOpen.set(false)">
+    <aside class="wishlist-drawer card-surface" (click)="$event.stopPropagation()">
+      <!-- Header -->
+      <div class="drawer-header">
+        <div class="title-row">
+          <span class="material-symbols-outlined heart-header-icon">favorite</span>
+          <h3>Your Wishlist</h3>
+          <span class="count-badge">{{ store.wishlistTotalCount() }} Items</span>
+        </div>
+        <button class="close-btn" (click)="store.isWishlistOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Body / Items List -->
+      <div class="drawer-body">
+        @for (item of store.wishlist(); track item.id) {
+          <div class="wishlist-item-card">
+            <img [src]="item.imageUrl" [alt]="item.name" class="item-img" />
+
+            <div class="item-details">
+              <span class="item-category">{{ item.category }}</span>
+              <h4 class="item-name">{{ item.name }}</h4>
+              <span class="item-weight">{{ item.weight }}</span>
+
+              <div class="item-price-row">
+                <strong class="item-price">₹{{ item.price }}</strong>
+                @if (item.originalPrice) {
+                  <span class="orig-price">₹{{ item.originalPrice }}</span>
+                }
+              </div>
+            </div>
+
+            <div class="item-actions">
+              <button class="add-cart-btn" (click)="store.moveToCartFromWishlist(item)">
+                <span class="material-symbols-outlined">shopping_bag</span>
+                Move to Cart
+              </button>
+
+              <button class="remove-btn" (click)="store.removeFromWishlist(item.id)">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (store.wishlist().length === 0) {
+          <div class="empty-wishlist">
+            <span class="material-symbols-outlined empty-icon">favorite_border</span>
+            <h4>Your Wishlist is Empty</h4>
+            <p>Save items you love by clicking the heart icon on any product!</p>
+            <button class="explore-btn" (click)="store.isWishlistOpen.set(false)">
+              Explore Products
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Footer -->
+      @if (store.wishlist().length > 0) {
+        <div class="drawer-footer">
+          <button class="move-all-btn" (click)="moveAllToCart()">
+            Move All Items to Cart
+          </button>
+        </div>
+      }
+    </aside>
+  </div>
+}

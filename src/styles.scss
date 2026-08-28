@@ -1,1 +1,262 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
+
+html {
+  height: 100%;
+}
+
+:root,
+body.dark-theme {
+  /* Color Palette - Dark Premium Theme */
+  --select-color: #0296e0;
+  --select-color-hover: #02a6f8;
+  --select-color-glow: rgba(2, 150, 224, 0.25);
+
+  --sell-color: #ff5722;
+  --sell-color-hover: #e64a19;
+  --sell-color-glow: rgba(255, 87, 34, 0.35);
+
+  --primary-bg-color: #080b11;
+  --secondary-bg-color: #10141a;
+  --surface-bg-color: #161b22;
+  --card-bg-color: #1c232e;
+
+  --font-white: #94a3b8;
+  --font-muted: #64748b;
+  --font-green: #25c293;
+  --font-red: #ef4444;
+  --font-orange: #f97316;
+  --background-grey: #272b30;
+  --brite-white: #f8fafc;
+
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-color-hover: rgba(255, 255, 255, 0.16);
+  --font-primary:
+    'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-glow: 0 0 15px rgba(2, 150, 224, 0.15);
+
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+}
+
+body.light-theme {
+  /* Color Palette - Light Theme */
+  --select-color: #0296e0;
+  --select-color-hover: #0285c7;
+  --select-color-glow: rgba(2, 150, 224, 0.15);
+
+  --primary-bg-color: #f0f4f8;
+  --secondary-bg-color: #ebedf1;
+  --surface-bg-color: #ebedf1;
+  --card-bg-color: #ebedf1;
+
+  --font-white: #475569;
+  --font-muted: #64748b;
+  --font-green: #10b981;
+  --font-red: #ef4444;
+  --font-orange: #f97316;
+  --background-grey: #e2e8f0;
+  --brite-white: #0f172a;
+
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-color-hover: rgba(0, 0, 0, 0.16);
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-glow: 0 0 15px rgba(2, 150, 224, 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  outline: none;
+  scrollbar-width: thin;
+  scrollbar-color: #272b30 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #272b30;
+  border-radius: 4px;
+  &:hover {
+    background-color: #3b424a;
+  }
+}
+
+html,
+body {
+  height: 100%;
+  font-family: var(--font-primary);
+  background-color: var(--primary-bg-color);
+  color: var(--font-white);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  font-size: 14px;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* Background Utility Classes */
+.background-color-primary,
+.bg-primary {
+  background-color: var(--primary-bg-color);
+}
+
+.background-color-secondary,
+.bg-secondary {
+  background-color: var(--secondary-bg-color);
+}
+
+.card-surface {
+  background-color: var(--surface-bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+
+  &:hover {
+    border-color: var(--border-color-hover);
+  }
+}
+
+/* Text Color Utility Classes */
+.font-white {
+  color: var(--font-white);
+}
+
+.font-brite-white,
+.text-white {
+  color: var(--brite-white);
+}
+
+.font-muted,
+.text-muted {
+  color: var(--font-muted);
+}
+
+.green,
+.text-green {
+  color: var(--font-green) !important;
+}
+
+.red,
+.text-red {
+  color: var(--font-red) !important;
+}
+
+.orange,
+.text-orange {
+  color: var(--font-orange) !important;
+}
+
+.text-select {
+  color: var(--select-color);
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* Base Typography & Helper Classes */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--brite-white);
+  font-weight: 600;
+}
+
+button {
+  font-family: var(--font-primary);
+}
+
+/* Badge & Pill Helpers */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+
+  &.badge-green {
+    background-color: rgba(37, 194, 147, 0.15);
+    color: var(--font-green);
+  }
+
+  &.badge-red {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: var(--font-red);
+  }
+}
+
+/* Angular Material Overrides & Icon Font Consistency */
+.mat-icon,
+.material-symbols-outlined,
+.material-icons {
+  font-family: 'Material Symbols Outlined', 'Material Icons', sans-serif !important;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  user-select: none;
+
+  span,
+  .material-symbols-outlined,
+  .material-icons {
+    font-family: 'Material Symbols Outlined', 'Material Icons', sans-serif !important;
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+  }
+}
+
+.mat-mdc-slide-toggle {
+  --mdc-switch-selected-track-color: var(--select-color);
+  --mdc-switch-selected-handle-color: #ffffff;
+}
+
+/* Prevent iOS Mobile WebKit auto-zooming when focusing inputs */
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}

@@ -1,0 +1,166 @@
+<div class="ops-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <span class="role-chip">OPERATIONS & WAREHOUSE CONSOLE</span>
+      <h2>Live Order Fulfillment & Logistics Pipeline</h2>
+      <p>Process order packaging, assign delivery drivers, and monitor stock levels.</p>
+    </div>
+  </div>
+
+  <!-- Order Fulfillment Kanban / Pipeline -->
+  <div class="pipeline-grid">
+
+    <!-- Column 1: Placed / Pending Packing -->
+    <div class="pipeline-col card-surface">
+      <div class="col-header orange">
+        <span class="material-symbols-outlined">pending_actions</span>
+        <h3>Pending Packing</h3>
+        <span class="count-pill">{{ pendingPackingOrders().length }}</span>
+      </div>
+
+      <div class="cards-stack">
+        @for (order of pendingPackingOrders(); track order.id) {
+          <div class="order-card">
+            <div class="card-top">
+              <span class="order-id">#{{ order.id }}</span>
+              <span class="order-time">{{ order.placedAt }}</span>
+            </div>
+            <div class="customer-info">
+              <strong>{{ order.customerName }}</strong>
+              <p>📍 {{ order.city }}, {{ order.pincode }}</p>
+            </div>
+            <div class="items-summary">
+              @for (item of order.items; track item.product.id) {
+                <span>• {{ item.product.name }} (x{{ item.quantity }})</span>
+              }
+            </div>
+            <div class="card-actions">
+              <button class="action-btn orange" (click)="advanceStatus(order, 'In Packing', 'Packed at Central Dispatch Hub')">
+                Start Packing →
+              </button>
+            </div>
+          </div>
+        }
+        @if (pendingPackingOrders().length === 0) {
+          <div class="empty-state">No pending orders to pack.</div>
+        }
+      </div>
+    </div>
+
+    <!-- Column 2: In Packing -->
+    <div class="pipeline-col card-surface">
+      <div class="col-header blue">
+        <span class="material-symbols-outlined">package_2</span>
+        <h3>In Packing</h3>
+        <span class="count-pill">{{ inPackingOrders().length }}</span>
+      </div>
+
+      <div class="cards-stack">
+        @for (order of inPackingOrders(); track order.id) {
+          <div class="order-card">
+            <div class="card-top">
+              <span class="order-id">#{{ order.id }}</span>
+              <span class="order-time">{{ order.placedAt }}</span>
+            </div>
+            <div class="customer-info">
+              <strong>{{ order.customerName }}</strong>
+              <p>📍 {{ order.city }}</p>
+            </div>
+            <div class="items-summary">
+              @for (item of order.items; track item.product.id) {
+                <span>• {{ item.product.name }} (x{{ item.quantity }})</span>
+              }
+            </div>
+            <div class="card-actions">
+              <button class="action-btn blue" (click)="advanceStatus(order, 'Ready for Dispatch', 'Packed & Sealed with Tamper Proof Label')">
+                Mark Ready for Dispatch →
+              </button>
+            </div>
+          </div>
+        }
+        @if (inPackingOrders().length === 0) {
+          <div class="empty-state">No orders currently in packing.</div>
+        }
+      </div>
+    </div>
+
+    <!-- Column 3: Ready for Dispatch / Handed Over -->
+    <div class="pipeline-col card-surface">
+      <div class="col-header green">
+        <span class="material-symbols-outlined">local_shipping</span>
+        <h3>Ready for Dispatch</h3>
+        <span class="count-pill">{{ readyOrders().length }}</span>
+      </div>
+
+      <div class="cards-stack">
+        @for (order of readyOrders(); track order.id) {
+          <div class="order-card">
+            <div class="card-top">
+              <span class="order-id">#{{ order.id }}</span>
+              <span class="order-time">Ready</span>
+            </div>
+            <div class="customer-info">
+              <strong>{{ order.customerName }}</strong>
+              <p>Driver: <strong>{{ order.assignedDeliveryAgent || 'Vikram Singh (Express Logistics)' }}</strong></p>
+            </div>
+            <div class="card-actions">
+              <button class="action-btn green" (click)="advanceStatus(order, 'Out for Delivery', 'Handed to Delivery Agent Vikram', 'Vikram Singh (Express Logistics)')">
+                Handover to Delivery →
+              </button>
+            </div>
+          </div>
+        }
+        @if (readyOrders().length === 0) {
+          <div class="empty-state">No orders ready for dispatch.</div>
+        }
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Warehouse Stock Alerts Table -->
+  <div class="stock-alerts-card card-surface">
+    <h3>Warehouse Inventory Replenishment Monitor</h3>
+    <p class="sub-text">Products with low inventory threshold needing purchase orders.</p>
+
+    <table class="ops-table">
+      <thead>
+        <tr>
+          <th>SKU ID</th>
+          <th>Product Name</th>
+          <th>Current Stock</th>
+          <th>Reorder Point</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (prod of store.products(); track prod.id) {
+          @if (prod.stock < 50) {
+            <tr>
+              <td><code>{{ prod.id }}</code></td>
+              <td><strong>{{ prod.name }}</strong></td>
+              <td><span [class.red-text]="prod.stock < 20">{{ prod.stock }} units</span></td>
+              <td>50 units</td>
+              <td>
+                @if (prod.stock < 20) {
+                  <span class="badge badge-red">CRITICAL LOW</span>
+                } @else {
+                  <span class="badge badge-yellow">REORDER SOON</span>
+                }
+              </td>
+              <td>
+                <button class="reorder-btn" (click)="restockItem(prod)">
+                  Request +50 Stock
+                </button>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+</div>

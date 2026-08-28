@@ -1,0 +1,99 @@
+<!-- 1. TOP QUICK INFO BANNER (at the very top) -->
+<div class="top-info-banner">
+  <div class="banner-container">
+    <div class="announcement-message">
+      <span class="pulse-dot"></span>
+      <span>{{ store.bannerConfig().announcementText }}</span>
+      @if (store.bannerConfig().announcementLink) {
+        <button class="banner-link-btn" (click)="store.navigateTo(store.bannerConfig().announcementLink!)">
+          Explore Deals →
+        </button>
+      }
+    </div>
+
+    <div class="quick-info-chips">
+      @for (item of store.bannerConfig().quickInfoItems || []; track item) {
+        <span class="info-chip">{{ item }}</span>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- 2. MAIN HEADER (Below Top Banner) -->
+<header class="main-header">
+  <div class="header-container">
+    <!-- Logo -->
+    <div class="logo-area" (click)="store.navigateTo('/store')">
+      <div class="logo-icon-box">
+        <span class="material-symbols-outlined logo-icon">synagogue</span>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">INDIAN <span class="highlight">STORE</span></span>
+        <span class="brand-tagline">AUTHENTIC & ORGANIC</span>
+      </div>
+    </div>
+
+    <!-- Search Input -->
+    <div class="search-box">
+      <span class="material-symbols-outlined search-icon">search</span>
+      <input
+        type="text"
+        placeholder="Search spices, sweets, handloom sarees, tea..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearchChange($event)"
+      />
+      @if (searchQuery()) {
+        <button class="clear-btn" (click)="onSearchChange('')">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      }
+    </div>
+
+    <!-- Dynamic Menu Items (Customizable via Admin!) -->
+    <nav class="dynamic-nav">
+      @for (item of filteredMenus(); track item.id) {
+        <button
+          class="nav-link"
+          [class.active]="store.activePath() === item.path"
+          (click)="store.navigateTo(item.path)"
+        >
+          <span class="material-symbols-outlined nav-icon">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+          @if (item.badge) {
+            <span class="nav-badge">{{ item.badge }}</span>
+          }
+        </button>
+      }
+    </nav>
+
+    <!-- Right Header Actions -->
+    <div class="header-actions">
+      <!-- Wishlist Trigger -->
+      <button class="action-btn wishlist-btn" (click)="store.isWishlistOpen.set(true)" title="Wishlist">
+        <span class="material-symbols-outlined heart-icon">favorite</span>
+        <span class="btn-label">Wishlist</span>
+        @if (store.wishlistTotalCount() > 0) {
+          <span class="count-badge red">{{ store.wishlistTotalCount() }}</span>
+        }
+      </button>
+
+      <!-- Orders History Trigger -->
+      <button class="action-btn orders-btn" (click)="store.isOrdersModalOpen.set(true)" title="My Orders">
+        <span class="material-symbols-outlined">receipt_long</span>
+        <span class="btn-label">Orders</span>
+        @if (store.orders().length > 0) {
+          <span class="count-badge blue">{{ store.orders().length }}</span>
+        }
+      </button>
+
+      <!-- Cart Trigger -->
+      <button class="cart-trigger-btn" (click)="store.isCartOpen.set(true)">
+        <span class="material-symbols-outlined">shopping_cart</span>
+        <span class="cart-label">Cart</span>
+        @if (store.cartTotalCount() > 0) {
+          <span class="cart-count-badge">{{ store.cartTotalCount() }}</span>
+        }
+      </button>
+    </div>
+  </div>
+</header>

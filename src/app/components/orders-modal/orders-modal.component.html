@@ -1,0 +1,99 @@
+@if (store.isOrdersModalOpen()) {
+  <div class="modal-backdrop" (click)="store.isOrdersModalOpen.set(false)">
+    <div class="orders-modal card-surface" (click)="$event.stopPropagation()">
+      <!-- Header -->
+      <div class="modal-header">
+        <div class="title-box">
+          <span class="material-symbols-outlined header-icon">receipt_long</span>
+          <div>
+            <h3>Your Order History</h3>
+            <p class="sub-title">View placed orders, track real-time fulfillment, and reorder items.</p>
+          </div>
+        </div>
+        <button class="close-btn" (click)="store.isOrdersModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="status-tabs">
+        <button class="tab-btn" [class.active]="statusFilter() === 'ALL'" (click)="statusFilter.set('ALL')">
+          All Orders ({{ store.orders().length }})
+        </button>
+        <button class="tab-btn" [class.active]="statusFilter() === 'ACTIVE'" (click)="statusFilter.set('ACTIVE')">
+          Active Shipments ({{ activeOrdersCount() }})
+        </button>
+        <button class="tab-btn" [class.active]="statusFilter() === 'DELIVERED'" (click)="statusFilter.set('DELIVERED')">
+          Delivered ({{ deliveredOrdersCount() }})
+        </button>
+      </div>
+
+      <!-- Orders List Body -->
+      <div class="modal-body">
+        @for (order of filteredOrders(); track order.id) {
+          <div class="order-card card-surface">
+            <!-- Top bar -->
+            <div class="order-top">
+              <div class="order-id-group">
+                <span class="material-symbols-outlined box-icon">package_2</span>
+                <strong>Order #{{ order.id }}</strong>
+                <span class="order-date">Placed: {{ order.placedAt }}</span>
+              </div>
+              <span class="status-badge" [class.delivered]="order.status === 'Delivered'" [class.active]="order.status !== 'Delivered'">
+                {{ order.status }}
+              </span>
+            </div>
+
+            <!-- Content Grid -->
+            <div class="order-grid">
+              <div class="items-list">
+                @for (item of order.items; track item.product.id) {
+                  <div class="item-row">
+                    <img [src]="item.product.imageUrl" [alt]="item.product.name" class="item-thumb" />
+                    <div class="item-info">
+                      <span class="name">{{ item.product.name }}</span>
+                      <span class="qty">Qty: {{ item.quantity }} • ₹{{ item.product.price }} each</span>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <div class="order-meta">
+                <div class="meta-block">
+                  <span class="meta-label">Shipping Address</span>
+                  <strong>{{ order.customerName }}</strong>
+                  <p>{{ order.deliveryAddress }}, {{ order.city }} - {{ order.pincode }}</p>
+                </div>
+                <div class="meta-block">
+                  <span class="meta-label">Total Payment ({{ order.paymentMethod }})</span>
+                  <strong class="total-price">₹{{ order.totalAmount }}</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="order-footer">
+              <button class="track-btn" (click)="openLiveTracking(order)">
+                <span class="material-symbols-outlined">distance</span>
+                Track Live Order Timeline
+              </button>
+
+              <button class="reorder-btn" (click)="reorderItems(order)">
+                <span class="material-symbols-outlined">refresh</span>
+                Reorder Items
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (filteredOrders().length === 0) {
+          <div class="empty-orders">
+            <span class="material-symbols-outlined empty-icon">shopping_basket</span>
+            <h4>No Orders Found</h4>
+            <p>You haven't placed any orders matching this status yet.</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,28 @@
+import { CartItem } from './product.model';
+
+export type OrderStatus = 'Placed' | 'In Packing' | 'Ready for Dispatch' | 'Out for Delivery' | 'Delivered';
+
+export interface OrderTimelineStep {
+  status: OrderStatus;
+  timestamp: string;
+  completed: boolean;
+  notes?: string;
+}
+
+export interface Order {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  deliveryAddress: string;
+  city: string;
+  pincode: string;
+  items: CartItem[];
+  totalAmount: number;
+  paymentMethod: string;
+  status: OrderStatus;
+  placedAt: string;
+  assignedDeliveryAgent?: string;
+  deliveryNotes?: string;
+  timeline: OrderTimelineStep[];
+}

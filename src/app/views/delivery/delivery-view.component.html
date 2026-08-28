@@ -1,0 +1,109 @@
+<div class="delivery-container">
+
+  <!-- Header & Driver Stats -->
+  <div class="driver-header card-surface">
+    <div class="driver-profile">
+      <img src="https://images.unsplash.com/photo-1600486913747-55e5470d6f40?w=150&auto=format&fit=crop&q=80" alt="Vikram Singh" class="driver-avatar" />
+      <div>
+        <span class="role-chip">DELIVERY PARTNER PORTAL</span>
+        <h2>Vikram Singh</h2>
+        <p>Express Logistics Partner • ID #DEL-8842</p>
+      </div>
+    </div>
+
+    <div class="driver-stats">
+      <div class="stat-pill">
+        <span class="stat-num">14</span>
+        <span class="stat-label">Delivered Today</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-num">₹1,850</span>
+        <span class="stat-label">Today's Earnings</span>
+      </div>
+      <div class="stat-pill">
+        <span class="stat-num">4.9 ★</span>
+        <span class="stat-label">Rating</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">
+    <h3>Assigned Deliveries Queue</h3>
+    <p>Active customer shipments pending delivery in your route zone.</p>
+  </div>
+
+  <!-- Active Delivery Orders List -->
+  <div class="delivery-orders-list">
+    @for (order of activeDeliveryOrders(); track order.id) {
+      <div class="delivery-card card-surface">
+        <!-- Header -->
+        <div class="card-header">
+          <div class="order-ref">
+            <span class="material-symbols-outlined icon">local_shipping</span>
+            <strong>Order #{{ order.id }}</strong>
+            <span class="badge badge-green">{{ order.status }}</span>
+          </div>
+          <span class="placed-time">Placed: {{ order.placedAt }}</span>
+        </div>
+
+        <!-- Main Body -->
+        <div class="card-body">
+          <div class="customer-info-box">
+            <h4>{{ order.customerName }}</h4>
+            <p class="phone">📞 {{ order.customerPhone }} <button class="call-btn" (click)="callCustomer(order.customerPhone)">Call Customer</button></p>
+            <p class="address">📍 {{ order.deliveryAddress }}, {{ order.city }} - {{ order.pincode }}</p>
+            @if (order.deliveryNotes) {
+              <p class="notes">📝 Note: {{ order.deliveryNotes }}</p>
+            }
+          </div>
+
+          <!-- Package Items -->
+          <div class="package-items-box">
+            <h5>Package Contents (₹{{ order.totalAmount }})</h5>
+            @for (item of order.items; track item.product.id) {
+              <div class="item-line">
+                <span>{{ item.product.name }}</span>
+                <strong>x{{ item.quantity }}</strong>
+              </div>
+            }
+            <span class="pay-method">Payment: <strong>{{ order.paymentMethod }}</strong></span>
+          </div>
+        </div>
+
+        <!-- Route Map Simulation Card -->
+        <div class="map-simulation">
+          <span class="material-symbols-outlined map-icon">map</span>
+          <span>Optimal Route: Central Hub → Ring Road → {{ order.city }} (12 mins away)</span>
+        </div>
+
+        <!-- Delivery Stepper Actions -->
+        <div class="card-footer">
+          @if (order.status === 'Ready for Dispatch') {
+            <button class="step-btn blue" (click)="updateStatus(order, 'Out for Delivery', 'Picked up by Vikram, en route to customer')">
+              <span class="material-symbols-outlined">directions_bike</span>
+              Pick Up & Start Delivery Route
+            </button>
+          }
+          @else if (order.status === 'Out for Delivery') {
+            <button class="step-btn green" (click)="updateStatus(order, 'Delivered', 'Delivered safely to customer with signature')">
+              <span class="material-symbols-outlined">check_circle</span>
+              Mark Order as DELIVERED ✓
+            </button>
+          }
+          @else {
+            <span class="completed-msg">✓ Delivery Completed Successfully</span>
+          }
+        </div>
+      </div>
+    }
+
+    @if (activeDeliveryOrders().length === 0) {
+      <div class="empty-card card-surface">
+        <span class="material-symbols-outlined empty-icon">done_all</span>
+        <h4>All assigned deliveries completed!</h4>
+        <p>Great job! You have no active pending deliveries in your queue.</p>
+      </div>
+    }
+  </div>
+
+</div>

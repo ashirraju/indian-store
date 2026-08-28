@@ -1,0 +1,31 @@
+<div class="role-switcher-bar">
+  <div class="bar-container">
+    <div class="role-badge">
+      <span class="material-symbols-outlined icon">admin_panel_settings</span>
+      <span class="role-label">Active Role:</span>
+      <strong class="current-role">{{ store.activeRole() }}</strong>
+    </div>
+
+    <div class="role-buttons">
+      @for (role of roles; track role.name) {
+        <button
+          type="button"
+          class="role-btn"
+          [class.active]="store.activeRole() === role.name"
+          (click)="selectRole(role.name)"
+        >
+          <span class="material-symbols-outlined btn-icon">{{ role.icon }}</span>
+          <span class="btn-name">{{ role.name }}</span>
+        </button>
+      }
+    </div>
+
+    <div class="user-pill">
+      <img [src]="store.currentUser().avatarUrl" [alt]="store.currentUser().name" class="avatar" />
+      <div class="user-info">
+        <span class="user-name">{{ store.currentUser().name }}</span>
+        <span class="user-email">{{ store.currentUser().email }}</span>
+      </div>
+    </div>
+  </div>
+</div>

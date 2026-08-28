@@ -1,0 +1,411 @@
+<!-- MAIN CUSTOMER CONTAINER -->
+<div class="customer-container">
+
+  <!-- Dynamic Route Handler: If path is /page/slug, render Custom Page -->
+  @if (activeCustomPage(); as page) {
+    <div class="cms-page-container">
+      <button class="back-btn" (click)="store.navigateTo('/store')">
+        ← Back to Store Catalog
+      </button>
+      <div class="cms-hero" [style.background-image]="'url(' + page.bannerImage + ')'">
+        <div class="cms-hero-overlay">
+          <span class="cms-badge">CUSTOM FEATURE STORY</span>
+          <h2>{{ page.title }}</h2>
+          <p>{{ page.subtitle }}</p>
+        </div>
+      </div>
+      <div class="cms-content-card card-surface" [innerHTML]="page.content"></div>
+      @if (page.ctaText && page.ctaLink) {
+        <div class="cms-cta-box">
+          <button class="cta-btn" (click)="store.navigateTo(page.ctaLink!)">
+            {{ page.ctaText }} →
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Dynamic Route Handler: If path is /form/slug, render Custom Form -->
+  @else if (activeCustomForm(); as formSchema) {
+    <div class="cms-form-container">
+      <button class="back-btn" (click)="store.navigateTo('/store')">
+        ← Back to Store Catalog
+      </button>
+      <div class="form-card card-surface">
+        <div class="form-header">
+          <span class="material-symbols-outlined form-icon">dynamic_form</span>
+          <h2>{{ formSchema.title }}</h2>
+          <p>{{ formSchema.description }}</p>
+        </div>
+
+        <form (submit)="onDynamicFormSubmit($event, formSchema)" class="dynamic-form">
+          @for (field of formSchema.fields; track field.id) {
+            <div class="form-group">
+              <label>
+                {{ field.label }}
+                @if (field.required) { <span class="req">*</span> }
+              </label>
+
+              @switch (field.type) {
+                @case ('textarea') {
+                  <textarea
+                    [name]="field.name"
+                    [required]="field.required"
+                    [placeholder]="field.placeholder || ''"
+                    (change)="updateFormData(field.name, $event)"
+                  ></textarea>
+                }
+                @case ('select') {
+                  <select
+                    [name]="field.name"
+                    [required]="field.required"
+                    (change)="updateFormData(field.name, $event)"
+                  >
+                    <option value="">-- Select Option --</option>
+                    @for (opt of field.options || []; track opt) {
+                      <option [value]="opt">{{ opt }}</option>
+                    }
+                  </select>
+                }
+                @case ('checkbox') {
+                  <label class="chk-label">
+                    <input
+                      type="checkbox"
+                      [name]="field.name"
+                      (change)="updateFormData(field.name, $event)"
+                    />
+                    <span>Confirm yes</span>
+                  </label>
+                }
+                @default {
+                  <input
+                    [type]="field.type"
+                    [name]="field.name"
+                    [required]="field.required"
+                    [placeholder]="field.placeholder || ''"
+                    (change)="updateFormData(field.name, $event)"
+                  />
+                }
+              }
+            </div>
+          }
+
+          <button type="submit" class="submit-form-btn">
+            {{ formSchema.submitButtonText || 'Submit' }}
+          </button>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- DEFAULT STOREFRONT VIEW -->
+  @else {
+
+    <!-- 1. OFFERS & PROMOTIONS SECTION ("then show offers and all") -->
+    <section class="offers-section">
+      <!-- Main Hero Banner -->
+      <div class="hero-banner">
+        <div class="hero-content">
+          <span class="promo-pill">{{ store.bannerConfig().promoBadge }}</span>
+          <h1 class="hero-title">{{ store.bannerConfig().heroHeadline }}</h1>
+          <p class="hero-desc">{{ store.bannerConfig().heroSubheadline }}</p>
+          <div class="hero-actions">
+            <button class="hero-primary-btn" (click)="scrollToCategories()">
+              {{ store.bannerConfig().primaryButtonText }} ↓
+            </button>
+            <button class="hero-secondary-btn" (click)="store.navigateTo('/page/diwali-special')">
+              View Festive Offers ✨
+            </button>
+          </div>
+        </div>
+        <div class="hero-image-wrapper">
+          <img [src]="store.bannerConfig().heroBannerImage" alt="Indian Store Heritage" class="hero-img" />
+        </div>
+      </div>
+
+      <!-- Active Coupon & Offer Cards Grid ("Show Offers and All") -->
+      <div class="offers-header">
+        <h3>🔥 Hot Deals, Coupons & Featured Offers</h3>
+        <p>Use codes at checkout for instant savings & free gifts</p>
+      </div>
+
+      <div class="offers-grid">
+        @for (offer of store.offers(); track offer.id) {
+          <div class="offer-card" [style.background]="offer.bgColor" (click)="store.navigateTo(offer.link)">
+            <img [src]="offer.image" [alt]="offer.title" class="offer-img" />
+            <div class="offer-info">
+              <span class="offer-badge">{{ offer.badge }}</span>
+              <h4 class="offer-title">{{ offer.title }}</h4>
+              <div class="offer-discount">{{ offer.discount }}</div>
+              <div class="coupon-box">
+                <span>CODE: <strong>{{ offer.code }}</strong></span>
+              </div>
+              <span class="offer-validity">⏱️ {{ offer.validTill }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- Active Order Tracker Strip for Customer -->
+    @if (store.orders().length > 0) {
+      <div class="my-orders-strip card-surface">
+        <div class="strip-info">
+          <span class="material-symbols-outlined text-select">local_shipping</span>
+          <div>
+            <strong>Active Order Tracker (#{{ store.orders()[0].id }})</strong>
+            <p>Status: <span class="badge badge-green">{{ store.orders()[0].status }}</span> • Placed at {{ store.orders()[0].placedAt }}</p>
+          </div>
+        </div>
+        <button class="track-btn" (click)="selectedOrder.set(store.orders()[0])">
+          Track Order Status →
+        </button>
+      </div>
+    }
+
+    <!-- 2. ITEMS CATEGORIZED BY CATEGORY SECTION -->
+    <section id="categories-section" class="categorized-products-section">
+      <div class="section-main-header">
+        <div>
+          <h2 class="section-title">Explore Store Items Categorized by Heritage Collections</h2>
+          <p class="section-subtitle">Browse products organized cleanly by regional categories</p>
+        </div>
+
+        <!-- Category Fast Jump Pills -->
+        <div class="category-jump-pills">
+          @for (cat of categoryListWithoutAll(); track cat) {
+            <button class="jump-pill" (click)="scrollToCategorySection(cat)">
+              {{ cat }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- CATEGORY SECTIONS -->
+      @for (catName of categoryListWithoutAll(); track catName) {
+        @if (getProductsByCategory(catName).length > 0) {
+          <div [id]="'cat-section-' + slugify(catName)" class="category-block card-surface">
+            <!-- Category Section Header -->
+            <div class="cat-block-header">
+              <div class="cat-title-box">
+                <span class="material-symbols-outlined cat-icon">
+                  @switch (catName) {
+                    @case ('Flours, Rice & Dals') { rice_bowl }
+                    @case ('Spices & Seasonings') { spa }
+                    @case ('Sweets & Snacks') { bakery_dining }
+                    @case ('Dairy, Frozen & Instant') { local_dining }
+                    @case ('Beverages & Teas') { emoji_food_beverage }
+                    @case ('Pickles, Chutneys & Sauces') { soup_kitchen }
+                    @case ('Puja & Personal Care') { auto_awesome }
+                    @default { storefront }
+                  }
+                </span>
+                <div>
+                  <h3 class="cat-name">{{ catName }}</h3>
+                  <span class="cat-count">{{ getProductsByCategory(catName).length }} Authentic Products Available</span>
+                </div>
+              </div>
+              <button class="view-all-cat-btn" (click)="scrollToCategorySection(catName)">
+                Explore {{ catName }} →
+              </button>
+            </div>
+
+            <!-- Product Grid inside this category -->
+            <div class="product-grid">
+              @for (prod of getProductsByCategory(catName); track prod.id) {
+                <div class="product-card">
+                  <!-- Badges & Wishlist Heart -->
+                  <div class="card-badges">
+                    <div class="badges-left">
+                      @if (prod.isBestseller) {
+                        <span class="badge-bestseller">BESTSELLER</span>
+                      }
+                      @if (prod.isOrganic) {
+                        <span class="badge-organic">ORGANIC</span>
+                      }
+                    </div>
+                    <button
+                      class="wishlist-heart-btn"
+                      [class.active]="store.isInWishlist(prod.id)"
+                      (click)="store.toggleWishlist(prod); $event.stopPropagation()"
+                      [title]="store.isInWishlist(prod.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
+                    >
+                      <span class="material-symbols-outlined">
+                        {{ store.isInWishlist(prod.id) ? 'favorite' : 'favorite_border' }}
+                      </span>
+                    </button>
+                  </div>
+
+                  <!-- Product Image -->
+                  <div class="img-box" (click)="selectedProduct.set(prod)">
+                    <img [src]="prod.imageUrl" [alt]="prod.name" loading="lazy" />
+                    <span class="origin-tag">📍 {{ prod.originRegion }}</span>
+                  </div>
+
+                  <!-- Details -->
+                  <div class="card-details">
+                    <span class="cat-label">{{ prod.category }}</span>
+                    <h4 class="prod-title" (click)="selectedProduct.set(prod)">{{ prod.name }}</h4>
+
+                    <div class="rating-row">
+                      <span class="stars">★ {{ prod.rating }}</span>
+                      <span class="reviews">({{ prod.reviewsCount }} reviews)</span>
+                      <span class="weight-tag">• {{ prod.weight }}</span>
+                    </div>
+
+                    <p class="prod-desc">{{ prod.description }}</p>
+
+                    <div class="card-footer">
+                      <div class="price-box">
+                        <span class="current-price">₹{{ prod.price }}</span>
+                        @if (prod.originalPrice) {
+                          <span class="orig-price">₹{{ prod.originalPrice }}</span>
+                        }
+                      </div>
+
+                      <button class="add-cart-btn" (click)="store.addToCart(prod)">
+                        <span class="material-symbols-outlined">add_shopping_cart</span>
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+    </section>
+  }
+
+  <!-- PRODUCT DETAIL MODAL -->
+  @if (selectedProduct(); as prod) {
+    <div class="modal-backdrop" (click)="selectedProduct.set(null)">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <button class="modal-close" (click)="selectedProduct.set(null)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+        <div class="modal-grid">
+          <img [src]="prod.imageUrl" [alt]="prod.name" class="modal-img" />
+          <div class="modal-info">
+            <span class="origin-pill">Origin: {{ prod.originRegion }}</span>
+            <h2>{{ prod.name }}</h2>
+            <div class="modal-rating">★ {{ prod.rating }} ({{ prod.reviewsCount }} reviews) • {{ prod.weight }}</div>
+            <p class="modal-desc">{{ prod.description }}</p>
+
+            <div class="modal-tags">
+              @for (tag of prod.tags; track tag) {
+                <span class="tag-pill">#{{ tag }}</span>
+              }
+            </div>
+
+            <div class="modal-stock">
+              In Stock: <strong>{{ prod.stock }} units</strong>
+            </div>
+
+            <div class="modal-footer">
+              <div class="modal-price">
+                ₹{{ prod.price }}
+                @if (prod.originalPrice) {
+                  <del>₹{{ prod.originalPrice }}</del>
+                }
+              </div>
+              <button class="modal-add-btn" (click)="store.addToCart(prod); selectedProduct.set(null)">
+                Add to Cart Shopping
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ORDER TRACKING MODAL -->
+  @if (selectedOrder(); as order) {
+    <div class="modal-backdrop" (click)="selectedOrder.set(null)">
+      <div class="modal-card order-modal" (click)="$event.stopPropagation()">
+        <button class="modal-close" (click)="selectedOrder.set(null)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+
+        <h3>Live Order Tracking — #{{ order.id }}</h3>
+        <p class="modal-sub">Placed by {{ order.customerName }} on {{ order.placedAt }}</p>
+
+        <div class="timeline-container">
+          @for (step of order.timeline; track step.status) {
+            <div class="timeline-step" [class.completed]="step.completed">
+              <div class="step-dot">
+                @if (step.completed) { ✓ } @else { • }
+              </div>
+              <div class="step-content">
+                <strong class="step-title">{{ step.status }}</strong>
+                <span class="step-time">{{ step.timestamp }}</span>
+                @if (step.notes) {
+                  <p class="step-notes">{{ step.notes }}</p>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="order-summary-box">
+          <h4>Order Items</h4>
+          @for (item of order.items; track item.product.id) {
+            <div class="order-item-row">
+              <span>{{ item.product.name }} (x{{ item.quantity }})</span>
+              <strong>₹{{ item.product.price * item.quantity }}</strong>
+            </div>
+          }
+          <div class="order-total-row">
+            <span>Total Amount</span>
+            <strong>₹{{ order.totalAmount }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- STORE FOOTER -->
+  <footer class="store-footer card-surface">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <span class="material-symbols-outlined logo-icon">synagogue</span>
+          <strong>INDIAN STORE</strong>
+        </div>
+        <p>100% Authentic Organic Goods & Heritage Handloom Crafts from India.</p>
+        <p class="copyright">© 2026 Indian Store. All rights reserved.</p>
+      </div>
+
+      <div class="footer-col">
+        <h5>Customer Support</h5>
+        <a (click)="scrollToCategories()">Store Catalog</a>
+        <a (click)="store.navigateTo('/page/diwali-special')">Diwali Special</a>
+        <a (click)="store.navigateTo('/form/bulk-wholesale')">Wholesale Enquiries</a>
+        <a (click)="store.navigateTo('/form/customer-feedback')">Feedback & Support</a>
+      </div>
+
+      <div class="footer-col portal-col">
+        <h5>Internal Staff Portals</h5>
+        <p class="portal-info">Access role dashboards directly via URL paths:</p>
+        <a class="portal-link" (click)="store.navigateTo('/admin')">
+          <span class="material-symbols-outlined">shield_person</span>
+          Super Admin (/admin)
+        </a>
+        <a class="portal-link" (click)="store.navigateTo('/manager')">
+          <span class="material-symbols-outlined">monitoring</span>
+          Store Manager (/manager)
+        </a>
+        <a class="portal-link" (click)="store.navigateTo('/operations')">
+          <span class="material-symbols-outlined">precision_manufacturing</span>
+          Operations (/operations)
+        </a>
+        <a class="portal-link" (click)="store.navigateTo('/delivery')">
+          <span class="material-symbols-outlined">local_shipping</span>
+          Delivery Partner (/delivery)
+        </a>
+      </div>
+    </div>
+  </footer>
+
+</div>
