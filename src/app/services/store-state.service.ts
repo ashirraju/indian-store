@@ -148,9 +148,16 @@ export class StoreStateService {
 
   // Dynamic Navigation Menus (Admin Customizable!)
   readonly menus = signal<MenuItem[]>([
-    { id: 'm1', label: 'Store Catalog', icon: 'storefront', path: '/store', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 1 },
-    { id: 'm2', label: 'Diwali Special', icon: 'auto_awesome', path: '/page/diwali-special', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 2, badge: 'HOT' },
-    { id: 'm3', label: 'Feedback & Support', icon: 'support_agent', path: '/form/customer-feedback', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 3 }
+    { id: 'm1', label: 'Atta, rice & grains', icon: 'grain', path: '/category/atta-rice-grains', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 1 },
+    { id: 'm2', label: 'Dal & pulses', icon: 'rice_bowl', path: '/category/dal-pulses', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 2 },
+    { id: 'm3', label: 'Oil & ghee', icon: 'opacity', path: '/category/oil-ghee', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 3 },
+    { id: 'm4', label: 'Tea & coffee', icon: 'coffee', path: '/category/tea-coffee', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 4 },
+    { id: 'm5', label: 'Chips & biscuits', icon: 'cookie', path: '/category/chips-biscuits', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 5 },
+    { id: 'm6', label: 'Bath & body', icon: 'soap', path: '/category/bath-body', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 6 },
+    { id: 'm7', label: 'Make up & cosmetics', icon: 'face_retouching_natural', path: '/category/make-up-cosmetics', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 7 },
+    { id: 'm8', label: 'Laundry detergents', icon: 'local_laundry_service', path: '/category/laundry-detergents', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 8 },
+    { id: 'm9', label: 'Baby care', icon: 'child_care', path: '/category/baby-care', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 9 },
+    { id: 'm10', label: 'Pet care', icon: 'pets', path: '/category/pet-care', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 10 }
   ]);
 
   // Dynamic Custom Pages (Admin Customizable!)
@@ -177,22 +184,6 @@ export class StoreStateService {
       ctaLink: '/store',
       isPublished: true,
       createdAt: '2026-08-01'
-    },
-    {
-      id: 'p2',
-      slug: 'handloom-story',
-      title: 'Woven Legacies: Banarasi & Kanjeevaram Handlooms',
-      subtitle: 'Preserving India’s 500-year-old weaving traditions with direct artisan fair-trade partnerships.',
-      bannerImage: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1000&auto=format&fit=crop&q=80',
-      content: `
-        <h3>Direct From Master Weavers of Varanasi & Kanchipuram</h3>
-        <p>We work directly with weaver cooperatives to bring you authentic silk textiles without middleman markups. Each saree takes over 140 hours of manual craftsmanship on traditional wooden pit looms.</p>
-        <p>Every purchase ensures ethical wages and keeps ancient handloom arts thriving for future generations.</p>
-      `,
-      ctaText: 'Browse Handloom Sarees',
-      ctaLink: '/store',
-      isPublished: true,
-      createdAt: '2026-08-10'
     }
   ]);
 
@@ -208,23 +199,9 @@ export class StoreStateService {
       fields: [
         { id: 'f1_1', label: 'Company / Organization Name', name: 'companyName', type: 'text', placeholder: 'e.g. Spice Route Bistro', required: true },
         { id: 'f1_2', label: 'Contact Email Address', name: 'email', type: 'email', placeholder: 'contact@yourcompany.com', required: true },
-        { id: 'f1_3', label: 'Product Category Required', name: 'category', type: 'select', options: ['Organic Spices in Bulk', 'Festive Gift Hampers', 'Traditional Tea & Coffee', 'Custom Handloom Gifting'], required: true },
+        { id: 'f1_3', label: 'Product Category Required', name: 'category', type: 'select', options: ['Atta, rice & grains', 'Dal & pulses', 'Oil & ghee', 'Tea & coffee'], required: true },
         { id: 'f1_4', label: 'Estimated Order Quantity (KG or Units)', name: 'quantity', type: 'number', placeholder: 'e.g. 100', required: true },
         { id: 'f1_5', label: 'Special Instructions / Requirements', name: 'notes', type: 'textarea', placeholder: 'Specify custom branding, packaging preferences, or delivery timeline...', required: false }
-      ]
-    },
-    {
-      id: 'f2',
-      slug: 'customer-feedback',
-      title: 'Customer Feedback & Product Suggestion',
-      description: 'We love hearing from our community! Share your experience or request new regional items.',
-      submitButtonText: 'Send Feedback',
-      isPublished: true,
-      fields: [
-        { id: 'f2_1', label: 'Your Full Name', name: 'fullName', type: 'text', placeholder: 'e.g. Ananya Roy', required: true },
-        { id: 'f2_2', label: 'Email Address', name: 'email', type: 'email', placeholder: 'ananya@example.com', required: true },
-        { id: 'f2_3', label: 'Overall Shopping Experience', name: 'rating', type: 'select', options: ['⭐⭐⭐⭐⭐ Excellent', '⭐⭐⭐⭐ Good', '⭐⭐⭐ Average', '⭐⭐ Needs Improvement'], required: true },
-        { id: 'f2_4', label: 'Your Comments & Suggestions', name: 'comments', type: 'textarea', placeholder: 'Tell us what you liked or how we can serve you better...', required: true }
       ]
     }
   ]);
@@ -236,17 +213,17 @@ export class StoreStateService {
       formId: 'f1',
       formTitle: 'Bulk & Corporate Wholesale Request',
       submittedAt: '2026-08-27 14:30',
-      data: { companyName: 'Royal Spice House NYC', email: 'orders@royalspice.com', category: 'Organic Spices in Bulk', quantity: '250', notes: 'Need vacuum packed 5kg sacks of Malabar Black Pepper.' }
+      data: { companyName: 'Royal Spice House NYC', email: 'orders@royalspice.com', category: 'Atta, rice & grains', quantity: '250', notes: 'Need vacuum packed 5kg sacks of Basmati Rice.' }
     }
   ]);
 
-  // Initial Hardcoded Products (Inspired by Tales of India Catalog)
+  // Initial Hardcoded Products (Inspired by Amazon Fresh & Tales of India Catalog)
   readonly products = signal<Product[]>([
-    // 1. Flours, Rice & Dals
+    // 1. Atta, rice & grains
     {
-      id: 'p-101',
+      id: 'p-101a',
       name: 'India Gate Nur Jahan Biryani Basmati Rice (5kg)',
-      category: 'Flours, Rice & Dals',
+      category: 'Atta, rice & grains',
       price: 999,
       originalPrice: 1200,
       rating: 4.9,
@@ -261,9 +238,128 @@ export class StoreStateService {
       tags: ['Basmati Rice', 'Biryani', 'Pantry']
     },
     {
+      id: 'p-101b',
+      name: 'Daawat Rozana Gold Basmati Rice (5kg)',
+      category: 'Atta, rice & grains',
+      price: 549,
+      originalPrice: 650,
+      rating: 4.7,
+      reviewsCount: 132,
+      imageUrl: 'https://images.unsplash.com/photo-1536304929831-ee1ca9d44906?w=600&auto=format&fit=crop&q=80',
+      description: 'Daily cooking long grain aromatic basmati rice for home-cooked meals.',
+      weight: '5kg Pack',
+      stock: 75,
+      isOrganic: false,
+      isBestseller: false,
+      originRegion: 'Haryana, India',
+      tags: ['Basmati Rice', 'Daawat']
+    },
+    {
+      id: 'p-101c',
+      name: 'Aashirvaad Superior MP Sharbati Atta (10kg)',
+      category: 'Atta, rice & grains',
+      price: 799,
+      originalPrice: 899,
+      rating: 4.9,
+      reviewsCount: 340,
+      imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80',
+      description: '100% pure Sharbati wheat grains from the fertile fields of Sehore Madhya Pradesh.',
+      weight: '10kg Bag',
+      stock: 110,
+      isOrganic: true,
+      isBestseller: true,
+      originRegion: 'Madhya Pradesh, India',
+      tags: ['Sharbati Atta', 'Aashirvaad']
+    },
+    {
+      id: 'p-101d',
+      name: 'Fortune Chakki Fresh Whole Wheat Atta (5kg)',
+      category: 'Atta, rice & grains',
+      price: 399,
+      originalPrice: 460,
+      rating: 4.8,
+      reviewsCount: 95,
+      imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80',
+      description: 'Traditional stone-ground flour retaining natural dietary fiber and whole grain nutrients.',
+      weight: '5kg Pack',
+      stock: 85,
+      isOrganic: false,
+      isBestseller: false,
+      originRegion: 'Gujarat, India',
+      tags: ['Chakki Atta', 'Fortune']
+    },
+    {
+      id: 'p-101e',
+      name: 'Organic Tattva Certified Brown Basmati Rice (1kg)',
+      category: 'Atta, rice & grains',
+      price: 180,
+      originalPrice: 220,
+      rating: 4.6,
+      reviewsCount: 78,
+      imageUrl: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80',
+      description: 'Nutrient-rich unpolished brown basmati rice high in fiber and low glycemic index.',
+      weight: '1kg Pouch',
+      stock: 60,
+      isOrganic: true,
+      isBestseller: false,
+      originRegion: 'Uttarakhand, India',
+      tags: ['Brown Rice', 'Organic']
+    },
+    {
+      id: 'p-101f',
+      name: 'Pillsbury Multi-Grain Atta with 7 Grains (5kg)',
+      category: 'Atta, rice & grains',
+      price: 499,
+      originalPrice: 580,
+      rating: 4.8,
+      reviewsCount: 210,
+      imageUrl: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=600&auto=format&fit=crop&q=80',
+      description: 'Wholesome blend of wheat, soy, oats, maize, ragi, chana dal, and barley for wholesome rotis.',
+      weight: '5kg Pack',
+      stock: 90,
+      isOrganic: false,
+      isBestseller: true,
+      originRegion: 'India',
+      tags: ['Multigrain', 'Pillsbury']
+    },
+    {
+      id: 'p-101g',
+      name: 'Royal Heritage Idli & Dosa Rice (5kg)',
+      category: 'Atta, rice & grains',
+      price: 420,
+      originalPrice: 499,
+      rating: 4.7,
+      reviewsCount: 115,
+      imageUrl: 'https://images.unsplash.com/photo-1536304929831-ee1ca9d44906?w=600&auto=format&fit=crop&q=80',
+      description: 'Short grain parboiled rice ideal for making soft, fluffy idlis and crisp golden dosas.',
+      weight: '5kg Bag',
+      stock: 80,
+      isOrganic: false,
+      isBestseller: false,
+      originRegion: 'Tamil Nadu, India',
+      tags: ['Idli Rice', 'South Indian']
+    },
+    {
+      id: 'p-101h',
+      name: 'Tata Sampann High Protein Organic Poha (500g)',
+      category: 'Atta, rice & grains',
+      price: 75,
+      originalPrice: 90,
+      rating: 4.9,
+      reviewsCount: 160,
+      imageUrl: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80',
+      description: 'Thick beaten rice flakes from organic rice paddy, source of natural dietary iron.',
+      weight: '500g Pack',
+      stock: 120,
+      isOrganic: true,
+      isBestseller: true,
+      originRegion: 'Maharashtra, India',
+      tags: ['Poha', 'Tata Sampann']
+    },
+    {
       id: 'p-102',
       name: 'Grewal Chakki Whole Wheat Atta (5kg)',
-      category: 'Flours, Rice & Dals',
+      category: 'Atta, rice & grains',
       price: 449,
       originalPrice: 520,
       rating: 4.8,
@@ -278,9 +374,28 @@ export class StoreStateService {
       tags: ['Chakki Atta', 'Wheat Flour']
     },
     {
+      id: 'p-103b',
+      name: 'The Rice Company Sona Masoori Rice (5kg)',
+      category: 'Atta, rice & grains',
+      price: 649,
+      originalPrice: 750,
+      rating: 4.8,
+      reviewsCount: 110,
+      imageUrl: 'https://images.unsplash.com/photo-1536304929831-ee1ca9d44906?w=600&auto=format&fit=crop&q=80',
+      description: 'Aromatic, lightweight medium-grain white rice popular across South Indian households.',
+      weight: '5kg Bag',
+      stock: 80,
+      isOrganic: false,
+      isBestseller: false,
+      originRegion: 'Andhra Pradesh, India',
+      tags: ['Sona Masoori', 'Rice']
+    },
+
+    // 2. Dal & pulses
+    {
       id: 'p-103',
       name: 'Pattu Premium Unpolished Yellow Toor Dal (1kg)',
-      category: 'Flours, Rice & Dals',
+      category: 'Dal & pulses',
       price: 189,
       originalPrice: 220,
       rating: 4.7,
@@ -294,101 +409,29 @@ export class StoreStateService {
       originRegion: 'Maharashtra, India',
       tags: ['Toor Dal', 'Unpolished']
     },
-
-    // 2. Spices & Seasonings
     {
-      id: 'p-104',
-      name: 'Pure Kashmiri Mongra Saffron / Kesar (2g)',
-      category: 'Spices & Seasonings',
-      price: 1299,
-      originalPrice: 1599,
-      rating: 5.0,
-      reviewsCount: 210,
-      imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=600&auto=format&fit=crop&q=80',
-      description: 'GI-Tagged Grade A++ All-Red Kashmiri Mongra Saffron stigmas. Intense aroma and rich golden crimson color.',
-      weight: '2g Glass Vial',
-      stock: 45,
-      isOrganic: true,
-      isBestseller: true,
-      originRegion: 'Pampore, Kashmir',
-      tags: ['GI Tagged', 'Kesar', 'Saffron']
-    },
-    {
-      id: 'p-105',
-      name: 'Organic Malabar Whole Black Pepper (250g)',
-      category: 'Spices & Seasonings',
-      price: 499,
-      originalPrice: 650,
+      id: 'p-103d',
+      name: 'Organic Chana Dal Unpolished (1kg)',
+      category: 'Dal & pulses',
+      price: 169,
+      originalPrice: 199,
       rating: 4.9,
-      reviewsCount: 142,
-      imageUrl: 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=600&auto=format&fit=crop&q=80',
-      description: 'Sun-dried high-piprine whole black peppercorns harvested from high elevation estates of Wayanad.',
-      weight: '250g Pack',
-      stock: 85,
+      reviewsCount: 88,
+      imageUrl: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&auto=format&fit=crop&q=80',
+      description: 'Nutritious unpolished split Bengal gram packed with dietary fiber and essential minerals.',
+      weight: '1kg Pack',
+      stock: 105,
       isOrganic: true,
       isBestseller: false,
-      originRegion: 'Wayanad, Kerala',
-      tags: ['Black Pepper', 'Spices']
-    },
-    {
-      id: 'p-106',
-      name: 'Mother’s Recipe Shahi Garam Masala (100g)',
-      category: 'Spices & Seasonings',
-      price: 119,
-      originalPrice: 140,
-      rating: 4.8,
-      reviewsCount: 78,
-      imageUrl: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&auto=format&fit=crop&q=80',
-      description: 'A aromatic blend of 15 royal spices including mace, nutmeg, cardamom, and cinnamon.',
-      weight: '100g Box',
-      stock: 110,
-      isOrganic: false,
-      isBestseller: false,
-      originRegion: 'India',
-      tags: ['Garam Masala', 'Blend']
+      originRegion: 'Rajasthan, India',
+      tags: ['Chana Dal', 'Organic']
     },
 
-    // 3. Sweets & Snacks
-    {
-      id: 'p-107',
-      name: 'Haldiram’s White Rasbhari Sweets (1kg Tin)',
-      category: 'Sweets & Snacks',
-      price: 399,
-      originalPrice: 480,
-      rating: 4.9,
-      reviewsCount: 230,
-      imageUrl: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=600&auto=format&fit=crop&q=80',
-      description: 'Juicy, soft mini rasgullas soaked in cardamom-infused light sugar syrup.',
-      weight: '1kg Sealed Tin',
-      stock: 55,
-      isOrganic: false,
-      isBestseller: true,
-      originRegion: 'Nagpur, India',
-      tags: ['Haldiram', 'Sweets', 'Rasbhari']
-    },
-    {
-      id: 'p-108',
-      name: 'Amul Jiralu Masala Ghee Khakhra (200g)',
-      category: 'Sweets & Snacks',
-      price: 99,
-      originalPrice: 120,
-      rating: 4.7,
-      reviewsCount: 64,
-      imageUrl: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=600&auto=format&fit=crop&q=80',
-      description: 'Traditional Gujarati whole wheat crisp thin bread roasted with cow ghee and spicy jiralu seasoning.',
-      weight: '200g Pack',
-      stock: 75,
-      isOrganic: false,
-      isBestseller: false,
-      originRegion: 'Gujarat, India',
-      tags: ['Amul', 'Khakhra', 'Snacks']
-    },
-
-    // 4. Dairy, Frozen & Instant
+    // 3. Oil & ghee
     {
       id: 'p-109',
       name: 'Nanak Pure Desi Cow Ghee (800g Jar)',
-      category: 'Dairy, Frozen & Instant',
+      category: 'Oil & ghee',
       price: 799,
       originalPrice: 950,
       rating: 4.9,
@@ -403,45 +446,28 @@ export class StoreStateService {
       tags: ['Desi Ghee', 'Nanak', 'Dairy']
     },
     {
-      id: 'p-110',
-      name: 'HOI Instant Veg Darjeeling Momos (350g)',
-      category: 'Dairy, Frozen & Instant',
-      price: 249,
-      originalPrice: 299,
-      rating: 4.6,
-      reviewsCount: 88,
-      imageUrl: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=600&auto=format&fit=crop&q=80',
-      description: 'Authentic Himalayan style steamed vegetable dumplings with spicy red garlic dip included.',
-      weight: '350g Pack (12 Pcs)',
-      stock: 40,
+      id: 'p-103f',
+      name: 'Fortune Cold Pressed Mustard Oil (1L)',
+      category: 'Oil & ghee',
+      price: 219,
+      originalPrice: 260,
+      rating: 4.8,
+      reviewsCount: 160,
+      imageUrl: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=600&auto=format&fit=crop&q=80',
+      description: 'Pungent cold-pressed kachi ghani mustard oil for authentic Indian cooking.',
+      weight: '1 Liter Bottle',
+      stock: 130,
       isOrganic: false,
       isBestseller: true,
-      originRegion: 'Darjeeling, India',
-      tags: ['Momos', 'Frozen']
-    },
-    {
-      id: 'p-111',
-      name: 'Gits Instant Gota & Pakora Mix (500g)',
-      category: 'Dairy, Frozen & Instant',
-      price: 149,
-      originalPrice: 175,
-      rating: 4.8,
-      reviewsCount: 94,
-      imageUrl: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=600&auto=format&fit=crop&q=80',
-      description: 'Ready-to-cook spiced chickpea flour fritter mix for crispy hot evening snacks.',
-      weight: '500g Box',
-      stock: 80,
-      isOrganic: false,
-      isBestseller: false,
-      originRegion: 'India',
-      tags: ['Gits', 'Instant Mix']
+      originRegion: 'Haryana, India',
+      tags: ['Mustard Oil', 'Cooking Oil']
     },
 
-    // 5. Beverages & Teas
+    // 4. Tea & coffee
     {
       id: 'p-112',
       name: 'Wagh Bakri Premium CTC Tea Bags (100 Bags)',
-      category: 'Beverages & Teas',
+      category: 'Tea & coffee',
       price: 349,
       originalPrice: 420,
       rating: 4.9,
@@ -458,7 +484,7 @@ export class StoreStateService {
     {
       id: 'p-113',
       name: 'Girnar Detox Green Tea Tulsi (36 Bags)',
-      category: 'Beverages & Teas',
+      category: 'Tea & coffee',
       price: 299,
       originalPrice: 350,
       rating: 4.8,
@@ -472,73 +498,271 @@ export class StoreStateService {
       originRegion: 'Gujarat, India',
       tags: ['Girnar', 'Green Tea', 'Tulsi']
     },
-
-    // 6. Pickles, Chutneys & Sauces
     {
-      id: 'p-114',
-      name: 'Pachranga Tenti Delha Pickle in Oil (800g Jar)',
-      category: 'Pickles, Chutneys & Sauces',
-      price: 249,
-      originalPrice: 290,
-      rating: 4.7,
-      reviewsCount: 115,
-      imageUrl: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=600&auto=format&fit=crop&q=80',
-      description: 'Traditional North Indian wild berry pickle seasoned with mustard oil and aromatic spices.',
-      weight: '800g Glass Jar',
-      stock: 50,
+      id: 'p-113e',
+      name: 'Bru Instant Coffee Powder Jar (200g)',
+      category: 'Tea & coffee',
+      price: 389,
+      originalPrice: 450,
+      rating: 4.8,
+      reviewsCount: 190,
+      imageUrl: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=600&auto=format&fit=crop&q=80',
+      description: '70% coffee & 30% chicory blend roasted for aromatic South Indian filter coffee flavor.',
+      weight: '200g Glass Jar',
+      stock: 110,
       isOrganic: false,
       isBestseller: false,
-      originRegion: 'Panipat, Haryana',
-      tags: ['Pachranga', 'Pickle', 'Achar']
+      originRegion: 'South India',
+      tags: ['Bru', 'Coffee']
+    },
+
+    // 5. Chips & biscuits
+    {
+      id: 'p-107',
+      name: 'Haldiram’s White Rasbhari Sweets (1kg Tin)',
+      category: 'Chips & biscuits',
+      price: 399,
+      originalPrice: 480,
+      rating: 4.9,
+      reviewsCount: 230,
+      imageUrl: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=600&auto=format&fit=crop&q=80',
+      description: 'Juicy, soft mini rasgullas soaked in cardamom-infused light sugar syrup.',
+      weight: '1kg Sealed Tin',
+      stock: 55,
+      isOrganic: false,
+      isBestseller: true,
+      originRegion: 'Nagpur, India',
+      tags: ['Haldiram', 'Sweets', 'Rasbhari']
     },
     {
-      id: 'p-115',
-      name: 'Katoomba Tangy Tomato Chutney (295ml)',
-      category: 'Pickles, Chutneys & Sauces',
-      price: 179,
-      originalPrice: 210,
+      id: 'p-108',
+      name: 'Amul Jiralu Masala Ghee Khakhra (200g)',
+      category: 'Chips & biscuits',
+      price: 99,
+      originalPrice: 120,
+      rating: 4.7,
+      reviewsCount: 64,
+      imageUrl: 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=600&auto=format&fit=crop&q=80',
+      description: 'Traditional Gujarati whole wheat crisp thin bread roasted with cow ghee and spicy jiralu seasoning.',
+      weight: '200g Pack',
+      stock: 75,
+      isOrganic: false,
+      isBestseller: false,
+      originRegion: 'Gujarat, India',
+      tags: ['Amul', 'Khakhra', 'Snacks']
+    },
+    {
+      id: 'p-108f',
+      name: 'Balaji Classic Salted Potato Wafers (150g)',
+      category: 'Chips & biscuits',
+      price: 60,
+      originalPrice: 75,
       rating: 4.8,
-      reviewsCount: 72,
-      imageUrl: 'https://images.unsplash.com/photo-1541544741938-0af808871cc0?w=600&auto=format&fit=crop&q=80',
-      description: 'Homestyle sweet and spicy tomato relish perfect with samosas, parathas, or snacks.',
-      weight: '295ml Glass Bottle',
-      stock: 85,
+      reviewsCount: 95,
+      imageUrl: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=600&auto=format&fit=crop&q=80',
+      description: 'Thin, crispy salted potato chips cooked in pure refined vegetable oil.',
+      weight: '150g Bag',
+      stock: 120,
+      isOrganic: false,
+      isBestseller: false,
+      originRegion: 'Gujarat, India',
+      tags: ['Chips', 'Wafers']
+    },
+
+    // 6. Bath & body
+    {
+      id: 'p-116c',
+      name: 'Patanjali Kesh Kanti Milk Protein Shampoo (180ml)',
+      category: 'Bath & body',
+      price: 129,
+      originalPrice: 150,
+      rating: 4.8,
+      reviewsCount: 220,
+      imageUrl: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=600&auto=format&fit=crop&q=80',
+      description: 'Ayurvedic hair cleanser enriched with bhringraj, aloe vera, and natural milk proteins.',
+      weight: '180ml Bottle',
+      stock: 95,
+      isOrganic: true,
+      isBestseller: true,
+      originRegion: 'Haridwar, India',
+      tags: ['Patanjali', 'Ayurvedic']
+    },
+    {
+      id: 'p-116d',
+      name: 'Vatika Coconut Enriched Hair Oil (200ml)',
+      category: 'Bath & body',
+      price: 169,
+      originalPrice: 199,
+      rating: 4.8,
+      reviewsCount: 150,
+      imageUrl: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?w=600&auto=format&fit=crop&q=80',
+      description: 'Pure coconut hair oil fortified with henna, amla, lemon, and 7 ayurvedic herbs.',
+      weight: '200ml Bottle',
+      stock: 80,
+      isOrganic: true,
+      isBestseller: false,
+      originRegion: 'India',
+      tags: ['Vatika', 'Hair Oil']
+    },
+
+    // 7. Make up & cosmetics
+    {
+      id: 'p-701',
+      name: 'Lakmé Absolute Skin Natural Mousse (25g)',
+      category: 'Make up & cosmetics',
+      price: 750,
+      originalPrice: 850,
+      rating: 4.9,
+      reviewsCount: 180,
+      imageUrl: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&auto=format&fit=crop&q=80',
+      description: 'Feather-light SPF 8 formula that hides pores and provides 16-hour flawless matte finish.',
+      weight: '25g Pack',
+      stock: 60,
+      isOrganic: false,
+      isBestseller: true,
+      originRegion: 'India',
+      tags: ['Lakme', 'Cosmetics']
+    },
+    {
+      id: 'p-702',
+      name: 'Sugar Cosmetics Matte As Hell Lip Crayon (2.8g)',
+      category: 'Make up & cosmetics',
+      price: 799,
+      originalPrice: 899,
+      rating: 4.8,
+      reviewsCount: 140,
+      imageUrl: 'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=600&auto=format&fit=crop&q=80',
+      description: 'High-pigment creamy matte lipstick crayon that stays put without drying lips.',
+      weight: '2.8g Stick',
+      stock: 75,
       isOrganic: false,
       isBestseller: false,
       originRegion: 'India',
-      tags: ['Chutney', 'Katoomba']
+      tags: ['Sugar', 'Lipstick']
     },
 
-    // 7. Puja & Personal Care
+    // 8. Laundry detergents
     {
-      id: 'p-116',
-      name: 'Handcrafted Brass Lakshmi Pooja Thali Set',
-      category: 'Puja & Personal Care',
-      price: 899,
-      originalPrice: 1200,
-      rating: 5.0,
-      reviewsCount: 68,
-      imageUrl: 'https://images.unsplash.com/photo-1605826832916-d0ea9d6fe71e?w=600&auto=format&fit=crop&q=80',
-      description: 'Solid brass embossed prayer plate complete with brass diya, bell, roli bowl, and agarbatti stand.',
-      weight: 'Plate Set (8 Inch)',
-      stock: 30,
+      id: 'p-801',
+      name: 'Surf Excel Easy Wash Detergent Powder (1kg)',
+      category: 'Laundry detergents',
+      price: 145,
+      originalPrice: 165,
+      rating: 4.9,
+      reviewsCount: 310,
+      imageUrl: 'https://images.unsplash.com/photo-1585421514284-efb74c2b69ba?w=600&auto=format&fit=crop&q=80',
+      description: 'Superior stain removal technology that dissolves tough oil and dirt stains effortlessly.',
+      weight: '1kg Pack',
+      stock: 150,
       isOrganic: false,
       isBestseller: true,
-      originRegion: 'Moradabad, UP',
-      tags: ['Pooja Thali', 'Brass', 'Festive']
+      originRegion: 'India',
+      tags: ['Surf Excel', 'Laundry']
+    },
+    {
+      id: 'p-802',
+      name: 'Ariel Matic Top Load Washing Powder (2kg)',
+      category: 'Laundry detergents',
+      price: 490,
+      originalPrice: 550,
+      rating: 4.8,
+      reviewsCount: 240,
+      imageUrl: 'https://images.unsplash.com/photo-1585421514284-efb74c2b69ba?w=600&auto=format&fit=crop&q=80',
+      description: 'Enzyme-enriched laundry detergent formula designed specifically for top load washing machines.',
+      weight: '2kg Bag',
+      stock: 90,
+      isOrganic: false,
+      isBestseller: false,
+      originRegion: 'India',
+      tags: ['Ariel', 'Detergent']
+    },
+
+    // 9. Baby care
+    {
+      id: 'p-901',
+      name: 'Himalaya Gentle Baby Shampoo (200ml)',
+      category: 'Baby care',
+      price: 175,
+      originalPrice: 199,
+      rating: 4.9,
+      reviewsCount: 290,
+      imageUrl: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=600&auto=format&fit=crop&q=80',
+      description: 'No-tears mild baby shampoo infused with hibiscus and chickpea protein extracts.',
+      weight: '200ml Bottle',
+      stock: 110,
+      isOrganic: true,
+      isBestseller: true,
+      originRegion: 'India',
+      tags: ['Baby Shampoo', 'Himalaya']
+    },
+    {
+      id: 'p-902',
+      name: 'Pampers All Round Protection Baby Diapers (48 Pcs)',
+      category: 'Baby care',
+      price: 799,
+      originalPrice: 950,
+      rating: 4.8,
+      reviewsCount: 420,
+      imageUrl: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=600&auto=format&fit=crop&q=80',
+      description: 'Ultra-absorbent breathable diaper pants with aloe vera lotion for leakproof overnight protection.',
+      weight: '48 Pcs Pack (Medium)',
+      stock: 80,
+      isOrganic: false,
+      isBestseller: true,
+      originRegion: 'India',
+      tags: ['Diapers', 'Pampers']
+    },
+
+    // 10. Pet care
+    {
+      id: 'p-1001',
+      name: 'Pedigree Adult Dry Dog Food Chicken & Veg (3kg)',
+      category: 'Pet care',
+      price: 720,
+      originalPrice: 820,
+      rating: 4.8,
+      reviewsCount: 190,
+      imageUrl: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=600&auto=format&fit=crop&q=80',
+      description: 'Balanced nutrition with omega 6 & zinc for healthy skin, shiny coat, and strong immunity.',
+      weight: '3kg Bag',
+      stock: 70,
+      isOrganic: false,
+      isBestseller: true,
+      originRegion: 'India',
+      tags: ['Pedigree', 'Dog Food']
+    },
+    {
+      id: 'p-1002',
+      name: 'Whiskas Ocean Fish Adult Dry Cat Food (1.2kg)',
+      category: 'Pet care',
+      price: 440,
+      originalPrice: 499,
+      rating: 4.7,
+      reviewsCount: 130,
+      imageUrl: 'https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=600&auto=format&fit=crop&q=80',
+      description: 'Crunchy kibble filled with delicious real fish protein, taurine, and vitamin E.',
+      weight: '1.2kg Bag',
+      stock: 65,
+      isOrganic: false,
+      isBestseller: false,
+      originRegion: 'India',
+      tags: ['Whiskas', 'Cat Food']
     }
   ]);
 
   // Categories derived or specified
   readonly categories = computed<string[]>(() => [
     'All Categories',
-    'Flours, Rice & Dals',
-    'Spices & Seasonings',
-    'Sweets & Snacks',
-    'Dairy, Frozen & Instant',
-    'Beverages & Teas',
-    'Pickles, Chutneys & Sauces',
-    'Puja & Personal Care'
+    'Atta, rice & grains',
+    'Dal & pulses',
+    'Oil & ghee',
+    'Tea & coffee',
+    'Chips & biscuits',
+    'Bath & body',
+    'Make up & cosmetics',
+    'Laundry detergents',
+    'Baby care',
+    'Pet care'
   ]);
 
   // Cart State
@@ -739,6 +963,11 @@ export class StoreStateService {
   }
 
   // Cart operations
+  getCartQuantity(productId: string): number {
+    const item = this.cart().find(i => i.product.id === productId);
+    return item ? item.quantity : 0;
+  }
+
   addToCart(product: Product, quantity = 1) {
     this.playAddToCartSound();
     const current = this.cart();

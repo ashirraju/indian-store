@@ -20,10 +20,10 @@
     </div>
   </div>
 
-  <!-- 2. MAIN HEADER (Below Top Banner) -->
+  <!-- 2. MAIN HEADER (Row 1: Logo, Centered 25% Search Bar, Actions) -->
   <header class="main-header">
     <div class="header-container">
-      <!-- Logo -->
+      <!-- Logo (Left) -->
       <div class="logo-area" (click)="store.navigateTo('/store')">
         <div class="logo-icon-box">
           <span class="material-symbols-outlined logo-icon">synagogue</span>
@@ -34,12 +34,12 @@
         </div>
       </div>
 
-      <!-- Search Input -->
+      <!-- Search Input (Center - 25% Width) -->
       <div class="search-box">
         <span class="material-symbols-outlined search-icon">search</span>
         <input
           type="text"
-          placeholder="Search spices, sweets, handloom sarees, tea..."
+          placeholder="Search spices, sweets, tea..."
           [ngModel]="searchQuery()"
           (ngModelChange)="onSearchChange($event)"
         />
@@ -49,23 +49,6 @@
           </button>
         }
       </div>
-
-      <!-- Dynamic Menu Items (Customizable via Admin!) -->
-      <nav class="dynamic-nav">
-        @for (item of filteredMenus(); track item.id) {
-          <button
-            class="nav-link"
-            [class.active]="store.activePath() === item.path"
-            (click)="store.navigateTo(item.path)"
-          >
-            <span class="material-symbols-outlined nav-icon">{{ item.icon }}</span>
-            <span>{{ item.label }}</span>
-            @if (item.badge) {
-              <span class="nav-badge">{{ item.badge }}</span>
-            }
-          </button>
-        }
-      </nav>
 
       <!-- Right Header Actions -->
       <div class="header-actions">
@@ -106,4 +89,25 @@
       </div>
     </div>
   </header>
+
+  <!-- 3. SECOND ROW HEADER: Dynamic Category Menus -->
+  <div class="header-sub-nav">
+    <div class="sub-nav-container">
+      <nav class="dynamic-nav">
+        @for (item of filteredMenus(); track item.id) {
+          <button
+            class="nav-link"
+            [class.active]="store.activePath() === item.path"
+            (click)="onMenuClick(item)"
+          >
+            <span class="material-symbols-outlined nav-icon">{{ item.icon }}</span>
+            <span>{{ item.label }}</span>
+            @if (item.badge) {
+              <span class="nav-badge">{{ item.badge }}</span>
+            }
+          </button>
+        }
+      </nav>
+    </div>
+  </div>
 </div>

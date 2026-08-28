@@ -16,6 +16,7 @@ import { DynamicFormSchema } from '../../models/dynamic-form.model';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CustomerViewComponent {
+  readonly Math = Math;
   readonly store = inject(StoreStateService);
 
   readonly selectedProduct = signal<Product | null>(null);
@@ -61,6 +62,20 @@ export class CustomerViewComponent {
     const id = 'cat-section-' + this.slugify(catName);
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  scrollCategoryLeft(carouselId: string) {
+    const el = document.getElementById(carouselId);
+    if (el) {
+      el.scrollBy({ left: -320, behavior: 'smooth' });
+    }
+  }
+
+  scrollCategoryRight(carouselId: string) {
+    const el = document.getElementById(carouselId);
+    if (el) {
+      el.scrollBy({ left: 320, behavior: 'smooth' });
+    }
   }
 
   updateFormData(fieldName: string, event: Event) {

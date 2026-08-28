@@ -30,4 +30,23 @@ export class NavbarComponent {
       this.store.navigateTo('/store');
     }
   }
+
+  onMenuClick(item: { path: string; label: string }) {
+    if (item.path.startsWith('/category/')) {
+      this.store.navigateTo('/store');
+      setTimeout(() => {
+        const slug = this.slugify(item.label);
+        const el = document.getElementById('cat-section-' + slug);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+    } else {
+      this.store.navigateTo(item.path);
+    }
+  }
+
+  slugify(text: string): string {
+    return text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  }
 }

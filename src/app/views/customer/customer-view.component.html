@@ -149,7 +149,7 @@
 
    
 
-    <!-- 2. ITEMS CATEGORIZED BY CATEGORY SECTION WITH RIGHT SIDE CATEGORY PANEL -->
+    <!-- 2. ITEMS CATEGORIZED BY CATEGORY SECTION -->
     <section id="categories-section" class="categorized-products-section">
       <div class="section-main-header">
         <div>
@@ -158,146 +158,127 @@
         </div>
       </div>
 
-      <div class="categorized-layout-grid">
-        <!-- Main Products Column (Left) -->
-        <div class="main-products-column">
-          @for (catName of categoryListWithoutAll(); track catName) {
-            @if (getProductsByCategory(catName).length > 0) {
-              <div [id]="'cat-section-' + slugify(catName)" class="category-block card-surface">
-                <!-- Category Section Header -->
-                <div class="cat-block-header">
-                  <div class="cat-title-box">
-                    <span class="material-symbols-outlined cat-icon">
-                      @switch (catName) {
-                        @case ('Flours, Rice & Dals') { rice_bowl }
-                        @case ('Spices & Seasonings') { spa }
-                        @case ('Sweets & Snacks') { bakery_dining }
-                        @case ('Dairy, Frozen & Instant') { local_dining }
-                        @case ('Beverages & Teas') { emoji_food_beverage }
-                        @case ('Pickles, Chutneys & Sauces') { soup_kitchen }
-                        @case ('Puja & Personal Care') { auto_awesome }
-                        @default { storefront }
-                      }
-                    </span>
-                    <div>
-                      <h3 class="cat-name">{{ catName }}</h3>
-                      <span class="cat-count">{{ getProductsByCategory(catName).length }} Authentic Products Available</span>
-                    </div>
+      <div class="main-products-column">
+        @for (catName of categoryListWithoutAll(); track catName) {
+          @if (getProductsByCategory(catName).length > 0) {
+            <div [id]="'cat-section-' + slugify(catName)" class="category-block card-surface">
+              <!-- Category Section Header -->
+              <div class="cat-block-header">
+                <div class="cat-title-box">
+                  <span class="material-symbols-outlined cat-icon">
+                    @switch (catName) {
+                      @case ('Atta, rice & grains') { grain }
+                      @case ('Dal & pulses') { rice_bowl }
+                      @case ('Oil & ghee') { opacity }
+                      @case ('Tea & coffee') { coffee }
+                      @case ('Chips & biscuits') { cookie }
+                      @case ('Bath & body') { soap }
+                      @case ('Make up & cosmetics') { face_retouching_natural }
+                      @case ('Laundry detergents') { local_laundry_service }
+                      @case ('Baby care') { child_care }
+                      @case ('Pet care') { pets }
+                      @default { storefront }
+                    }
+                  </span>
+                  <div>
+                    <h3 class="cat-name">{{ catName }}</h3>
+                    <span class="cat-count">{{ getProductsByCategory(catName).length }} Authentic Products Available</span>
+                  </div>
+                </div>
+
+                <div class="carousel-header-controls">
+                  <div class="scroll-arrows">
+                    <button class="arrow-btn" (click)="scrollCategoryLeft('carousel-' + slugify(catName))" title="Scroll Left">
+                      <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                    <button class="arrow-btn" (click)="scrollCategoryRight('carousel-' + slugify(catName))" title="Scroll Right">
+                      <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
                   </div>
                   <button class="view-all-cat-btn" (click)="scrollToCategorySection(catName)">
                     Explore {{ catName }} →
                   </button>
                 </div>
+              </div>
 
-                <!-- Product Grid inside this category -->
-                <div class="product-grid">
-                  @for (prod of getProductsByCategory(catName); track prod.id) {
-                    <div class="product-card">
-                      <!-- Badges & Wishlist Heart -->
+              <!-- Single-Line Horizontal Product Carousel -->
+              <div [id]="'carousel-' + slugify(catName)" class="product-single-line-carousel">
+                @for (prod of getProductsByCategory(catName); track prod.id) {
+                  <div class="product-card">
+                    <!-- Image Media Box -->
+                    <div class="card-media" (click)="selectedProduct.set(prod)">
+                      <img [src]="prod.imageUrl" [alt]="prod.name" class="prod-img" loading="lazy" />
+
                       <div class="card-badges">
-                        <div class="badges-left">
-                          @if (prod.isBestseller) {
-                            <span class="badge-bestseller">BESTSELLER</span>
-                          }
-                          @if (prod.isOrganic) {
-                            <span class="badge-organic">ORGANIC</span>
-                          }
-                        </div>
-                        <button
-                          class="wishlist-heart-btn"
-                          [class.active]="store.isInWishlist(prod.id)"
-                          (click)="store.toggleWishlist(prod); $event.stopPropagation()"
-                          [title]="store.isInWishlist(prod.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
-                        >
-                          <span class="material-symbols-outlined">
-                            {{ store.isInWishlist(prod.id) ? 'favorite' : 'favorite_border' }}
-                          </span>
-                        </button>
+                        @if (prod.isBestseller) {
+                          <span class="badge-bestseller">BESTSELLER</span>
+                        }
+                        @if (prod.isOrganic) {
+                          <span class="badge-organic">ORGANIC</span>
+                        }
                       </div>
 
-                      <!-- Product Image -->
-                      <div class="img-box" (click)="selectedProduct.set(prod)">
-                        <img [src]="prod.imageUrl" [alt]="prod.name" loading="lazy" />
-                        <span class="origin-tag">📍 {{ prod.originRegion }}</span>
+                      <button
+                        class="wishlist-heart-btn"
+                        [class.active]="store.isInWishlist(prod.id)"
+                        (click)="store.toggleWishlist(prod); $event.stopPropagation()"
+                        [title]="store.isInWishlist(prod.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
+                      >
+                        <span class="material-symbols-outlined">
+                          {{ store.isInWishlist(prod.id) ? 'favorite' : 'favorite_border' }}
+                        </span>
+                      </button>
+
+                      <span class="origin-tag">📍 {{ prod.originRegion }}</span>
+                    </div>
+
+                    <!-- Details Body -->
+                    <div class="card-body">
+                      <span class="cat-chip">{{ prod.category }}</span>
+                      <h4 class="prod-name" (click)="selectedProduct.set(prod)" [title]="prod.name">{{ prod.name }}</h4>
+
+                      <div class="meta-row">
+                        <span class="stars">★ {{ prod.rating }}</span>
+                        <span class="reviews">({{ prod.reviewsCount }})</span>
+                        <span class="weight-tag">• {{ prod.weight }}</span>
                       </div>
 
-                      <!-- Details -->
-                      <div class="card-details">
-                        <span class="cat-label">{{ prod.category }}</span>
-                        <h4 class="prod-title" (click)="selectedProduct.set(prod)">{{ prod.name }}</h4>
+                      <p class="prod-desc">{{ prod.description }}</p>
 
-                        <div class="rating-row">
-                          <span class="stars">★ {{ prod.rating }}</span>
-                          <span class="reviews">({{ prod.reviewsCount }} reviews)</span>
-                          <span class="weight-tag">• {{ prod.weight }}</span>
+                      <div class="card-footer">
+                        <div class="price-box">
+                          <span class="current-price">₹{{ prod.price }}</span>
+                          @if (prod.originalPrice) {
+                            <span class="orig-price">₹{{ prod.originalPrice }}</span>
+                          }
                         </div>
 
-                        <p class="prod-desc">{{ prod.description }}</p>
-
-                        <div class="card-footer">
-                          <div class="price-box">
-                            <span class="current-price">₹{{ prod.price }}</span>
-                            @if (prod.originalPrice) {
-                              <span class="orig-price">₹{{ prod.originalPrice }}</span>
-                            }
-                          </div>
-
-                          <button class="add-cart-btn" (click)="store.addToCart(prod, 1)">
-                            <span class="material-symbols-outlined">add_shopping_cart</span>
-                            Add
-                          </button>
+                        <div class="card-actions-group" (click)="$event.stopPropagation()">
+                          @if (store.getCartQuantity(prod.id) === 0) {
+                            <button class="add-cart-btn" (click)="store.addToCart(prod, 1)">
+                              <span class="material-symbols-outlined">add_shopping_cart</span>
+                              Add
+                            </button>
+                          } @else {
+                            <div class="qty-counter-pill">
+                              <button class="qty-btn-minus" (click)="store.updateCartQuantity(prod.id, -1)" title="Decrease">
+                                <span class="material-symbols-outlined">remove</span>
+                              </button>
+                              <span class="qty-val">{{ store.getCartQuantity(prod.id) }}</span>
+                              <button class="qty-btn-plus" (click)="store.updateCartQuantity(prod.id, 1)" title="Increase">
+                                <span class="material-symbols-outlined">add</span>
+                              </button>
+                            </div>
+                          }
                         </div>
                       </div>
                     </div>
-                  }
-                </div>
-              </div>
-            }
-          }
-        </div>
-
-        <!-- RIGHT SIDE STICKY CATEGORY PANEL -->
-        <aside class="right-category-sidebar">
-          <div class="sidebar-panel-card card-surface">
-            <div class="sidebar-header">
-              <span class="material-symbols-outlined sidebar-icon">grid_view</span>
-              <div>
-                <h3>Categories</h3>
-                <p>Quick Store Navigation</p>
-              </div>
-            </div>
-
-            <div class="sidebar-categories-list">
-              @for (catName of categoryListWithoutAll(); track catName) {
-                <div class="sidebar-cat-item" (click)="scrollToCategorySection(catName)">
-                  <div class="cat-item-left">
-                    <span class="material-symbols-outlined cat-item-icon">
-                      @switch (catName) {
-                        @case ('Flours, Rice & Dals') { rice_bowl }
-                        @case ('Spices & Seasonings') { spa }
-                        @case ('Sweets & Snacks') { bakery_dining }
-                        @case ('Dairy, Frozen & Instant') { local_dining }
-                        @case ('Beverages & Teas') { emoji_food_beverage }
-                        @case ('Pickles, Chutneys & Sauces') { soup_kitchen }
-                        @case ('Puja & Personal Care') { auto_awesome }
-                        @default { storefront }
-                      }
-                    </span>
-                    <span class="cat-item-name">{{ catName }}</span>
                   </div>
-                  <span class="cat-item-count">{{ getProductsByCategory(catName).length }}</span>
-                </div>
-              }
-            </div>
-
-            <div class="sidebar-footer">
-              <div class="quality-badge-row">
-                <span class="material-symbols-outlined icon">verified</span>
-                <span>100% Certified Organic & Authentic Heritage Items</span>
+                }
               </div>
             </div>
-          </div>
-        </aside>
+          }
+        }
       </div>
     </section>
   }
@@ -334,9 +315,25 @@
                   <del>₹{{ prod.originalPrice }}</del>
                 }
               </div>
-              <button class="modal-add-btn" (click)="store.addToCart(prod); selectedProduct.set(null)">
-                Add to Cart Shopping
-              </button>
+
+              <div class="modal-actions">
+                @if (store.getCartQuantity(prod.id) === 0) {
+                  <button class="modal-add-btn" (click)="store.addToCart(prod)">
+                    <span class="material-symbols-outlined">add_shopping_cart</span>
+                    Add to Cart
+                  </button>
+                } @else {
+                  <div class="qty-counter-pill modal-qty-pill">
+                    <button class="qty-btn-minus" (click)="store.updateCartQuantity(prod.id, -1)">
+                      <span class="material-symbols-outlined">remove</span>
+                    </button>
+                    <span class="qty-val">{{ store.getCartQuantity(prod.id) }} in Cart</span>
+                    <button class="qty-btn-plus" (click)="store.updateCartQuantity(prod.id, 1)">
+                      <span class="material-symbols-outlined">add</span>
+                    </button>
+                  </div>
+                }
+              </div>
             </div>
           </div>
         </div>
