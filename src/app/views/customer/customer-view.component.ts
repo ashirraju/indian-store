@@ -58,23 +58,54 @@ export class CustomerViewComponent {
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   }
 
+  readonly scrollState = signal<Record<string, { canScrollLeft: boolean; canScrollRight: boolean }>>({});
+
+  onCarouselScroll(slug: string, event: Event) {
+    const el = event.target as HTMLElement;
+    if (!el) return;
+    this.updateScrollState(slug, el);
+  }
+
+  updateScrollState(slug: string, el: HTMLElement) {
+    const canScrollLeft = el.scrollLeft > 10;
+    const canScrollRight = el.scrollLeft < (el.scrollWidth - el.clientWidth - 15);
+    this.scrollState.update(state => ({
+      ...state,
+      [slug]: { canScrollLeft, canScrollRight }
+    }));
+  }
+
+  canScrollLeft(slug: string): boolean {
+    return this.scrollState()[slug]?.canScrollLeft ?? false;
+  }
+
+  canScrollRight(slug: string, itemsCount: number): boolean {
+    const s = this.scrollState()[slug];
+    if (s !== undefined) {
+      return s.canScrollRight;
+    }
+    return itemsCount > 3;
+  }
+
   scrollToCategorySection(catName: string) {
     const id = 'cat-section-' + this.slugify(catName);
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  scrollCategoryLeft(carouselId: string) {
+  scrollCategoryLeft(carouselId: string, slug: string) {
     const el = document.getElementById(carouselId);
     if (el) {
-      el.scrollBy({ left: -320, behavior: 'smooth' });
+      el.scrollBy({ left: -360, behavior: 'smooth' });
+      setTimeout(() => this.updateScrollState(slug, el), 350);
     }
   }
 
-  scrollCategoryRight(carouselId: string) {
+  scrollCategoryRight(carouselId: string, slug: string) {
     const el = document.getElementById(carouselId);
     if (el) {
-      el.scrollBy({ left: 320, behavior: 'smooth' });
+      el.scrollBy({ left: 360, behavior: 'smooth' });
+      setTimeout(() => this.updateScrollState(slug, el), 350);
     }
   }
 

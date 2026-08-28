@@ -186,94 +186,113 @@
                   </div>
                 </div>
 
-                <div class="carousel-header-controls">
-                  <div class="scroll-arrows">
-                    <button class="arrow-btn" (click)="scrollCategoryLeft('carousel-' + slugify(catName))" title="Scroll Left">
-                      <span class="material-symbols-outlined">chevron_left</span>
-                    </button>
-                    <button class="arrow-btn" (click)="scrollCategoryRight('carousel-' + slugify(catName))" title="Scroll Right">
-                      <span class="material-symbols-outlined">chevron_right</span>
-                    </button>
-                  </div>
-                  <button class="view-all-cat-btn" (click)="scrollToCategorySection(catName)">
-                    Explore {{ catName }} →
-                  </button>
-                </div>
+                <button class="view-all-cat-btn" (click)="scrollToCategorySection(catName)">
+                  Explore {{ catName }} →
+                </button>
               </div>
 
-              <!-- Single-Line Horizontal Product Carousel -->
-              <div [id]="'carousel-' + slugify(catName)" class="product-single-line-carousel">
-                @for (prod of getProductsByCategory(catName); track prod.id) {
-                  <div class="product-card">
-                    <!-- Image Media Box -->
-                    <div class="card-media" (click)="selectedProduct.set(prod)">
-                      <img [src]="prod.imageUrl" [alt]="prod.name" class="prod-img" loading="lazy" />
+              <!-- Carousel Relative Container with Middle Vertically-Centered Side Arrows -->
+              <div class="carousel-relative-container">
+                <!-- Left Arrow (Shown Only When Scroll Left is Enabled) -->
+                @if (canScrollLeft(slugify(catName))) {
+                  <button
+                    class="carousel-arrow-btn prev-btn"
+                    (click)="scrollCategoryLeft('carousel-' + slugify(catName), slugify(catName))"
+                    title="Scroll Left"
+                  >
+                    <span class="material-symbols-outlined">chevron_left</span>
+                  </button>
+                }
 
-                      <div class="card-badges">
-                        @if (prod.isBestseller) {
-                          <span class="badge-bestseller">BESTSELLER</span>
-                        }
-                        @if (prod.isOrganic) {
-                          <span class="badge-organic">ORGANIC</span>
-                        }
-                      </div>
+                <!-- Single-Line Horizontal Product Carousel -->
+                <div
+                  [id]="'carousel-' + slugify(catName)"
+                  class="product-single-line-carousel"
+                  (scroll)="onCarouselScroll(slugify(catName), $event)"
+                >
+                  @for (prod of getProductsByCategory(catName); track prod.id) {
+                    <div class="product-card">
+                      <!-- Image Media Box -->
+                      <div class="card-media" (click)="selectedProduct.set(prod)">
+                        <img [src]="prod.imageUrl" [alt]="prod.name" class="prod-img" loading="lazy" />
 
-                      <button
-                        class="wishlist-heart-btn"
-                        [class.active]="store.isInWishlist(prod.id)"
-                        (click)="store.toggleWishlist(prod); $event.stopPropagation()"
-                        [title]="store.isInWishlist(prod.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
-                      >
-                        <span class="material-symbols-outlined">
-                          {{ store.isInWishlist(prod.id) ? 'favorite' : 'favorite_border' }}
-                        </span>
-                      </button>
-
-                      <span class="origin-tag">📍 {{ prod.originRegion }}</span>
-                    </div>
-
-                    <!-- Details Body -->
-                    <div class="card-body">
-                      <span class="cat-chip">{{ prod.category }}</span>
-                      <h4 class="prod-name" (click)="selectedProduct.set(prod)" [title]="prod.name">{{ prod.name }}</h4>
-
-                      <div class="meta-row">
-                        <span class="stars">★ {{ prod.rating }}</span>
-                        <span class="reviews">({{ prod.reviewsCount }})</span>
-                        <span class="weight-tag">• {{ prod.weight }}</span>
-                      </div>
-
-                      <p class="prod-desc">{{ prod.description }}</p>
-
-                      <div class="card-footer">
-                        <div class="price-box">
-                          <span class="current-price">₹{{ prod.price }}</span>
-                          @if (prod.originalPrice) {
-                            <span class="orig-price">₹{{ prod.originalPrice }}</span>
+                        <div class="card-badges">
+                          @if (prod.isBestseller) {
+                            <span class="badge-bestseller">BESTSELLER</span>
+                          }
+                          @if (prod.isOrganic) {
+                            <span class="badge-organic">ORGANIC</span>
                           }
                         </div>
 
-                        <div class="card-actions-group" (click)="$event.stopPropagation()">
-                          @if (store.getCartQuantity(prod.id) === 0) {
-                            <button class="add-cart-btn" (click)="store.addToCart(prod, 1)">
-                              <span class="material-symbols-outlined">add_shopping_cart</span>
-                              Add
-                            </button>
-                          } @else {
-                            <div class="qty-counter-pill">
-                              <button class="qty-btn-minus" (click)="store.updateCartQuantity(prod.id, -1)" title="Decrease">
-                                <span class="material-symbols-outlined">remove</span>
+                        <button
+                          class="wishlist-heart-btn"
+                          [class.active]="store.isInWishlist(prod.id)"
+                          (click)="store.toggleWishlist(prod); $event.stopPropagation()"
+                          [title]="store.isInWishlist(prod.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
+                        >
+                          <span class="material-symbols-outlined">
+                            {{ store.isInWishlist(prod.id) ? 'favorite' : 'favorite_border' }}
+                          </span>
+                        </button>
+
+                        <span class="origin-tag">📍 {{ prod.originRegion }}</span>
+                      </div>
+
+                      <!-- Details Body -->
+                      <div class="card-body">
+                        <span class="cat-chip">{{ prod.category }}</span>
+                        <h4 class="prod-name" (click)="selectedProduct.set(prod)" [title]="prod.name">{{ prod.name }}</h4>
+
+                        <div class="meta-row">
+                          <span class="stars">★ {{ prod.rating }}</span>
+                          <span class="reviews">({{ prod.reviewsCount }})</span>
+                          <span class="weight-tag">• {{ prod.weight }}</span>
+                        </div>
+
+                        <p class="prod-desc">{{ prod.description }}</p>
+
+                        <div class="card-footer">
+                          <div class="price-box">
+                            <span class="current-price">₹{{ prod.price }}</span>
+                            @if (prod.originalPrice) {
+                              <span class="orig-price">₹{{ prod.originalPrice }}</span>
+                            }
+                          </div>
+
+                          <div class="card-actions-group" (click)="$event.stopPropagation()">
+                            @if (store.getCartQuantity(prod.id) === 0) {
+                              <button class="add-cart-btn" (click)="store.addToCart(prod, 1)">
+                                <span class="material-symbols-outlined">add_shopping_cart</span>
+                                Add
                               </button>
-                              <span class="qty-val">{{ store.getCartQuantity(prod.id) }}</span>
-                              <button class="qty-btn-plus" (click)="store.updateCartQuantity(prod.id, 1)" title="Increase">
-                                <span class="material-symbols-outlined">add</span>
-                              </button>
-                            </div>
-                          }
+                            } @else {
+                              <div class="qty-counter-pill">
+                                <button class="qty-btn-minus" (click)="store.updateCartQuantity(prod.id, -1)" title="Decrease">
+                                  <span class="material-symbols-outlined">remove</span>
+                                </button>
+                                <span class="qty-val">{{ store.getCartQuantity(prod.id) }}</span>
+                                <button class="qty-btn-plus" (click)="store.updateCartQuantity(prod.id, 1)" title="Increase">
+                                  <span class="material-symbols-outlined">add</span>
+                                </button>
+                              </div>
+                            }
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  }
+                </div>
+
+                <!-- Right Arrow (Shown Only When Scroll Right is Enabled) -->
+                @if (canScrollRight(slugify(catName), getProductsByCategory(catName).length)) {
+                  <button
+                    class="carousel-arrow-btn next-btn"
+                    (click)="scrollCategoryRight('carousel-' + slugify(catName), slugify(catName))"
+                    title="Scroll Right"
+                  >
+                    <span class="material-symbols-outlined">chevron_right</span>
+                  </button>
                 }
               </div>
             </div>
