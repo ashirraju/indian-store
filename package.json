@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "deploy": "ng build --base-href /indian-store/ && cp dist/indian-store/browser/index.html dist/indian-store/browser/404.html && npx -y gh-pages -d dist/indian-store/browser"
   },
   "private": true,
   "packageManager": "npm@11.12.1",
