@@ -127,6 +127,16 @@ export class AppKeycloakService {
 
         this.currentUser.set(user);
         this.saveSessionToStorage(user, this.keycloakInstance.token);
+
+        // Check if there was a saved target path from before login redirect
+        const savedPath = sessionStorage.getItem(STORAGE_KEYS.TARGET_PATH);
+        if (savedPath && savedPath !== APP_ROUTES.STORE) {
+          sessionStorage.removeItem(STORAGE_KEYS.TARGET_PATH);
+          sessionStorage.removeItem(STORAGE_KEYS.TARGET_ROLE);
+          if (typeof window !== 'undefined') {
+            window.location.hash = '#' + savedPath;
+          }
+        }
         return true;
       }
       return false;

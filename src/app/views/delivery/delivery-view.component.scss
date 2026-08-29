@@ -37,7 +37,32 @@
 }
 .driver-stats {
   display: flex;
+  align-items: center;
   gap: 14px;
+}
+
+.logout-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  .material-symbols-outlined { font-size: 18px; }
+
+  &:hover {
+    background: #ef4444;
+    color: #ffffff;
+    border-color: #ef4444;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+  }
 }
 .stat-pill {
   background: #f8fafc;

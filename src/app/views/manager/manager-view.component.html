@@ -7,10 +7,16 @@
       <h2>Store Performance & Product Inventory</h2>
       <p>Manage product catalog pricing, stock levels, and store analytics.</p>
     </div>
-    <button class="add-prod-btn" (click)="isAddModalOpen.set(true)">
-      <span class="material-symbols-outlined">add_box</span>
-      Add New Product
-    </button>
+    <div class="header-actions">
+      <button class="add-prod-btn" (click)="isAddModalOpen.set(true)">
+        <span class="material-symbols-outlined">add_box</span>
+        Add New Product
+      </button>
+      <button class="logout-action-btn" (click)="onLogout()" title="Sign out and return to Store">
+        <span class="material-symbols-outlined">logout</span>
+        Sign Out
+      </button>
+    </div>
   </div>
 
   <!-- Metrics Cards -->

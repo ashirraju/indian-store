@@ -43,6 +43,10 @@ export class AdminViewComponent implements OnInit {
   readonly activeTab = signal<'categories' | 'products' | 'banners'>('categories');
   readonly allRoles: AppRole[] = ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'];
 
+  onLogout() {
+    this.store.keycloak.logout();
+  }
+
   // ==========================================
   // CATEGORIES STATE
   // ==========================================

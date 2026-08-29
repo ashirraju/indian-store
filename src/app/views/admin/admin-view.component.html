@@ -7,15 +7,21 @@
       <h2>Storefront Catalog & CMS Management Suite</h2>
       <p>Manage product catalog, category hierarchies, navigation menus, custom landing pages, and promotional campaigns.</p>
     </div>
-    <div class="header-quick-stats">
-      <div class="quick-stat-pill">
-        <span class="material-symbols-outlined">category</span>
-        <span><strong>{{ categoriesList().length }}</strong> Categories</span>
+    <div class="header-right-actions">
+      <div class="header-quick-stats">
+        <div class="quick-stat-pill">
+          <span class="material-symbols-outlined">category</span>
+          <span><strong>{{ categoriesList().length }}</strong> Categories</span>
+        </div>
+        <div class="quick-stat-pill">
+          <span class="material-symbols-outlined">inventory_2</span>
+          <span><strong>{{ totalProductCount() }}</strong> Products</span>
+        </div>
       </div>
-      <div class="quick-stat-pill">
-        <span class="material-symbols-outlined">inventory_2</span>
-        <span><strong>{{ totalProductCount() }}</strong> Products</span>
-      </div>
+      <button class="admin-logout-btn" (click)="onLogout()" title="Log out from Super Admin and return to Store">
+        <span class="material-symbols-outlined">logout</span>
+        <span>Sign Out</span>
+      </button>
     </div>
   </div>
 

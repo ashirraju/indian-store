@@ -20,6 +20,12 @@
   h2 { font-size: 24px; color: #0f172a; margin-top: 4px; }
   p { font-size: 13px; color: #64748b; }
 }
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .add-prod-btn {
   display: flex;
   align-items: center;
@@ -34,6 +40,30 @@
   cursor: pointer;
 
   &:hover { background: #0285c7; }
+}
+
+.logout-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  .material-symbols-outlined { font-size: 18px; }
+
+  &:hover {
+    background: #ef4444;
+    color: #ffffff;
+    border-color: #ef4444;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+  }
 }
 
 .metrics-grid {

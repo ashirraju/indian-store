@@ -14,6 +14,10 @@ import { Order, OrderStatus } from '../../models/order.model';
 export class OperationsViewComponent {
   readonly store = inject(StoreStateService);
 
+  onLogout() {
+    this.store.keycloak.logout();
+  }
+
   readonly pendingPackingOrders = computed(() =>
     this.store.orders().filter(o => o.status === 'Placed')
   );

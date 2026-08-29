@@ -15,6 +15,10 @@ import { Product } from '../../models/product.model';
 export class ManagerViewComponent {
   readonly store = inject(StoreStateService);
 
+  onLogout() {
+    this.store.keycloak.logout();
+  }
+
   searchFilter = '';
   isAddModalOpen = signal<boolean>(false);
 

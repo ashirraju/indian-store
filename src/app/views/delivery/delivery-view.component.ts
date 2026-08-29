@@ -14,6 +14,10 @@ import { Order, OrderStatus } from '../../models/order.model';
 export class DeliveryViewComponent {
   readonly store = inject(StoreStateService);
 
+  onLogout() {
+    this.store.keycloak.logout();
+  }
+
   readonly activeDeliveryOrders = computed(() =>
     this.store.orders().filter(o => o.status === 'Ready for Dispatch' || o.status === 'Out for Delivery' || o.status === 'Delivered')
   );

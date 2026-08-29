@@ -56,10 +56,21 @@ export class StoreStateService {
 
   constructor() {
     if (typeof window !== 'undefined') {
-      this.syncUrlPath(window.location.pathname);
+      const getInitialPath = () => {
+        const hash = window.location.hash.replace(/^#/, '').split('?')[0];
+        return hash || window.location.pathname || APP_ROUTES.STORE;
+      };
+
+      this.syncUrlPath(getInitialPath());
+
       window.addEventListener('popstate', () => {
-        this.syncUrlPath(window.location.pathname);
+        this.syncUrlPath(getInitialPath());
       });
+
+      window.addEventListener('hashchange', () => {
+        this.syncUrlPath(getInitialPath());
+      });
+
       this.syncCatalogFromBackend();
     }
   }
@@ -1079,8 +1090,8 @@ export class StoreStateService {
     }
 
     this.syncUrlPath(path);
-    if (typeof window !== 'undefined' && window.history) {
-      window.history.pushState({}, '', path);
+    if (typeof window !== 'undefined') {
+      window.location.hash = '#' + path;
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
