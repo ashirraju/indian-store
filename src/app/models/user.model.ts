@@ -1,4 +1,6 @@
-export type AppRole = 'Customer' | 'Manager' | 'Operations' | 'Delivery' | 'Admin';
+import { AppRole } from '../enums';
+
+export { AppRole };
 
 export interface UserProfile {
   id: string;

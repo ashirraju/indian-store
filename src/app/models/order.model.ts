@@ -1,6 +1,7 @@
 import { CartItem } from './product.model';
+import { OrderStatus } from '../enums';
 
-export type OrderStatus = 'Placed' | 'In Packing' | 'Ready for Dispatch' | 'Out for Delivery' | 'Delivered';
+export { OrderStatus };
 
 export interface OrderTimelineStep {
   status: OrderStatus;

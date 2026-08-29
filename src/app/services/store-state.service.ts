@@ -5,6 +5,8 @@ import { Order, OrderStatus } from '../models/order.model';
 import { MenuItem, BannerConfig, OfferItem } from '../models/cms.model';
 import { Category } from '../models/category.model';
 import { ApiService } from './api.service';
+import { AppKeycloakService } from './app-keycloak.service';
+import { STORE_CONFIG, APP_ROUTES } from '../constants';
 
 export interface ToastMessage {
   id: string;
@@ -18,6 +20,7 @@ export interface ToastMessage {
 })
 export class StoreStateService {
   private readonly api = inject(ApiService);
+  readonly keycloak = inject(AppKeycloakService);
 
   // Active Role State
   readonly activeRole = signal<AppRole>('Customer');
@@ -112,18 +115,21 @@ export class StoreStateService {
   }
 
   syncUrlPath(path: string) {
-    if (path === '/admin') {
-      this.activeRole.set('Admin');
-      this.activePath.set('/admin');
-    } else if (path === '/manager') {
-      this.activeRole.set('Manager');
-      this.activePath.set('/manager');
-    } else if (path === '/operations') {
-      this.activeRole.set('Operations');
-      this.activePath.set('/operations');
-    } else if (path === '/delivery') {
-      this.activeRole.set('Delivery');
-      this.activePath.set('/delivery');
+    let targetRole: AppRole | null = null;
+    if (path === '/admin' || path.startsWith('/admin')) targetRole = 'Admin';
+    else if (path === '/manager' || path.startsWith('/manager')) targetRole = 'Manager';
+    else if (path === '/operations' || path.startsWith('/operations')) targetRole = 'Operations';
+    else if (path === '/delivery' || path.startsWith('/delivery')) targetRole = 'Delivery';
+
+    if (targetRole) {
+      if (!this.keycloak.isAuthenticated()) {
+        const allowed = this.keycloak.requireAuthForRole(targetRole, path);
+        if (!allowed) {
+          return;
+        }
+      }
+      this.activeRole.set(targetRole);
+      this.activePath.set(path);
     } else {
       this.activeRole.set('Customer');
       this.activePath.set(path === '/' ? '/store' : path);
@@ -975,8 +981,8 @@ export class StoreStateService {
 
   // Checkout operation (AU Currency & Postcode)
   placeOrder(deliveryDetails: { name: string; email: string; phone: string; address: string; city: string; state?: string; pincode: string; postcode?: string; paymentMethod: string }): Order {
-    const isFreeShipping = this.cartSubtotal() >= 75;
-    const shippingFee = isFreeShipping ? 0 : 9.99;
+    const isFreeShipping = this.cartSubtotal() >= STORE_CONFIG.FREE_SHIPPING_THRESHOLD;
+    const shippingFee = isFreeShipping ? 0 : STORE_CONFIG.STANDARD_SHIPPING_FEE;
     const newOrder: Order = {
       id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
       customerName: deliveryDetails.name,
@@ -984,9 +990,9 @@ export class StoreStateService {
       customerPhone: deliveryDetails.phone,
       deliveryAddress: deliveryDetails.address,
       city: deliveryDetails.city,
-      state: deliveryDetails.state || 'NSW',
-      pincode: deliveryDetails.pincode || deliveryDetails.postcode || '2000',
-      postcode: deliveryDetails.postcode || deliveryDetails.pincode || '2000',
+      state: deliveryDetails.state || STORE_CONFIG.DEFAULT_STATE,
+      pincode: deliveryDetails.pincode || deliveryDetails.postcode || STORE_CONFIG.DEFAULT_POSTCODE,
+      postcode: deliveryDetails.postcode || deliveryDetails.pincode || STORE_CONFIG.DEFAULT_POSTCODE,
       items: [...this.cart()],
       totalAmount: Math.round((this.cartSubtotal() + shippingFee) * 100) / 100,
       paymentMethod: deliveryDetails.paymentMethod,
@@ -1009,6 +1015,12 @@ export class StoreStateService {
   }
 
   setRole(role: AppRole) {
+    if (role !== 'Customer') {
+      const allowed = this.keycloak.requireAuthForRole(role, `/${role.toLowerCase()}`);
+      if (!allowed) {
+        return;
+      }
+    }
     this.activeRole.set(role);
     this.showToast('info', `Switched Role to ${role}`, `You are now interacting as ${role}`);
   }
@@ -1042,7 +1054,7 @@ export class StoreStateService {
 
   openDepartment(deptName: string) {
     this.activeDepartment.set(deptName);
-    this.navigateTo('/store');
+    this.navigateTo(APP_ROUTES.STORE);
   }
 
   closeDepartment() {
@@ -1050,6 +1062,22 @@ export class StoreStateService {
   }
 
   navigateTo(path: string) {
+    let targetRole: AppRole | null = null;
+    if (path.startsWith(APP_ROUTES.ADMIN)) targetRole = 'Admin';
+    else if (path.startsWith(APP_ROUTES.MANAGER)) targetRole = 'Manager';
+    else if (path.startsWith(APP_ROUTES.OPERATIONS)) targetRole = 'Operations';
+    else if (path.startsWith(APP_ROUTES.DELIVERY)) targetRole = 'Delivery';
+
+    if (targetRole) {
+      const allowed = this.keycloak.requireAuthForRole(targetRole, path);
+      if (!allowed) {
+        return;
+      }
+      this.activeRole.set(targetRole);
+    } else if (path === APP_ROUTES.STORE || path.startsWith('/category/')) {
+      this.activeRole.set('Customer');
+    }
+
     this.syncUrlPath(path);
     if (typeof window !== 'undefined' && window.history) {
       window.history.pushState({}, '', path);

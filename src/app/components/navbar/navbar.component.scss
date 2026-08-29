@@ -337,6 +337,74 @@
   justify-content: center;
 }
 
+/* Staff Keycloak User Indicator */
+.staff-user-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  padding: 4px 6px 4px 10px;
+  border-radius: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+  .user-avatar-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .material-symbols-outlined {
+      font-size: 18px;
+    }
+  }
+
+  .user-info-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+
+    .user-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .kc-realm-tag {
+      font-size: 10px;
+      color: #0284c7;
+      font-weight: 600;
+    }
+  }
+
+  .logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    .material-symbols-outlined {
+      font-size: 14px;
+    }
+
+    &:hover {
+      background: #fca5a5;
+      color: #7f1d1d;
+    }
+  }
+}
+
 @media (max-width: 1024px) {
   .dynamic-nav {
     display: none;

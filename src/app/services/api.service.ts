@@ -1,24 +1,28 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Category, CreateCategoryInput, CreateSubCategoryInput, SubCategory } from '../models/category.model';
 import { Product, ProductsSummary } from '../models/product.model';
+import { AppKeycloakService } from './app-keycloak.service';
+import { API_CONFIG } from '../constants';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly baseUrl = 'http://localhost:5001/api/v1';
+  private readonly baseUrl = API_CONFIG.BASE_URL;
+  private readonly keycloak = inject(AppKeycloakService);
 
   private getAuthHeaders(role = 'Admin'): Record<string, string> {
+    const token = this.keycloak.getToken();
     return {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer dev-token',
+      'Authorization': `Bearer ${token}`,
       'x-mock-role': role
     };
   }
 
   async checkHealth(): Promise<any> {
     try {
-      const res = await fetch('http://localhost:5001/api/health');
+      const res = await fetch(API_CONFIG.HEALTH_URL);
       return await res.json();
     } catch {
       return { status: 'OFFLINE' };

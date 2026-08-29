@@ -90,6 +90,21 @@
               <span class="cart-count-badge">{{ store.cartTotalCount() }}</span>
             }
           </button>
+        } @else {
+          <!-- Authenticated Staff Role Indicator & Sign Out -->
+          <div class="staff-user-chip">
+            <div class="user-avatar-circle">
+              <span class="material-symbols-outlined">shield_person</span>
+            </div>
+            <div class="user-info-text">
+              <strong class="user-name">{{ keycloak.currentUser()?.firstName || 'Staff' }} ({{ store.activeRole() }})</strong>
+              <small class="kc-realm-tag">Keycloak • {{ keycloak.currentUser()?.username || 'officer' }}</small>
+            </div>
+            <button class="logout-btn" (click)="onLogout()" title="Sign Out from Staff Portal">
+              <span class="material-symbols-outlined">logout</span>
+              <span>Exit Role</span>
+            </button>
+          </div>
         }
       </div>
     </div>

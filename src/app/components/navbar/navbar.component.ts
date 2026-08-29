@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@a
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StoreStateService } from '../../services/store-state.service';
+import { AppKeycloakService } from '../../services/app-keycloak.service';
 
 @Component({
   selector: 'app-navbar',
@@ -13,6 +14,7 @@ import { StoreStateService } from '../../services/store-state.service';
 })
 export class NavbarComponent {
   readonly store = inject(StoreStateService);
+  readonly keycloak = inject(AppKeycloakService);
   readonly searchQuery = signal<string>('');
 
   readonly filteredMenus = computed(() => {
@@ -41,5 +43,16 @@ export class NavbarComponent {
 
   slugify(text: string): string {
     return text.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  }
+
+  onLogout() {
+    this.keycloak.logout();
+    this.store.activeRole.set('Customer');
+    this.store.navigateTo('/store');
+    this.store.showToast('info', 'Logged Out', 'You have been signed out from staff portals.');
+  }
+
+  onStaffLogin() {
+    this.keycloak.loginWithKeycloak('/admin', 'Admin');
   }
 }
