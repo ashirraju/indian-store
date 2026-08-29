@@ -22,9 +22,23 @@ export class StoreStateService {
   private readonly api = inject(ApiService);
   readonly keycloak = inject(AppKeycloakService);
 
+  private getBootRoleAndPath(): { role: AppRole; path: string } {
+    if (typeof window === 'undefined') {
+      return { role: AppRole.CUSTOMER, path: APP_ROUTES.STORE };
+    }
+    const hash = window.location.hash.replace(/^#/, '').split('?')[0];
+    const path = hash || window.location.pathname || APP_ROUTES.STORE;
+
+    if (path.startsWith(APP_ROUTES.ADMIN)) return { role: AppRole.ADMIN, path: APP_ROUTES.ADMIN };
+    if (path.startsWith(APP_ROUTES.MANAGER)) return { role: AppRole.MANAGER, path: APP_ROUTES.MANAGER };
+    if (path.startsWith(APP_ROUTES.OPERATIONS)) return { role: AppRole.OPERATIONS, path: APP_ROUTES.OPERATIONS };
+    if (path.startsWith(APP_ROUTES.DELIVERY)) return { role: AppRole.DELIVERY, path: APP_ROUTES.DELIVERY };
+    return { role: AppRole.CUSTOMER, path: APP_ROUTES.STORE };
+  }
+
   // Active Role State
-  readonly activeRole = signal<AppRole>('Customer');
-  readonly activePath = signal<string>('/store');
+  readonly activeRole = signal<AppRole>(this.getBootRoleAndPath().role);
+  readonly activePath = signal<string>(this.getBootRoleAndPath().path);
   readonly isCartOpen = signal<boolean>(false);
   readonly isWishlistOpen = signal<boolean>(false);
   readonly isOrdersModalOpen = signal<boolean>(false);
@@ -127,13 +141,13 @@ export class StoreStateService {
 
   syncUrlPath(path: string) {
     let targetRole: AppRole | null = null;
-    if (path === '/admin' || path.startsWith('/admin')) targetRole = 'Admin';
-    else if (path === '/manager' || path.startsWith('/manager')) targetRole = 'Manager';
-    else if (path === '/operations' || path.startsWith('/operations')) targetRole = 'Operations';
-    else if (path === '/delivery' || path.startsWith('/delivery')) targetRole = 'Delivery';
+    if (path === '/admin' || path.startsWith('/admin')) targetRole = AppRole.ADMIN;
+    else if (path === '/manager' || path.startsWith('/manager')) targetRole = AppRole.MANAGER;
+    else if (path === '/operations' || path.startsWith('/operations')) targetRole = AppRole.OPERATIONS;
+    else if (path === '/delivery' || path.startsWith('/delivery')) targetRole = AppRole.DELIVERY;
 
     if (targetRole) {
-      if (!this.keycloak.isAuthenticated()) {
+      if (this.keycloak.isInitialized() && !this.keycloak.isAuthenticated()) {
         const allowed = this.keycloak.requireAuthForRole(targetRole, path);
         if (!allowed) {
           return;
@@ -142,8 +156,8 @@ export class StoreStateService {
       this.activeRole.set(targetRole);
       this.activePath.set(path);
     } else {
-      this.activeRole.set('Customer');
-      this.activePath.set(path === '/' ? '/store' : path);
+      this.activeRole.set(AppRole.CUSTOMER);
+      this.activePath.set(path === '/' ? APP_ROUTES.STORE : path);
     }
   }
 

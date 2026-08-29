@@ -75,76 +75,92 @@ export class AppKeycloakService {
     }
   }
 
+  private initPromise: Promise<boolean> | null = null;
+
   /**
    * Initialize Keycloak client and process SSO / redirect tokens
    */
   async initKeycloak(): Promise<boolean> {
     if (typeof window === 'undefined') return false;
+    if (this.initPromise) return this.initPromise;
 
-    try {
-      this.keycloakInstance = new Keycloak({
-        url: this.config.url,
-        realm: this.config.realm,
-        clientId: this.config.clientId
-      });
+    this.initPromise = (async () => {
+      try {
+        this.keycloakInstance = new Keycloak({
+          url: this.config.url,
+          realm: this.config.realm,
+          clientId: this.config.clientId
+        });
 
-      const authenticated = await this.keycloakInstance.init({
-        onLoad: 'check-sso',
-        checkLoginIframe: false,
-        pkceMethod: 'S256'
-      });
+        const authenticated = await this.keycloakInstance.init({
+          onLoad: 'check-sso',
+          checkLoginIframe: false,
+          pkceMethod: 'S256'
+        });
 
-      this.isInitialized.set(true);
+        this.isInitialized.set(true);
 
-      if (authenticated && this.keycloakInstance.token) {
-        this.token.set(this.keycloakInstance.token);
-        this.isAuthenticated.set(true);
+        if (authenticated && this.keycloakInstance.token) {
+          this.token.set(this.keycloakInstance.token);
+          this.isAuthenticated.set(true);
 
-        let profile: any = {};
-        try {
-          profile = await this.keycloakInstance.loadUserProfile();
-        } catch {
-          const parsed = this.keycloakInstance.tokenParsed as any;
-          profile = {
-            username: parsed?.preferred_username,
-            email: parsed?.email,
-            firstName: parsed?.given_name,
-            lastName: parsed?.family_name
+          let profile: any = {};
+          try {
+            profile = await this.keycloakInstance.loadUserProfile();
+          } catch {
+            const parsed = this.keycloakInstance.tokenParsed as any;
+            profile = {
+              username: parsed?.preferred_username,
+              email: parsed?.email,
+              firstName: parsed?.given_name,
+              lastName: parsed?.family_name
+            };
+          }
+
+          const realmRoles = this.keycloakInstance.realmAccess?.roles || [];
+          const clientRoles = this.keycloakInstance.resourceAccess?.[this.config.clientId]?.roles || [];
+          const allRoles = Array.from(new Set([...realmRoles, ...clientRoles])).map(r => r.toLowerCase());
+
+          const user: KeycloakUserProfile = {
+            username: profile.username || 'staff.user',
+            email: profile.email || 'staff@indianstore.com.au',
+            firstName: profile.firstName || 'Staff',
+            lastName: profile.lastName || 'Member',
+            roles: allRoles
           };
-        }
 
-        const realmRoles = this.keycloakInstance.realmAccess?.roles || [];
-        const clientRoles = this.keycloakInstance.resourceAccess?.[this.config.clientId]?.roles || [];
-        const allRoles = Array.from(new Set([...realmRoles, ...clientRoles])).map(r => r.toLowerCase());
+          this.currentUser.set(user);
+          this.saveSessionToStorage(user, this.keycloakInstance.token);
 
-        const user: KeycloakUserProfile = {
-          username: profile.username || 'staff.user',
-          email: profile.email || 'staff@indianstore.com.au',
-          firstName: profile.firstName || 'Staff',
-          lastName: profile.lastName || 'Member',
-          roles: allRoles
-        };
+          // Extract and resolve target path immediately
+          const savedPath = sessionStorage.getItem(STORAGE_KEYS.TARGET_PATH);
+          const currentHash = window.location.hash.replace(/^#/, '').split('?')[0];
+          let targetPath = savedPath || (currentHash && currentHash !== '/' && currentHash !== '/store' ? currentHash : null);
 
-        this.currentUser.set(user);
-        this.saveSessionToStorage(user, this.keycloakInstance.token);
+          if (!targetPath) {
+            if (allRoles.includes('admin')) targetPath = APP_ROUTES.ADMIN;
+            else if (allRoles.includes('manager')) targetPath = APP_ROUTES.MANAGER;
+            else if (allRoles.includes('operations')) targetPath = APP_ROUTES.OPERATIONS;
+            else if (allRoles.includes('delivery')) targetPath = APP_ROUTES.DELIVERY;
+          }
 
-        // Check if there was a saved target path from before login redirect
-        const savedPath = sessionStorage.getItem(STORAGE_KEYS.TARGET_PATH);
-        if (savedPath && savedPath !== APP_ROUTES.STORE) {
           sessionStorage.removeItem(STORAGE_KEYS.TARGET_PATH);
           sessionStorage.removeItem(STORAGE_KEYS.TARGET_ROLE);
-          if (typeof window !== 'undefined') {
-            window.location.hash = '#' + savedPath;
+
+          if (targetPath && typeof window !== 'undefined') {
+            window.location.hash = '#' + targetPath;
           }
+          return true;
         }
-        return true;
+        return false;
+      } catch (err: any) {
+        console.warn('Keycloak initialization:', err?.message || err);
+        this.isInitialized.set(true);
+        return false;
       }
-      return false;
-    } catch (err: any) {
-      console.warn('Keycloak initialization:', err?.message || err);
-      this.isInitialized.set(true);
-      return false;
-    }
+    })();
+
+    return this.initPromise;
   }
 
   /**
@@ -185,7 +201,7 @@ export class AppKeycloakService {
     if (targetRole === 'Customer') return true;
 
     if (this.isAuthenticated()) {
-      return true;
+      return this.hasTokenRole(targetRole);
     }
 
     // Not authenticated -> Trigger direct Keycloak login page redirect
@@ -216,12 +232,70 @@ export class AppKeycloakService {
   }
 
   /**
+   * Check if access token contains the specified role
+   */
+  hasTokenRole(role: AppRole | string): boolean {
+    const targetRole = role.toString().toLowerCase();
+    const user = this.currentUser();
+    const tokenStr = this.token();
+
+    // 1. Check cached user roles
+    if (user?.roles?.map(r => r.toLowerCase()).includes(targetRole) || user?.roles?.map(r => r.toLowerCase()).includes('admin')) {
+      return true;
+    }
+
+    // 2. Check live keycloak tokenParsed
+    if (this.keycloakInstance?.tokenParsed) {
+      const parsed = this.keycloakInstance.tokenParsed as any;
+      const realmRoles = (parsed.realm_access?.roles || []).map((r: string) => r.toLowerCase());
+      const clientRoles = (parsed.resource_access?.[this.config.clientId]?.roles || []).map((r: string) => r.toLowerCase());
+      const all = [...realmRoles, ...clientRoles];
+      if (all.includes(targetRole) || all.includes('admin')) {
+        return true;
+      }
+    }
+
+    // 3. Fallback: Parse raw JWT token
+    if (tokenStr) {
+      const decoded = this.parseJwt(tokenStr);
+      if (decoded) {
+        const realmRoles = (decoded.realm_access?.roles || []).map((r: string) => r.toLowerCase());
+        const clientRoles = (decoded.resource_access?.[this.config.clientId]?.roles || []).map((r: string) => r.toLowerCase());
+        const all = [...realmRoles, ...clientRoles];
+        if (all.includes(targetRole) || all.includes('admin')) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Parse JWT payload without external library
+   */
+  parseJwt(token: string): any {
+    try {
+      const base64Url = token.split('.')[1];
+      if (!base64Url) return null;
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
    * Check if current user has a specific role
    */
   hasRole(role: string): boolean {
-    const user = this.currentUser();
-    if (!user) return false;
-    return user.roles.includes(role.toLowerCase()) || user.roles.includes('admin');
+    return this.hasTokenRole(role);
   }
 
   /**
