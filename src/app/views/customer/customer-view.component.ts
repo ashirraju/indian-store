@@ -45,6 +45,24 @@ export class CustomerViewComponent {
     return null;
   });
 
+  getCategoryIcon(catName: string): string {
+    const found = this.store.apiCategories().find(c => c.name === catName);
+    if (found?.icon) return found.icon;
+    switch (catName) {
+      case 'Atta, rice & grains': return 'grain';
+      case 'Dal & pulses': return 'rice_bowl';
+      case 'Oil & ghee': return 'opacity';
+      case 'Tea & coffee': return 'coffee';
+      case 'Chips & biscuits': return 'cookie';
+      case 'Bath & body': return 'soap';
+      case 'Make up & cosmetics': return 'face_retouching_natural';
+      case 'Laundry detergents': return 'local_laundry_service';
+      case 'Baby care': return 'child_care';
+      case 'Pet care': return 'pets';
+      default: return 'storefront';
+    }
+  }
+
   getProductsByCategory(categoryName: string): Product[] {
     return this.store.products().filter(p => p.category === categoryName);
   }
@@ -160,11 +178,20 @@ export class CustomerViewComponent {
   }
 
   getSubMenusForCategory(catName: string): string[] {
+    const apiCat = this.store.apiCategories().find(
+      c => c.name.toLowerCase() === catName.toLowerCase() || c.id === catName || c.slug === catName
+    );
+    if (apiCat?.sub_categories && apiCat.sub_categories.length > 0) {
+      const dynamicSubs = apiCat.sub_categories
+        .sort((a, b) => a.display_order - b.display_order)
+        .map(s => s.name);
+      return ['All', 'Supersaver', ...dynamicSubs, 'Organic'];
+    }
     return this.departmentSubMenus[catName] || ['All', 'Supersaver', 'Organic'];
   }
 
   getSubSectionsForDepartment(categoryName: string): string[] {
-    const allSubs = this.departmentSubMenus[categoryName] || ['Supersaver', 'Organic'];
+    const allSubs = this.getSubMenusForCategory(categoryName);
     const active = this.activeSubMenu();
     if (active && active !== 'All') {
       return allSubs.filter(s => s === active);
@@ -178,34 +205,49 @@ export class CustomerViewComponent {
 
     let filtered: Product[] = [];
     if (lower === 'supersaver') {
-      filtered = list.filter(p => (p.originalPrice && p.originalPrice > p.price) || p.isBestseller);
+      filtered = list.filter(p => (p.originalPrice && p.originalPrice > p.price) || (p.discount_percent && p.discount_percent > 0) || p.isBestseller);
     } else if (lower === 'organic') {
-      filtered = list.filter(p => p.isOrganic);
-    } else if (lower === 'atta & flours') {
-      filtered = list.filter(p => /atta|flour|wheat|chakki|sharbati/i.test(p.name + ' ' + (p.tags || []).join(' ')));
-    } else if (lower === 'rice') {
-      filtered = list.filter(p => /rice|basmati|sona masoori|paddy|idli/i.test(p.name + ' ' + (p.tags || []).join(' ')));
-    } else if (lower === 'whole grains') {
-      filtered = list.filter(p => /grain|whole|multigrain|wheat|brown/i.test(p.name + ' ' + (p.tags || []).join(' ')));
-    } else if (lower === 'poha') {
-      filtered = list.filter(p => /poha|flakes|beaten/i.test(p.name + ' ' + (p.tags || []).join(' ')));
-    } else if (lower === 'millet & other flours') {
-      filtered = list.filter(p => /millet|rava|suji|ragi|oats|bajra|jowar/i.test(p.name + ' ' + (p.tags || []).join(' ')));
+      filtered = list.filter(p => p.isOrganic || p.name.toLowerCase().includes('organic'));
     } else {
-      filtered = list.filter(p =>
-        p.name.toLowerCase().includes(lower) ||
-        (p.tags && p.tags.some(t => t.toLowerCase().includes(lower))) ||
-        p.description.toLowerCase().includes(lower)
+      const apiCat = this.store.apiCategories().find(
+        c => c.name.toLowerCase() === categoryName.toLowerCase() || c.id === categoryName || c.slug === categoryName
       );
+      const subObj = apiCat?.sub_categories?.find(
+        s => s.name.toLowerCase() === lower || s.slug === lower.replace(/[^a-z0-9]+/g, '-')
+      );
+
+      filtered = list.filter(p => {
+        const pSub = (p.subCategory || p.sub_category || '').toLowerCase();
+        const pSubName = (p.sub_category_name || '').toLowerCase();
+        const pSubSlug = (p.sub_category_slug || '').toLowerCase();
+        const pName = p.name.toLowerCase();
+        const pTags = (p.tags || []).map(t => t.toLowerCase());
+
+        if (subObj) {
+          if (p.sub_category === subObj.id || p.subCategory === subObj.id) return true;
+          if (pSubName === subObj.name.toLowerCase() || pSubSlug === subObj.slug.toLowerCase()) return true;
+        }
+
+        return (
+          pSub === lower ||
+          pSubName === lower ||
+          pSubSlug === lower.replace(/[^a-z0-9]+/g, '-') ||
+          pName.includes(lower) ||
+          pTags.some(t => t.includes(lower)) ||
+          p.description.toLowerCase().includes(lower)
+        );
+      });
     }
 
     const sort = this.departmentSortBy();
-    return [...filtered].sort((a, b) => {
-      if (sort === 'price-low') return a.price - b.price;
-      if (sort === 'price-high') return b.price - a.price;
-      if (sort === 'rating') return b.rating - a.rating;
-      return (b.reviewsCount || 0) - (a.reviewsCount || 0);
-    });
+    if (sort === 'price-low') {
+      return [...filtered].sort((a, b) => a.price - b.price);
+    } else if (sort === 'price-high') {
+      return [...filtered].sort((a, b) => b.price - a.price);
+    } else if (sort === 'rating') {
+      return [...filtered].sort((a, b) => b.rating - a.rating);
+    }
+    return [...filtered].sort((a, b) => (b.reviewsCount || 0) - (a.reviewsCount || 0));
   }
 
   scrollToSubSection(subName: string) {

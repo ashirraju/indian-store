@@ -13,6 +13,24 @@ import { StoreStateService } from '../../services/store-state.service';
 export class CategoryPanelComponent {
   readonly store = inject(StoreStateService);
 
+  getCategoryIcon(catName: string): string {
+    const found = this.store.apiCategories().find(c => c.name === catName);
+    if (found?.icon) return found.icon;
+    switch (catName) {
+      case 'Atta, rice & grains': return 'grain';
+      case 'Dal & pulses': return 'rice_bowl';
+      case 'Oil & ghee': return 'opacity';
+      case 'Tea & coffee': return 'coffee';
+      case 'Chips & biscuits': return 'cookie';
+      case 'Bath & body': return 'soap';
+      case 'Make up & cosmetics': return 'face_retouching_natural';
+      case 'Laundry detergents': return 'local_laundry_service';
+      case 'Baby care': return 'child_care';
+      case 'Pet care': return 'pets';
+      default: return 'storefront';
+    }
+  }
+
   getProductsCount(catName: string): number {
     return this.store.products().filter(p => p.category === catName).length;
   }

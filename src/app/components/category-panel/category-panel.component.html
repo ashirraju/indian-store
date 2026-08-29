@@ -21,21 +21,7 @@
           @if (catName !== 'All Categories') {
             <div class="category-card" (click)="selectCategory(catName)">
               <div class="cat-icon-box">
-                <span class="material-symbols-outlined">
-                  @switch (catName) {
-                    @case ('Atta, rice & grains') { grain }
-                    @case ('Dal & pulses') { rice_bowl }
-                    @case ('Oil & ghee') { opacity }
-                    @case ('Tea & coffee') { coffee }
-                    @case ('Chips & biscuits') { cookie }
-                    @case ('Bath & body') { soap }
-                    @case ('Make up & cosmetics') { face_retouching_natural }
-                    @case ('Laundry detergents') { local_laundry_service }
-                    @case ('Baby care') { child_care }
-                    @case ('Pet care') { pets }
-                    @default { storefront }
-                  }
-                </span>
+                <span class="material-symbols-outlined">{{ getCategoryIcon(catName) }}</span>
               </div>
 
               <div class="cat-info">

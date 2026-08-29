@@ -391,21 +391,7 @@
                 <!-- Category Section Header -->
                 <div class="cat-block-header">
                   <div class="cat-title-box">
-                    <span class="material-symbols-outlined cat-icon">
-                      @switch (catName) {
-                        @case ('Atta, rice & grains') { grain }
-                        @case ('Dal & pulses') { rice_bowl }
-                        @case ('Oil & ghee') { opacity }
-                        @case ('Tea & coffee') { coffee }
-                        @case ('Chips & biscuits') { cookie }
-                        @case ('Bath & body') { soap }
-                        @case ('Make up & cosmetics') { face_retouching_natural }
-                        @case ('Laundry detergents') { local_laundry_service }
-                        @case ('Baby care') { child_care }
-                        @case ('Pet care') { pets }
-                        @default { storefront }
-                      }
-                    </span>
+                    <span class="material-symbols-outlined cat-icon">{{ getCategoryIcon(catName) }}</span>
                     <div>
                       <h3 class="cat-name">{{ catName }}</h3>
                       <span class="cat-count">{{ getProductsByCategory(catName).length }} Authentic Products Available</span>

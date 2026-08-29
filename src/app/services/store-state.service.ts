@@ -1,9 +1,11 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
 import { AppRole, UserProfile } from '../models/user.model';
 import { Product, CartItem } from '../models/product.model';
 import { Order, OrderStatus } from '../models/order.model';
 import { MenuItem, CustomPage, BannerConfig, OfferItem } from '../models/cms.model';
 import { DynamicFormSchema, FormSubmission } from '../models/dynamic-form.model';
+import { Category } from '../models/category.model';
+import { ApiService } from './api.service';
 
 export interface ToastMessage {
   id: string;
@@ -16,6 +18,8 @@ export interface ToastMessage {
   providedIn: 'root'
 })
 export class StoreStateService {
+  private readonly api = inject(ApiService);
+
   // Active Role State
   readonly activeRole = signal<AppRole>('Customer');
   readonly activePath = signal<string>('/store');
@@ -26,6 +30,8 @@ export class StoreStateService {
   readonly activeDepartment = signal<string | null>(null);
   readonly selectedProductForModal = signal<Product | null>(null);
   readonly selectedOrderForTracking = signal<Order | null>(null);
+  readonly apiCategories = signal<Category[]>([]);
+
   readonly wishlist = signal<Product[]>([
     {
       id: 'p-102',
@@ -52,7 +58,48 @@ export class StoreStateService {
       window.addEventListener('popstate', () => {
         this.syncUrlPath(window.location.pathname);
       });
+      this.syncCatalogFromBackend();
     }
+  }
+
+  async syncCatalogFromBackend() {
+    try {
+      const [catsRes, prodsRes] = await Promise.all([
+        this.api.getCategories(),
+        this.api.getProducts({ limit: 100 })
+      ]);
+      if (catsRes.success && catsRes.data?.length) {
+        const sortedCats = [...catsRes.data].sort((a, b) => a.display_order - b.display_order);
+        this.apiCategories.set(sortedCats);
+        this.syncCategoriesToMenus(sortedCats);
+      }
+      if (prodsRes.success && prodsRes.data?.length) {
+        this.products.set(prodsRes.data);
+      }
+    } catch {
+      // Offline fallback
+    }
+  }
+
+  syncCategoriesToMenus(categories: Category[]) {
+    if (!categories || categories.length === 0) return;
+    const sorted = [...categories].sort((a, b) => a.display_order - b.display_order);
+    const customMenus = this.menus().filter(m => !m.path.startsWith('/category/'));
+    const categoryMenus: MenuItem[] = sorted.map((cat, idx) => ({
+      id: `m_${cat.id}`,
+      label: cat.name,
+      icon: cat.icon || 'grain',
+      path: `/category/${cat.slug}`,
+      visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'],
+      order: cat.display_order || (idx + 1)
+    }));
+    this.menus.set([...categoryMenus, ...customMenus]);
+  }
+
+  updateCategoryOrder(newCategories: Category[]) {
+    const sorted = [...newCategories].sort((a, b) => a.display_order - b.display_order);
+    this.apiCategories.set(sorted);
+    this.syncCategoriesToMenus(sorted);
   }
 
   syncUrlPath(path: string) {
@@ -786,19 +833,25 @@ export class StoreStateService {
   ]);
 
   // Categories derived or specified
-  readonly categories = computed<string[]>(() => [
-    'All Categories',
-    'Atta, rice & grains',
-    'Dal & pulses',
-    'Oil & ghee',
-    'Tea & coffee',
-    'Chips & biscuits',
-    'Bath & body',
-    'Make up & cosmetics',
-    'Laundry detergents',
-    'Baby care',
-    'Pet care'
-  ]);
+  readonly categories = computed<string[]>(() => {
+    const apiCats = this.apiCategories();
+    if (apiCats && apiCats.length > 0) {
+      return ['All Categories', ...apiCats.map(c => c.name)];
+    }
+    return [
+      'All Categories',
+      'Atta, rice & grains',
+      'Dal & pulses',
+      'Oil & ghee',
+      'Tea & coffee',
+      'Chips & biscuits',
+      'Bath & body',
+      'Make up & cosmetics',
+      'Laundry detergents',
+      'Baby care',
+      'Pet care'
+    ];
+  });
 
   // Cart State
   readonly cart = signal<CartItem[]>([]);

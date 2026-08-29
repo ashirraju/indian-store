@@ -4,13 +4,31 @@
   <div class="admin-header">
     <div>
       <span class="admin-chip">SUPER ADMIN CONTROL CENTER</span>
-      <h2>Storefront Customization & CMS Suite</h2>
-      <p>Dynamically manage navbar menus, custom pages, interactive forms, and hero banners.</p>
+      <h2>Storefront Catalog & CMS Management Suite</h2>
+      <p>Manage product catalog, category hierarchies, navigation menus, custom landing pages, and promotional campaigns.</p>
+    </div>
+    <div class="header-quick-stats">
+      <div class="quick-stat-pill">
+        <span class="material-symbols-outlined">category</span>
+        <span><strong>{{ categoriesList().length }}</strong> Categories</span>
+      </div>
+      <div class="quick-stat-pill">
+        <span class="material-symbols-outlined">inventory_2</span>
+        <span><strong>{{ totalProductCount() }}</strong> Products</span>
+      </div>
     </div>
   </div>
 
   <!-- Navigation Tabs -->
   <div class="admin-tabs">
+    <button class="tab-btn" [class.active]="activeTab() === 'categories'" (click)="activeTab.set('categories')">
+      <span class="material-symbols-outlined">category</span>
+      Categories & Hierarchy ({{ categoriesList().length }})
+    </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'products'" (click)="activeTab.set('products')">
+      <span class="material-symbols-outlined">inventory_2</span>
+      Product Catalog ({{ totalProductCount() }})
+    </button>
     <button class="tab-btn" [class.active]="activeTab() === 'menus'" (click)="activeTab.set('menus')">
       <span class="material-symbols-outlined">menu_book</span>
       Menu Builder ({{ store.menus().length }})
@@ -33,8 +51,513 @@
     </button>
   </div>
 
-  <!-- TAB 1: DYNAMIC MENU BUILDER -->
-  @if (activeTab() === 'menus') {
+  <!-- ========================================================================= -->
+  <!-- TAB: CATEGORIES & HIERARCHY -->
+  <!-- ========================================================================= -->
+  @if (activeTab() === 'categories') {
+    <div class="tab-content card-surface">
+      <div class="tab-title-row">
+        <div>
+          <h3>Category & Sub-Category Hierarchy</h3>
+          <p>Organize storefront departments, nested taxonomy, icons, display order, and view live product counts.</p>
+        </div>
+        <div class="action-btn-group">
+          <button class="secondary-admin-btn" (click)="loadCategories()" [disabled]="isCategoriesLoading()">
+            <span class="material-symbols-outlined" [class.spin]="isCategoriesLoading()">refresh</span>
+            Refresh
+          </button>
+          <button class="primary-admin-btn" (click)="openCategoryModal()">
+            <span class="material-symbols-outlined">add_circle</span>
+            Add Parent Category
+          </button>
+        </div>
+      </div>
+
+      <!-- Drag & Drop Order Notice -->
+      <div class="drag-info-banner">
+        <div class="banner-text">
+          <span class="material-symbols-outlined drag-icon-hint">drag_indicator</span>
+          <span>
+            <strong>Drag & Drop to Reorder:</strong> Drag any category card or click <strong>▲ / ▼</strong> to adjust position. Customer navbar menus and homepage sections update in this exact order in real time.
+          </span>
+        </div>
+        @if (isReorderingCategories()) {
+          <span class="syncing-badge">
+            <span class="material-symbols-outlined spin">sync</span> Syncing order to server...
+          </span>
+        }
+      </div>
+
+      @if (isCategoriesLoading()) {
+        <div class="loading-container">
+          <div class="spinner"></div>
+          <p>Loading categories and hierarchy from server...</p>
+        </div>
+      } @else {
+        <div class="categories-grid">
+          @for (cat of categoriesList(); track cat.id; let idx = $index) {
+            <div
+              class="category-card"
+              draggable="true"
+              [class.dragging]="draggedCategoryIndex === idx"
+              [class.drag-over]="dragOverCategoryIndex === idx"
+              (dragstart)="onCategoryDragStart(idx, $event)"
+              (dragover)="onCategoryDragOver(idx, $event)"
+              (dragleave)="onCategoryDragLeave(idx)"
+              (drop)="onCategoryDrop(idx, $event)"
+              (dragend)="onCategoryDragEnd()"
+            >
+              <div class="category-card-header">
+                <div class="cat-icon-title">
+                  <!-- Drag Handle -->
+                  <div class="drag-handle" title="Drag to reorder position">
+                    <span class="material-symbols-outlined">drag_indicator</span>
+                  </div>
+
+                  <div class="cat-icon-wrapper">
+                    <span class="material-symbols-outlined">{{ cat.icon }}</span>
+                  </div>
+                  <div>
+                    <div class="cat-title-line">
+                      <h4>{{ cat.name }}</h4>
+                      <span class="order-badge">#{{ cat.display_order }}</span>
+                    </div>
+                    <code class="cat-slug-tag">/category/{{ cat.slug }}</code>
+                  </div>
+                </div>
+
+                <div class="cat-header-stats">
+                  <div class="cat-order-controls">
+                    <!-- Move Up / Down Buttons -->
+                    <div class="position-stepper">
+                      <button
+                        class="step-btn"
+                        title="Move Up"
+                        (click)="moveCategoryUp(idx)"
+                        [disabled]="idx === 0"
+                      >
+                        <span class="material-symbols-outlined">arrow_upward</span>
+                      </button>
+                      <button
+                        class="step-btn"
+                        title="Move Down"
+                        (click)="moveCategoryDown(idx)"
+                        [disabled]="idx === categoriesList().length - 1"
+                      >
+                        <span class="material-symbols-outlined">arrow_downward</span>
+                      </button>
+                    </div>
+
+                    <span class="products-count-badge">
+                      <span class="material-symbols-outlined">inventory</span>
+                      {{ cat.products_count ?? 0 }}
+                    </span>
+                  </div>
+
+                  <div class="action-btns-row">
+                    <button class="icon-action-btn" title="Edit Category" (click)="openCategoryModal(cat)">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button class="icon-action-btn red" title="Delete Category" (click)="promptDeleteCategory(cat)">
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sub-Categories Section -->
+              <div class="sub-categories-wrapper">
+                <div class="sub-header-row">
+                  <span class="sub-title">
+                    <span class="material-symbols-outlined">subdirectory_arrow_right</span>
+                    Sub-Categories ({{ cat.sub_categories?.length || 0 }})
+                  </span>
+                  <button class="sub-add-btn" (click)="openSubCategoryModal(cat)">
+                    <span class="material-symbols-outlined">add</span>
+                    Add Sub-Category
+                  </button>
+                </div>
+
+                <div class="sub-pills-list">
+                  @if (!cat.sub_categories || cat.sub_categories.length === 0) {
+                    <div class="empty-sub-text">
+                      No sub-categories defined yet. Click "Add Sub-Category" to create nested taxonomy.
+                    </div>
+                  } @else {
+                    @for (sub of cat.sub_categories; track sub.id) {
+                      <div class="sub-category-pill">
+                        <span class="sub-order">#{{ sub.display_order }}</span>
+                        <span class="sub-name">{{ sub.name }}</span>
+                        @if (sub.products_count !== undefined) {
+                          <span class="sub-prod-count">({{ sub.products_count }} items)</span>
+                        }
+                        <div class="sub-actions">
+                          <button class="mini-btn" title="Edit Sub-Category" (click)="openSubCategoryModal(cat, sub)">
+                            <span class="material-symbols-outlined">edit</span>
+                          </button>
+                          <button class="mini-btn red" title="Delete Sub-Category" (click)="deleteSubCategory(sub)">
+                            <span class="material-symbols-outlined">close</span>
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- TAB: PRODUCT CATALOG -->
+  <!-- ========================================================================= -->
+  @else if (activeTab() === 'products') {
+    <div class="tab-content card-surface">
+
+      <!-- KPI Summary Ribbon -->
+      @if (productsSummary(); as sum) {
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon blue">
+              <span class="material-symbols-outlined">inventory_2</span>
+            </div>
+            <div>
+              <span class="kpi-label">Total Catalog Products</span>
+              <h3>{{ sum.totalProducts }}</h3>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon green">
+              <span class="material-symbols-outlined">warehouse</span>
+            </div>
+            <div>
+              <span class="kpi-label">Total Warehouse Units</span>
+              <h3>{{ sum.totalUnitsInStock | number }}</h3>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon orange">
+              <span class="material-symbols-outlined">currency_rupee</span>
+            </div>
+            <div>
+              <span class="kpi-label">Catalog Inventory Value</span>
+              <h3>₹{{ sum.totalCatalogValuation | number }}</h3>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon purple">
+              <span class="material-symbols-outlined">percent</span>
+            </div>
+            <div>
+              <span class="kpi-label">Discounted Offers</span>
+              <h3>{{ sum.discountedProductsCount }}</h3>
+            </div>
+          </div>
+
+          <div class="kpi-card" [class.warning]="sum.lowStockCount > 0">
+            <div class="kpi-icon amber">
+              <span class="material-symbols-outlined">warning</span>
+            </div>
+            <div>
+              <span class="kpi-label">Low Stock Alerts</span>
+              <h3>{{ sum.lowStockCount }}</h3>
+            </div>
+          </div>
+
+          <div class="kpi-card" [class.danger]="sum.outOfStockCount > 0">
+            <div class="kpi-icon red">
+              <span class="material-symbols-outlined">block</span>
+            </div>
+            <div>
+              <span class="kpi-label">Out of Stock</span>
+              <h3>{{ sum.outOfStockCount }}</h3>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Catalog Header & Filter Bar -->
+      <div class="catalog-toolbar card-surface-subtle">
+        <div class="search-box">
+          <span class="material-symbols-outlined">search</span>
+          <input
+            type="text"
+            placeholder="Search by title, SKU, tags..."
+            [(ngModel)]="productSearch"
+            (ngModelChange)="onFilterChange()"
+          />
+          @if (productSearch) {
+            <button class="clear-search-btn" (click)="productSearch = ''; onFilterChange()">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          }
+        </div>
+
+        <div class="filter-controls">
+          <!-- Category Filter -->
+          <div class="filter-group">
+            <label>Category:</label>
+            <select [(ngModel)]="selectedCategoryFilter" (ngModelChange)="onCategoryFilterChange()">
+              <option value="">All Categories</option>
+              @for (c of categoriesList(); track c.id) {
+                <option [value]="c.id">{{ c.name }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Sub-Category Filter -->
+          <div class="filter-group">
+            <label>Sub-Category:</label>
+            <select [(ngModel)]="selectedSubCategoryFilter" (ngModelChange)="onFilterChange()">
+              <option value="">All Sub-Categories</option>
+              @for (sub of getAvailableSubCategoriesForFilter(); track sub.id) {
+                <option [value]="sub.name">{{ sub.name }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Stock Status Filter -->
+          <div class="filter-group">
+            <label>Stock:</label>
+            <select [(ngModel)]="selectedStockStatusFilter" (ngModelChange)="onFilterChange()">
+              <option value="">All Stock</option>
+              <option value="in_stock">In Stock (>10)</option>
+              <option value="low_stock">Low Stock (≤10)</option>
+              <option value="out_of_stock">Out of Stock (0)</option>
+            </select>
+          </div>
+
+          <!-- Discount Filter -->
+          <div class="filter-group">
+            <label>Discount:</label>
+            <select [(ngModel)]="selectedDiscountFilter" (ngModelChange)="onFilterChange()">
+              <option value="">All Pricing</option>
+              <option value="true">Discounted Only</option>
+              <option value="false">Standard Price Only</option>
+            </select>
+          </div>
+
+          <!-- Bestseller Filter -->
+          <div class="filter-group">
+            <label>Badge:</label>
+            <select [(ngModel)]="selectedBestsellerFilter" (ngModelChange)="onFilterChange()">
+              <option value="">All Items</option>
+              <option value="true">⭐ Bestsellers</option>
+            </select>
+          </div>
+
+          <!-- Sort Filter -->
+          <div class="filter-group">
+            <label>Sort:</label>
+            <select [(ngModel)]="selectedSortOption" (ngModelChange)="onFilterChange()">
+              <option value="newest">Recently Added</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="stock-low">Stock: Low to High</option>
+              <option value="stock-high">Stock: High to Low</option>
+              <option value="rating">Top Rated</option>
+              <option value="name-asc">Name A-Z</option>
+            </select>
+          </div>
+
+          <button class="secondary-admin-btn reset-btn" (click)="resetFilters()" title="Reset Filters">
+            <span class="material-symbols-outlined">filter_alt_off</span>
+          </button>
+        </div>
+
+        <div class="action-btn-group catalog-actions">
+          <button class="secondary-admin-btn" (click)="openImportModal()">
+            <span class="material-symbols-outlined">upload_file</span>
+            Bulk Import
+          </button>
+          <button class="primary-admin-btn" (click)="openProductModal()">
+            <span class="material-symbols-outlined">add_box</span>
+            Add Product
+          </button>
+          <button class="secondary-admin-btn icon-only" (click)="loadProducts(); loadProductsSummary()" [disabled]="isProductsLoading()">
+            <span class="material-symbols-outlined" [class.spin]="isProductsLoading()">refresh</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bulk Actions Bar -->
+      @if (selectedProductIds().size > 0) {
+        <div class="bulk-bar">
+          <div class="bulk-info">
+            <span class="material-symbols-outlined">check_circle</span>
+            <strong>{{ selectedProductIds().size }}</strong> products selected
+          </div>
+          <div class="bulk-actions">
+            <button class="danger-btn" (click)="executeBulkDelete()">
+              <span class="material-symbols-outlined">delete_sweep</span>
+              Delete Selected
+            </button>
+            <button class="ghost-btn" (click)="selectedProductIds().clear()">
+              Deselect All
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Products Table -->
+      @if (isProductsLoading()) {
+        <div class="loading-container">
+          <div class="spinner"></div>
+          <p>Fetching catalog products from server...</p>
+        </div>
+      } @else if (productsList().length === 0) {
+        <div class="empty-state card-surface">
+          <span class="material-symbols-outlined">search_off</span>
+          <h4>No products found</h4>
+          <p>No catalog items match your search and filter criteria.</p>
+          <button class="primary-admin-btn" (click)="resetFilters()">Clear Filters</button>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="admin-table products-table">
+            <thead>
+              <tr>
+                <th style="width: 40px;">
+                  <input
+                    type="checkbox"
+                    [checked]="selectedProductIds().size === productsList().length && productsList().length > 0"
+                    (change)="toggleSelectAll()"
+                  />
+                </th>
+                <th style="width: 70px;">Image</th>
+                <th>Product & SKU</th>
+                <th>Category</th>
+                <th>Price & MRP</th>
+                <th>Stock Level</th>
+                <th>Highlights</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (prod of productsList(); track prod.id) {
+                <tr [class.selected-row]="isProductSelected(prod.id)">
+                  <td>
+                    <input
+                      type="checkbox"
+                      [checked]="isProductSelected(prod.id)"
+                      (change)="toggleProductSelection(prod.id)"
+                    />
+                  </td>
+                  <td>
+                    <img [src]="prod.image_url || prod.imageUrl" [alt]="prod.name" class="product-thumb-table" />
+                  </td>
+                  <td>
+                    <div class="product-name-cell">
+                      <strong>{{ prod.name }}</strong>
+                      <div class="sku-weight-line">
+                        <code class="sku-tag">{{ prod.sku || prod.id }}</code>
+                        <span class="weight-tag">{{ prod.weight }}</span>
+                        @if (prod.origin_region || prod.originRegion) {
+                          <span class="origin-tag">📍 {{ prod.origin_region || prod.originRegion }}</span>
+                        }
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="cat-pill-badge">
+                      {{ prod.category_name || prod.category || 'General' }}
+                    </span>
+                    @if (prod.sub_category_name) {
+                      <span class="subcat-pill-badge">› {{ prod.sub_category_name }}</span>
+                    }
+                  </td>
+                  <td>
+                    <div class="price-cell">
+                      <div class="price-row">
+                        <strong class="current-price">₹{{ prod.price }}</strong>
+                        @if ((prod.original_price || prod.originalPrice) && (prod.original_price || prod.originalPrice)! > prod.price) {
+                          <span class="mrp-strikethrough">₹{{ prod.original_price || prod.originalPrice }}</span>
+                        }
+                      </div>
+                      @if (prod.has_discount || prod.discount_percent) {
+                        <span class="discount-pill">
+                          {{ prod.discount_percent || prod.discount_value }}% OFF
+                        </span>
+                      }
+                    </div>
+                  </td>
+                  <td>
+                    <div class="stock-cell">
+                      <span
+                        class="stock-badge"
+                        [class.in-stock]="prod.stock > 10"
+                        [class.low-stock]="prod.stock > 0 && prod.stock <= 10"
+                        [class.out-of-stock]="prod.stock === 0"
+                      >
+                        @if (prod.stock > 10) {
+                          ● {{ prod.stock }} in stock
+                        } @else if (prod.stock > 0) {
+                          ⚠️ Low: {{ prod.stock }} left
+                        } @else {
+                          ✕ Out of Stock
+                        }
+                      </span>
+                      <div class="quick-stock-controls">
+                        <button class="stock-btn" title="Deduct 5 units" (click)="quickAdjustDelta(prod, -5)" [disabled]="prod.stock === 0">-5</button>
+                        <button class="stock-btn" title="Add 5 units" (click)="quickAdjustDelta(prod, 5)">+5</button>
+                        <button class="stock-btn edit" title="Set exact stock" (click)="openStockModal(prod)">
+                          <span class="material-symbols-outlined">tune</span>
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="flags-cell">
+                      <button
+                        class="flag-chip"
+                        [class.active]="prod.is_bestseller || prod.isBestseller"
+                        title="Toggle Bestseller"
+                        (click)="toggleFlag(prod, 'isBestseller')"
+                      >
+                        ⭐ Bestseller
+                      </button>
+                      <button
+                        class="flag-chip green"
+                        [class.active]="prod.is_organic || prod.isOrganic"
+                        title="Toggle Organic"
+                        (click)="toggleFlag(prod, 'isOrganic')"
+                      >
+                        🌱 Organic
+                      </button>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="action-btns-row end">
+                      <button class="icon-action-btn discount" title="Set Discount Offer" (click)="openDiscountModal(prod)">
+                        <span class="material-symbols-outlined">percent</span>
+                      </button>
+                      <button class="icon-action-btn" title="Edit Product Details" (click)="openProductModal(prod)">
+                        <span class="material-symbols-outlined">edit</span>
+                      </button>
+                      <button class="icon-action-btn red" title="Delete Product" (click)="deleteProduct(prod)">
+                        <span class="material-symbols-outlined">delete</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- TAB 3: DYNAMIC MENU BUILDER -->
+  <!-- ========================================================================= -->
+  @else if (activeTab() === 'menus') {
     <div class="tab-content card-surface">
       <div class="tab-title-row">
         <div>
@@ -104,7 +627,9 @@
     </div>
   }
 
-  <!-- TAB 2: DYNAMIC PAGE BUILDER -->
+  <!-- ========================================================================= -->
+  <!-- TAB 4: DYNAMIC PAGE BUILDER -->
+  <!-- ========================================================================= -->
   @else if (activeTab() === 'pages') {
     <div class="tab-content card-surface">
       <div class="tab-title-row">
@@ -150,7 +675,9 @@
     </div>
   }
 
-  <!-- TAB 3: DYNAMIC FORM BUILDER -->
+  <!-- ========================================================================= -->
+  <!-- TAB 5: DYNAMIC FORM BUILDER -->
+  <!-- ========================================================================= -->
   @else if (activeTab() === 'forms') {
     <div class="tab-content card-surface">
       <div class="tab-title-row">
@@ -204,297 +731,943 @@
     </div>
   }
 
-  <!-- TAB 4: STOREFRONT & BANNERS -->
+  <!-- ========================================================================= -->
+  <!-- TAB 6: STOREFRONT BANNERS & PROMO -->
+  <!-- ========================================================================= -->
   @else if (activeTab() === 'banners') {
     <div class="tab-content card-surface">
       <div class="tab-title-row">
         <div>
-          <h3>Storefront Banners & Announcements</h3>
-          <p>Live edit customer-facing announcement header, hero headline, and promo banners.</p>
+          <h3>Storefront Header & Hero Customization</h3>
+          <p>Update top announcement ticker, main hero banner text, image backgrounds, and CTA buttons in real time.</p>
         </div>
       </div>
 
-      <form (submit)="onSaveBanners($event)" class="banner-edit-form">
+      <form class="banner-form" (submit)="onSaveBanners($event)">
         <div class="form-group">
-          <label>Top Announcement Bar Text *</label>
-          <input type="text" [(ngModel)]="announcementText" name="announcementText" required />
+          <label>Top Announcement Bar Text</label>
+          <input type="text" [(ngModel)]="announcementText" name="announcementText" />
         </div>
 
         <div class="form-group">
-          <label>Announcement Bar Link Target</label>
-          <input type="text" [(ngModel)]="announcementLink" name="announcementLink" placeholder="/page/diwali-special" />
-        </div>
-
-        <div class="form-group">
-          <label>Hero Headline *</label>
-          <input type="text" [(ngModel)]="heroHeadline" name="heroHeadline" required />
-        </div>
-
-        <div class="form-group">
-          <label>Hero Subheadline *</label>
-          <textarea [(ngModel)]="heroSubheadline" name="heroSubheadline" required></textarea>
+          <label>Announcement Link (Optional)</label>
+          <input type="text" [(ngModel)]="announcementLink" name="announcementLink" placeholder="/page/festive-deal" />
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label>Promo Badge Text *</label>
-            <input type="text" [(ngModel)]="promoBadge" name="promoBadge" required />
+            <label>Hero Promo Badge</label>
+            <input type="text" [(ngModel)]="promoBadge" name="promoBadge" />
           </div>
-
           <div class="form-group">
-            <label>Primary Button Text *</label>
-            <input type="text" [(ngModel)]="primaryButtonText" name="primaryButtonText" required />
+            <label>Primary Button Label</label>
+            <input type="text" [(ngModel)]="primaryButtonText" name="primaryButtonText" />
           </div>
         </div>
 
         <div class="form-group">
-          <label>Hero Banner Image URL *</label>
-          <input type="text" [(ngModel)]="heroBannerImage" name="heroBannerImage" required />
+          <label>Hero Main Headline</label>
+          <input type="text" [(ngModel)]="heroHeadline" name="heroHeadline" />
+        </div>
+
+        <div class="form-group">
+          <label>Hero Subheadline</label>
+          <textarea [(ngModel)]="heroSubheadline" name="heroSubheadline" rows="2"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Hero Image URL</label>
+          <input type="text" [(ngModel)]="heroBannerImage" name="heroBannerImage" />
+          <div class="image-preview-box">
+            <img [src]="heroBannerImage" alt="Hero Preview" />
+          </div>
         </div>
 
         <button type="submit" class="primary-admin-btn save-banner-btn">
-          Save Storefront Appearance
+          <span class="material-symbols-outlined">save</span>
+          Publish Banner Updates
         </button>
       </form>
     </div>
   }
 
-  <!-- TAB 5: SUBMISSIONS VIEWER -->
+  <!-- ========================================================================= -->
+  <!-- TAB 7: FORM SUBMISSIONS -->
+  <!-- ========================================================================= -->
   @else if (activeTab() === 'submissions') {
     <div class="tab-content card-surface">
       <div class="tab-title-row">
         <div>
-          <h3>Customer Form Responses</h3>
-          <p>Submissions collected through user-facing dynamic forms.</p>
+          <h3>Inbound Form Submissions</h3>
+          <p>Real-time customer inquiries, corporate bulk purchase requests, and custom feedback responses.</p>
         </div>
       </div>
 
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Submitted At</th>
-            <th>Form Title</th>
-            <th>Submission Data Payload</th>
-          </tr>
-        </thead>
-        <tbody>
+      @if (store.formSubmissions().length === 0) {
+        <div class="empty-state">
+          <span class="material-symbols-outlined">inbox</span>
+          <p>No form responses received yet.</p>
+        </div>
+      } @else {
+        <div class="submissions-list">
           @for (sub of store.formSubmissions(); track sub.id) {
-            <tr>
-              <td><span class="text-muted">{{ sub.submittedAt }}</span></td>
-              <td><strong>{{ sub.formTitle }}</strong></td>
-              <td>
-                <div class="payload-box">
-                  @for (key of getKeys(sub.data); track key) {
-                    <div><strong>{{ key }}:</strong> {{ sub.data[key] }}</div>
-                  }
+            <div class="submission-card card-surface">
+              <div class="submission-header">
+                <div>
+                  <strong>{{ sub.formTitle }}</strong>
+                  <span class="text-muted"> • {{ sub.submittedAt }}</span>
                 </div>
-              </td>
-            </tr>
-          }
-          @if (store.formSubmissions().length === 0) {
-            <tr><td colspan="3" class="text-center text-muted">No form responses received yet.</td></tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  }
-
-  <!-- MENU MODAL -->
-  @if (isMenuModalOpen()) {
-    <div class="modal-backdrop" (click)="isMenuModalOpen.set(false)">
-      <div class="modal-card" (click)="$event.stopPropagation()">
-        <button class="modal-close" (click)="isMenuModalOpen.set(false)">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-        <h3>{{ editingMenuId ? 'Edit Navigation Menu' : 'Create Navigation Menu' }}</h3>
-
-        <form (submit)="onMenuSubmit($event)" class="modal-form">
-          <div class="form-group">
-            <label>Menu Label *</label>
-            <input type="text" [(ngModel)]="menuLabel" name="label" required placeholder="e.g. Festival Offers" />
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>Material Icon Name *</label>
-              <input type="text" [(ngModel)]="menuIcon" name="icon" required placeholder="e.g. auto_awesome" />
-            </div>
-            <div class="form-group">
-              <label>Route Path *</label>
-              <input type="text" [(ngModel)]="menuPath" name="path" required placeholder="e.g. /page/diwali-special" />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>Sort Order *</label>
-              <input type="number" [(ngModel)]="menuOrder" name="order" required />
-            </div>
-            <div class="form-group">
-              <label>Badge Text (Optional)</label>
-              <input type="text" [(ngModel)]="menuBadge" name="badge" placeholder="e.g. HOT" />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Visible to Roles *</label>
-            <div class="roles-checkboxes">
-              @for (r of allRoles; track r) {
-                <label class="chk-role">
-                  <input type="checkbox" [checked]="isRoleSelected(r)" (change)="toggleRoleSelection(r)" />
-                  <span>{{ r }}</span>
-                </label>
-              }
-            </div>
-          </div>
-
-          <button type="submit" class="primary-admin-btn full-btn">Save Menu Link</button>
-        </form>
-      </div>
-    </div>
-  }
-
-  <!-- PAGE MODAL -->
-  @if (isPageModalOpen()) {
-    <div class="modal-backdrop" (click)="isPageModalOpen.set(false)">
-      <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
-        <button class="modal-close" (click)="isPageModalOpen.set(false)">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-        <h3>{{ editingPageId ? 'Edit Custom Page' : 'Create New Custom Page' }}</h3>
-
-        <form (submit)="onPageSubmit($event)" class="modal-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Page Title *</label>
-              <input type="text" [(ngModel)]="pageTitle" name="title" required placeholder="e.g. Artisan Handlooms of India" />
-            </div>
-            <div class="form-group">
-              <label>URL Slug * (/page/slug)</label>
-              <input type="text" [(ngModel)]="pageSlug" name="slug" required placeholder="e.g. handloom-story" />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Subtitle / Summary *</label>
-            <input type="text" [(ngModel)]="pageSubtitle" name="subtitle" required placeholder="Brief catchy description..." />
-          </div>
-
-          <div class="form-group">
-            <label>Banner Image URL *</label>
-            <input type="text" [(ngModel)]="pageBanner" name="banner" required />
-          </div>
-
-          <div class="form-group">
-            <label>Page HTML / Body Content *</label>
-            <textarea [(ngModel)]="pageContent" name="content" required rows="6"></textarea>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>CTA Button Label</label>
-              <input type="text" [(ngModel)]="pageCtaText" name="ctaText" placeholder="Shop Collection" />
-            </div>
-            <div class="form-group">
-              <label>CTA Button Link</label>
-              <input type="text" [(ngModel)]="pageCtaLink" name="ctaLink" placeholder="/store" />
-            </div>
-          </div>
-
-          <button type="submit" class="primary-admin-btn full-btn">Save Custom Page</button>
-        </form>
-      </div>
-    </div>
-  }
-
-  <!-- FORM BUILDER MODAL -->
-  @if (isFormModalOpen()) {
-    <div class="modal-backdrop" (click)="isFormModalOpen.set(false)">
-      <div class="modal-card modal-lg" (click)="$event.stopPropagation()">
-        <button class="modal-close" (click)="isFormModalOpen.set(false)">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-        <h3>{{ editingFormId ? 'Edit Dynamic Form Schema' : 'Create New Dynamic Form' }}</h3>
-
-        <form (submit)="onFormSubmit($event)" class="modal-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Form Title *</label>
-              <input type="text" [(ngModel)]="formTitle" name="title" required placeholder="e.g. Bulk Corporate Request" />
-            </div>
-            <div class="form-group">
-              <label>URL Slug * (/form/slug)</label>
-              <input type="text" [(ngModel)]="formSlug" name="slug" required placeholder="e.g. bulk-wholesale" />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Form Description *</label>
-            <input type="text" [(ngModel)]="formDescription" name="desc" required placeholder="Short instructions for user..." />
-          </div>
-
-          <div class="form-group">
-            <label>Submit Button Text</label>
-            <input type="text" [(ngModel)]="formSubmitText" name="submitText" placeholder="Submit Form" />
-          </div>
-
-          <!-- Fields Builder Section -->
-          <div class="fields-builder-box">
-            <div class="builder-header">
-              <h4>Form Fields Builder</h4>
-              <button type="button" class="add-field-btn" (click)="addFormFieldRow()">
-                + Add Field
-              </button>
-            </div>
-
-            @for (field of formFields; track $index) {
-              <div class="field-row-card">
-                <div class="form-row">
-                  <div class="form-group">
-                    <label>Field Label</label>
-                    <input type="text" [(ngModel)]="field.label" [name]="'lbl_' + $index" required placeholder="Label..." />
-                  </div>
-                  <div class="form-group">
-                    <label>Field Name Key</label>
-                    <input type="text" [(ngModel)]="field.name" [name]="'key_' + $index" required placeholder="keyName..." />
-                  </div>
-                  <div class="form-group">
-                    <label>Type</label>
-                    <select [(ngModel)]="field.type" [name]="'type_' + $index">
-                      <option value="text">Text Input</option>
-                      <option value="email">Email</option>
-                      <option value="number">Number</option>
-                      <option value="select">Dropdown Select</option>
-                      <option value="textarea">Textarea</option>
-                      <option value="checkbox">Checkbox</option>
-                    </select>
-                  </div>
-                </div>
-
-                @if (field.type === 'select') {
-                  <div class="form-group">
-                    <label>Dropdown Options (comma separated)</label>
-                    <input type="text" [value]="getOptionsString(field.options)" (input)="updateOptions(field, $event)" placeholder="Option 1, Option 2..." />
+                <span class="badge badge-blue">ID: {{ sub.id }}</span>
+              </div>
+              <div class="submission-data-grid">
+                @for (key of getKeys(sub.data); track key) {
+                  <div class="data-item">
+                    <span class="data-label">{{ key }}:</span>
+                    <span class="data-val">{{ sub.data[key] }}</span>
                   </div>
                 }
-
-                <div class="field-row-bottom">
-                  <label class="chk-label">
-                    <input type="checkbox" [(ngModel)]="field.required" [name]="'req_' + $index" />
-                    <span>Required Field</span>
-                  </label>
-                  <button type="button" class="del-field-btn" (click)="removeFormFieldRow($index)">
-                    Remove Field
-                  </button>
-                </div>
               </div>
-            }
-          </div>
-
-          <button type="submit" class="primary-admin-btn full-btn">Save Dynamic Form</button>
-        </form>
-      </div>
+            </div>
+          }
+        </div>
+      }
     </div>
   }
 
 </div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 1: CREATE / EDIT PARENT CATEGORY -->
+<!-- ========================================================================= -->
+@if (isCategoryModalOpen()) {
+  <div class="admin-modal-backdrop" (click)="isCategoryModalOpen.set(false)">
+    <div class="admin-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingCategoryId ? 'Edit Category' : 'Create New Category' }}</h3>
+        <button class="close-btn" (click)="isCategoryModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="onCategorySubmit($event)">
+        <div class="form-group">
+          <label>Category Name *</label>
+          <input
+            type="text"
+            [(ngModel)]="catName"
+            (ngModelChange)="onCategoryNameChange()"
+            name="catName"
+            placeholder="e.g. Spices & Seasonings"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Slug</label>
+          <input
+            type="text"
+            [(ngModel)]="catSlug"
+            name="catSlug"
+            placeholder="e.g. spices-seasonings"
+          />
+          <small class="help-text">Auto-generated from name if left empty.</small>
+        </div>
+
+        <div class="form-group">
+          <label>Material Icon Name</label>
+          <div class="icon-selector-input">
+            <span class="material-symbols-outlined current-icon-preview">{{ catIcon }}</span>
+            <input
+              type="text"
+              [(ngModel)]="catIcon"
+              name="catIcon"
+              placeholder="e.g. grain, coffee, cake"
+            />
+          </div>
+          <div class="icon-quick-picker">
+            @for (ic of commonIcons; track ic) {
+              <button
+                type="button"
+                class="icon-pick-btn"
+                [class.active]="catIcon === ic"
+                (click)="catIcon = ic"
+                [title]="ic"
+              >
+                <span class="material-symbols-outlined">{{ ic }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Display Order (Priority)</label>
+          <input
+            type="number"
+            [(ngModel)]="catDisplayOrder"
+            name="catDisplayOrder"
+            min="1"
+            max="999"
+          />
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="secondary-admin-btn" (click)="isCategoryModalOpen.set(false)">Cancel</button>
+          <button type="submit" class="primary-admin-btn">
+            {{ editingCategoryId ? 'Update Category' : 'Create Category' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL 2: CREATE / EDIT SUB-CATEGORY -->
+<!-- ========================================================================= -->
+@if (isSubCategoryModalOpen()) {
+  <div class="admin-modal-backdrop" (click)="isSubCategoryModalOpen.set(false)">
+    <div class="admin-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingSubCategoryId ? 'Edit Sub-Category' : 'Add Sub-Category under ' + parentCategoryNameForSub }}</h3>
+        <button class="close-btn" (click)="isSubCategoryModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="onSubCategorySubmit($event)">
+        <div class="form-group">
+          <label>Sub-Category Name *</label>
+          <input
+            type="text"
+            [(ngModel)]="subCatName"
+            (ngModelChange)="onSubCatNameChange()"
+            name="subCatName"
+            placeholder="e.g. Whole Spices, Basmati Rice"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Slug</label>
+          <input
+            type="text"
+            [(ngModel)]="subCatSlug"
+            name="subCatSlug"
+            placeholder="e.g. whole-spices"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Display Order</label>
+          <input
+            type="number"
+            [(ngModel)]="subCatDisplayOrder"
+            name="subCatDisplayOrder"
+            min="1"
+            max="99"
+          />
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="secondary-admin-btn" (click)="isSubCategoryModalOpen.set(false)">Cancel</button>
+          <button type="submit" class="primary-admin-btn">
+            {{ editingSubCategoryId ? 'Update Sub-Category' : 'Create Sub-Category' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL 3: DELETE CATEGORY CONFIRMATION -->
+<!-- ========================================================================= -->
+@if (isDeleteCatModalOpen() && deletingCategory) {
+  <div class="admin-modal-backdrop" (click)="isDeleteCatModalOpen.set(false)">
+    <div class="admin-modal modal-danger" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="danger-title">Delete Category "{{ deletingCategory.name }}"?</h3>
+        <button class="close-btn" (click)="isDeleteCatModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body-danger">
+        <p>This action will permanently delete this category and all its nested sub-categories.</p>
+        @if (deletingCategory.products_count && deletingCategory.products_count > 0) {
+          <div class="alert-box-warning">
+            <span class="material-symbols-outlined">warning</span>
+            <span>This category currently contains <strong>{{ deletingCategory.products_count }} products</strong>.</span>
+          </div>
+        }
+        <label class="checkbox-row">
+          <input type="checkbox" [(ngModel)]="forceDeleteCategory" />
+          <span>Force delete and unlink referenced products</span>
+        </label>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="secondary-admin-btn" (click)="isDeleteCatModalOpen.set(false)">Cancel</button>
+        <button type="button" class="danger-btn" (click)="confirmDeleteCategory()">
+          Confirm Delete
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL 4: CREATE / EDIT PRODUCT(S) (MULTI-ROW ENTRY SUPPORT) -->
+<!-- ========================================================================= -->
+@if (isProductModalOpen()) {
+  <div class="admin-modal-backdrop" (click)="isProductModalOpen.set(false)">
+    <div class="admin-modal modal-xl" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3>{{ editingProductId ? 'Edit Catalog Product' : 'Add Products to Catalog (Multi-Row Entry)' }}</h3>
+          <p class="modal-subtitle">
+            {{ editingProductId ? 'Update product details below.' : 'Add one or multiple items simultaneously. All details for each item are in a single row.' }}
+          </p>
+        </div>
+        <div class="modal-header-actions">
+          @if (!editingProductId) {
+            <div class="quick-add-row-btns">
+              <button type="button" class="secondary-admin-btn mini" (click)="addProductRow()">
+                <span class="material-symbols-outlined">add</span>
+                Add Row
+              </button>
+              <button type="button" class="secondary-admin-btn mini" (click)="addMultipleProductRows(3)">
+                <span class="material-symbols-outlined">playlist_add</span>
+                +3 Rows
+              </button>
+              <button type="button" class="secondary-admin-btn mini" (click)="addMultipleProductRows(5)">
+                <span class="material-symbols-outlined">playlist_add</span>
+                +5 Rows
+              </button>
+            </div>
+          }
+          <button class="close-btn" (click)="isProductModalOpen.set(false)">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      </div>
+
+      <form (submit)="onProductsMultiSubmit($event)">
+        <div class="multi-product-table-wrapper">
+          <table class="multi-product-table">
+            <thead>
+              <tr>
+                <th style="width: 36px;">#</th>
+                <th style="min-width: 200px;">Product Title *</th>
+                <th style="min-width: 120px;">SKU Code</th>
+                <th style="min-width: 170px;">Category *</th>
+                <th style="min-width: 160px;">Sub-Category</th>
+                <th style="min-width: 100px;">Price (₹) *</th>
+                <th style="min-width: 100px;">MRP (₹)</th>
+                <th style="min-width: 110px;">Weight *</th>
+                <th style="min-width: 90px;">Stock *</th>
+                <th style="min-width: 130px;">Origin Region</th>
+                <th style="min-width: 220px;">Image URL *</th>
+                <th style="min-width: 100px;">Highlights</th>
+                @if (!editingProductId) {
+                  <th style="width: 80px; text-align: center;">Actions</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of productFormRows(); track $index; let idx = $index) {
+                <tr class="product-row-item">
+                  <td class="row-index-cell">
+                    <span class="row-num-pill">{{ idx + 1 }}</span>
+                  </td>
+
+                  <!-- Product Name -->
+                  <td>
+                    <input
+                      type="text"
+                      class="row-input title-input"
+                      placeholder="e.g. Royal Basmati Rice 5kg"
+                      [(ngModel)]="row.name"
+                      [name]="'row_name_' + idx"
+                      required
+                    />
+                  </td>
+
+                  <!-- SKU -->
+                  <td>
+                    <input
+                      type="text"
+                      class="row-input"
+                      placeholder="SKU-RICE-01"
+                      [(ngModel)]="row.sku"
+                      [name]="'row_sku_' + idx"
+                    />
+                  </td>
+
+                  <!-- Category Dropdown (triggers sub-category reset) -->
+                  <td>
+                    <select
+                      class="row-select"
+                      [(ngModel)]="row.category"
+                      (ngModelChange)="onRowCategoryChange(row)"
+                      [name]="'row_cat_' + idx"
+                      required
+                    >
+                      <option value="" disabled>Select Category</option>
+                      @for (cat of categoriesList(); track cat.id) {
+                        <option [value]="cat.id">{{ cat.name }}</option>
+                      }
+                    </select>
+                  </td>
+
+                  <!-- Dynamic Sub-Category Dropdown based on row.category -->
+                  <td>
+                    <select
+                      class="row-select"
+                      [(ngModel)]="row.subCategory"
+                      [name]="'row_sub_' + idx"
+                    >
+                      <option value="">None (Top-Level)</option>
+                      @for (sub of getSubCategoriesForCategory(row.category); track sub.id) {
+                        <option [value]="sub.id">{{ sub.name }}</option>
+                      }
+                    </select>
+                  </td>
+
+                  <!-- Selling Price -->
+                  <td>
+                    <input
+                      type="number"
+                      class="row-input num-input"
+                      placeholder="499"
+                      [(ngModel)]="row.price"
+                      [name]="'row_price_' + idx"
+                      min="1"
+                      required
+                    />
+                  </td>
+
+                  <!-- MRP -->
+                  <td>
+                    <input
+                      type="number"
+                      class="row-input num-input"
+                      placeholder="599"
+                      [(ngModel)]="row.originalPrice"
+                      [name]="'row_mrp_' + idx"
+                      min="1"
+                    />
+                  </td>
+
+                  <!-- Weight -->
+                  <td>
+                    <input
+                      type="text"
+                      class="row-input"
+                      placeholder="5kg / 500g"
+                      [(ngModel)]="row.weight"
+                      [name]="'row_weight_' + idx"
+                      required
+                    />
+                  </td>
+
+                  <!-- Stock -->
+                  <td>
+                    <input
+                      type="number"
+                      class="row-input num-input"
+                      placeholder="50"
+                      [(ngModel)]="row.stock"
+                      [name]="'row_stock_' + idx"
+                      min="0"
+                      required
+                    />
+                  </td>
+
+                  <!-- Origin Region -->
+                  <td>
+                    <input
+                      type="text"
+                      class="row-input"
+                      placeholder="Punjab, India"
+                      [(ngModel)]="row.originRegion"
+                      [name]="'row_origin_' + idx"
+                    />
+                  </td>
+
+                  <!-- Image URL with Preview Thumbnail -->
+                  <td>
+                    <div class="row-image-input-group">
+                      <input
+                        type="text"
+                        class="row-input image-url-input"
+                        placeholder="https://..."
+                        [(ngModel)]="row.imageUrl"
+                        [name]="'row_img_' + idx"
+                        required
+                      />
+                      @if (row.imageUrl) {
+                        <img [src]="row.imageUrl" alt="Preview" class="row-thumb-preview" />
+                      }
+                    </div>
+                  </td>
+
+                  <!-- Highlights Flags -->
+                  <td>
+                    <div class="row-flags-group">
+                      <label class="flag-toggle-label" title="Toggle Bestseller">
+                        <input
+                          type="checkbox"
+                          [(ngModel)]="row.isBestseller"
+                          [name]="'row_best_' + idx"
+                        />
+                        <span>⭐</span>
+                      </label>
+                      <label class="flag-toggle-label green" title="Toggle Certified Organic">
+                        <input
+                          type="checkbox"
+                          [(ngModel)]="row.isOrganic"
+                          [name]="'row_org_' + idx"
+                        />
+                        <span>🌱</span>
+                      </label>
+                    </div>
+                  </td>
+
+                  <!-- Row Actions -->
+                  @if (!editingProductId) {
+                    <td class="row-action-cell">
+                      <div class="row-action-btns">
+                        <button
+                          type="button"
+                          class="mini-row-btn"
+                          title="Duplicate Row"
+                          (click)="duplicateProductRow(idx)"
+                        >
+                          <span class="material-symbols-outlined">content_copy</span>
+                        </button>
+                        <button
+                          type="button"
+                          class="mini-row-btn red"
+                          title="Remove Row"
+                          (click)="removeProductRow(idx)"
+                          [disabled]="productFormRows().length === 1"
+                        >
+                          <span class="material-symbols-outlined">delete</span>
+                        </button>
+                      </div>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="modal-bottom-bar">
+          <div class="modal-bottom-left">
+            @if (!editingProductId) {
+              <button type="button" class="secondary-admin-btn" (click)="addProductRow()">
+                <span class="material-symbols-outlined">add</span>
+                Add Another Row
+              </button>
+              <span class="rows-count-summary">
+                Total Products: <strong>{{ productFormRows().length }}</strong>
+              </span>
+            }
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="secondary-admin-btn" (click)="isProductModalOpen.set(false)">Cancel</button>
+            <button type="submit" class="primary-admin-btn" [disabled]="isSavingProducts()">
+              <span class="material-symbols-outlined" [class.spin]="isSavingProducts()">save</span>
+              {{ isSavingProducts() ? 'Saving Products...' : (editingProductId ? 'Update Product' : 'Save All ' + productFormRows().length + ' Product' + (productFormRows().length > 1 ? 's' : '')) }}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL 5: QUICK STOCK ADJUSTMENT -->
+<!-- ========================================================================= -->
+@if (isStockModalOpen() && stockTargetProduct) {
+  <div class="admin-modal-backdrop" (click)="isStockModalOpen.set(false)">
+    <div class="admin-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Adjust Warehouse Stock</h3>
+        <button class="close-btn" (click)="isStockModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="onStockAdjustSubmit($event)">
+        <div class="stock-modal-info">
+          <strong>{{ stockTargetProduct.name }}</strong>
+          <p>Current Inventory: <strong>{{ stockTargetProduct.stock }} units</strong></p>
+        </div>
+
+        <div class="form-group">
+          <label>Units to Add (+) or Deduct (-)</label>
+          <input
+            type="number"
+            [(ngModel)]="stockAdjustQty"
+            name="stockAdjustQty"
+            required
+          />
+          <small class="help-text">
+            New total stock will be: <strong>{{ stockTargetProduct.stock + stockAdjustQty }}</strong> units.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Reason / Audit Note</label>
+          <select [(ngModel)]="stockAdjustReason" name="stockAdjustReason">
+            <option value="RESTOCK_SHIPMENT">Restock Shipment Received</option>
+            <option value="CYCLE_COUNT_CORRECTION">Cycle Count Correction</option>
+            <option value="DAMAGED_ITEMS">Damaged / Expired Inventory</option>
+            <option value="CUSTOMER_RETURN">Customer Return Restocked</option>
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="secondary-admin-btn" (click)="isStockModalOpen.set(false)">Cancel</button>
+          <button type="submit" class="primary-admin-btn">Update Stock Level</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL 6: QUICK DISCOUNT SETUP -->
+<!-- ========================================================================= -->
+@if (isDiscountModalOpen() && discountTargetProduct) {
+  <div class="admin-modal-backdrop" (click)="isDiscountModalOpen.set(false)">
+    <div class="admin-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Promotional Discount Configuration</h3>
+        <button class="close-btn" (click)="isDiscountModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="onDiscountSubmit($event)">
+        <div class="stock-modal-info">
+          <strong>{{ discountTargetProduct.name }}</strong>
+          <p>Current Price: <strong>₹{{ discountTargetProduct.price }}</strong> (MRP: ₹{{ discountTargetProduct.original_price || discountTargetProduct.originalPrice || discountTargetProduct.price }})</p>
+        </div>
+
+        <div class="form-group">
+          <label>Original MRP (₹)</label>
+          <input type="number" [(ngModel)]="discountOriginalPrice" name="discountOriginalPrice" min="1" required />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Discount Type</label>
+            <select [(ngModel)]="discountType" name="discountType">
+              <option value="PERCENTAGE">Percentage (%)</option>
+              <option value="FLAT">Flat Amount (₹)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Discount Value</label>
+            <input type="number" [(ngModel)]="discountValue" name="discountValue" min="0" required />
+          </div>
+        </div>
+
+        <div class="calculated-price-box">
+          <span>Final Discounted Selling Price:</span>
+          <strong>₹{{ calculatedDiscountedPrice }}</strong>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="secondary-admin-btn" (click)="isDiscountModalOpen.set(false)">Cancel</button>
+          <button type="submit" class="primary-admin-btn">Apply Discount</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL 7: BULK CSV / JSON IMPORT -->
+<!-- ========================================================================= -->
+@if (isImportModalOpen()) {
+  <div class="admin-modal-backdrop" (click)="isImportModalOpen.set(false)">
+    <div class="admin-modal modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Bulk Import Products</h3>
+        <button class="close-btn" (click)="isImportModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="import-mode-switch">
+        <button class="mode-tab" [class.active]="importMode === 'csv'" (click)="importMode = 'csv'">
+          CSV Upload / Paste
+        </button>
+        <button class="mode-tab" [class.active]="importMode === 'json'" (click)="importMode = 'json'; setSampleJson()">
+          JSON Array
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label>
+          {{ importMode === 'csv' ? 'Paste CSV Data (Include Header Row)' : 'Paste JSON Array of Products' }}
+        </label>
+        <textarea
+          [(ngModel)]="importDataText"
+          rows="8"
+          class="code-textarea"
+          placeholder="name,sku,price,original_price,stock,category"
+        ></textarea>
+      </div>
+
+      @if (importResult) {
+        <div class="import-report-box" [class.success]="importResult.success" [class.error]="!importResult.success">
+          <h4>{{ importResult.message }}</h4>
+          @if (importResult.summary) {
+            <div class="import-metrics-row">
+              <span>Total: <strong>{{ importResult.summary.total }}</strong></span>
+              <span class="green-text">Created: <strong>{{ importResult.summary.created }}</strong></span>
+              <span class="blue-text">Updated: <strong>{{ importResult.summary.updated }}</strong></span>
+              <span class="red-text">Failed: <strong>{{ importResult.summary.failed }}</strong></span>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="modal-footer">
+        <button type="button" class="secondary-admin-btn" (click)="isImportModalOpen.set(false)">Close</button>
+        <button
+          type="button"
+          class="primary-admin-btn"
+          [disabled]="isImporting() || !importDataText.trim()"
+          (click)="onExecuteImport()"
+        >
+          <span class="material-symbols-outlined" [class.spin]="isImporting()">upload</span>
+          {{ isImporting() ? 'Processing Import...' : 'Import Catalog Data' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODALS FOR EXISTING CMS: MENU, PAGE, FORM -->
+<!-- ========================================================================= -->
+@if (isMenuModalOpen()) {
+  <div class="admin-modal-backdrop" (click)="isMenuModalOpen.set(false)">
+    <div class="admin-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingMenuId ? 'Edit Navigation Link' : 'Create Navigation Link' }}</h3>
+        <button class="close-btn" (click)="isMenuModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="onMenuSubmit($event)">
+        <div class="form-group">
+          <label>Menu Label *</label>
+          <input type="text" [(ngModel)]="menuLabel" name="menuLabel" required />
+        </div>
+
+        <div class="form-group">
+          <label>Material Icon</label>
+          <input type="text" [(ngModel)]="menuIcon" name="menuIcon" placeholder="grain, coffee..." required />
+        </div>
+
+        <div class="form-group">
+          <label>Route Path *</label>
+          <input type="text" [(ngModel)]="menuPath" name="menuPath" placeholder="/page/diwali-special" required />
+        </div>
+
+        <div class="form-group">
+          <label>Sort Order</label>
+          <input type="number" [(ngModel)]="menuOrder" name="menuOrder" required />
+        </div>
+
+        <div class="form-group">
+          <label>Badge Tag (Optional)</label>
+          <input type="text" [(ngModel)]="menuBadge" name="menuBadge" placeholder="NEW, 50% OFF" />
+        </div>
+
+        <div class="form-group">
+          <label>Visible to Roles</label>
+          <div class="roles-checklist">
+            @for (role of allRoles; track role) {
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  [checked]="isRoleSelected(role)"
+                  (change)="toggleRoleSelection(role)"
+                />
+                {{ role }}
+              </label>
+            }
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="secondary-admin-btn" (click)="isMenuModalOpen.set(false)">Cancel</button>
+          <button type="submit" class="primary-admin-btn">Save Menu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (isPageModalOpen()) {
+  <div class="admin-modal-backdrop" (click)="isPageModalOpen.set(false)">
+    <div class="admin-modal modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingPageId ? 'Edit Custom Landing Page' : 'Create Custom Landing Page' }}</h3>
+        <button class="close-btn" (click)="isPageModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="onPageSubmit($event)">
+        <div class="form-group">
+          <label>Page Title *</label>
+          <input type="text" [(ngModel)]="pageTitle" name="pageTitle" required />
+        </div>
+
+        <div class="form-group">
+          <label>URL Slug (/page/...) *</label>
+          <input type="text" [(ngModel)]="pageSlug" name="pageSlug" required />
+        </div>
+
+        <div class="form-group">
+          <label>Subtitle</label>
+          <input type="text" [(ngModel)]="pageSubtitle" name="pageSubtitle" />
+        </div>
+
+        <div class="form-group">
+          <label>Banner Image URL</label>
+          <input type="text" [(ngModel)]="pageBanner" name="pageBanner" />
+        </div>
+
+        <div class="form-group">
+          <label>Page Content (HTML allowed)</label>
+          <textarea [(ngModel)]="pageContent" name="pageContent" rows="6" required></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>CTA Button Text</label>
+            <input type="text" [(ngModel)]="pageCtaText" name="pageCtaText" placeholder="Shop Collection" />
+          </div>
+          <div class="form-group">
+            <label>CTA Button Link</label>
+            <input type="text" [(ngModel)]="pageCtaLink" name="pageCtaLink" placeholder="/store" />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="secondary-admin-btn" (click)="isPageModalOpen.set(false)">Cancel</button>
+          <button type="submit" class="primary-admin-btn">Publish Page</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (isFormModalOpen()) {
+  <div class="admin-modal-backdrop" (click)="isFormModalOpen.set(false)">
+    <div class="admin-modal modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingFormId ? 'Edit Dynamic Form' : 'Create Dynamic Form' }}</h3>
+        <button class="close-btn" (click)="isFormModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="onFormSubmit($event)">
+        <div class="form-group">
+          <label>Form Title *</label>
+          <input type="text" [(ngModel)]="formTitle" name="formTitle" required />
+        </div>
+
+        <div class="form-group">
+          <label>URL Slug (/form/...) *</label>
+          <input type="text" [(ngModel)]="formSlug" name="formSlug" required />
+        </div>
+
+        <div class="form-group">
+          <label>Form Description</label>
+          <input type="text" [(ngModel)]="formDescription" name="formDescription" />
+        </div>
+
+        <div class="form-group">
+          <label>Submit Button Text</label>
+          <input type="text" [(ngModel)]="formSubmitText" name="formSubmitText" required />
+        </div>
+
+        <div class="fields-builder-section">
+          <div class="fields-builder-header">
+            <h4>Form Fields ({{ formFields.length }})</h4>
+            <button type="button" class="secondary-admin-btn" (click)="addFormFieldRow()">
+              <span class="material-symbols-outlined">add</span>
+              Add Field
+            </button>
+          </div>
+
+          @for (f of formFields; track f.id; let idx = $index) {
+            <div class="field-edit-row">
+              <div class="form-group">
+                <label>Label</label>
+                <input type="text" [(ngModel)]="f.label" [name]="'f_label_' + idx" required />
+              </div>
+
+              <div class="form-group">
+                <label>Type</label>
+                <select [(ngModel)]="f.type" [name]="'f_type_' + idx">
+                  <option value="text">Text</option>
+                  <option value="email">Email</option>
+                  <option value="number">Number</option>
+                  <option value="textarea">Textarea</option>
+                  <option value="select">Dropdown</option>
+                </select>
+              </div>
+
+              @if (f.type === 'select') {
+                <div class="form-group">
+                  <label>Options (Comma-separated)</label>
+                  <input
+                    type="text"
+                    [value]="getOptionsString(f.options)"
+                    (input)="updateOptions(f, $event)"
+                    [name]="'f_opts_' + idx"
+                    placeholder="Option 1, Option 2"
+                  />
+                </div>
+              }
+
+              <div class="form-group checkbox-cell">
+                <label>
+                  <input type="checkbox" [(ngModel)]="f.required" [name]="'f_req_' + idx" />
+                  Required
+                </label>
+              </div>
+
+              <button type="button" class="icon-action-btn red remove-field-btn" (click)="removeFormFieldRow(idx)">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
+            </div>
+          }
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="secondary-admin-btn" (click)="isFormModalOpen.set(false)">Cancel</button>
+          <button type="submit" class="primary-admin-btn">Save & Publish Form</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
