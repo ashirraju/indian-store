@@ -40,7 +40,7 @@ export class AdminViewComponent implements OnInit {
   readonly store = inject(StoreStateService);
   readonly api = inject(ApiService);
 
-  readonly activeTab = signal<'categories' | 'products' | 'menus' | 'pages' | 'forms' | 'banners' | 'submissions'>('categories');
+  readonly activeTab = signal<'categories' | 'products' | 'banners'>('categories');
   readonly allRoles: AppRole[] = ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'];
 
   // ==========================================
@@ -131,36 +131,18 @@ export class AdminViewComponent implements OnInit {
   importResult: { success: boolean; message: string; summary?: any } | null = null;
   isImporting = signal<boolean>(false);
 
+  // Single Product Delete Confirmation Modal
+  readonly isDeleteProductModalOpen = signal<boolean>(false);
+  deletingProduct: Product | null = null;
+  isDeletingProduct = signal<boolean>(false);
+
+  // Multiple / Bulk Product Delete Confirmation Modal
+  readonly isBulkDeleteModalOpen = signal<boolean>(false);
+  isDeletingBulk = signal<boolean>(false);
+
   // ==========================================
-  // CMS STATE (Menus, Pages, Forms, Banners)
+  // STOREFRONT BANNERS CONFIGURATION STATE
   // ==========================================
-  isMenuModalOpen = signal<boolean>(false);
-  editingMenuId: string | null = null;
-  menuLabel = '';
-  menuIcon = '';
-  menuPath = '';
-  menuOrder = 1;
-  menuBadge = '';
-  selectedRoles: AppRole[] = ['Customer', 'Manager', 'Admin'];
-
-  isPageModalOpen = signal<boolean>(false);
-  editingPageId: string | null = null;
-  pageTitle = '';
-  pageSlug = '';
-  pageSubtitle = '';
-  pageBanner = '';
-  pageContent = '';
-  pageCtaText = '';
-  pageCtaLink = '';
-
-  isFormModalOpen = signal<boolean>(false);
-  editingFormId: string | null = null;
-  formTitle = '';
-  formSlug = '';
-  formDescription = '';
-  formSubmitText = '';
-  formFields: FormFieldSchema[] = [];
-
   announcementText = this.store.bannerConfig().announcementText;
   announcementLink = this.store.bannerConfig().announcementLink || '';
   heroHeadline = this.store.bannerConfig().heroHeadline;
@@ -742,22 +724,36 @@ export class AdminViewComponent implements OnInit {
     }
   }
 
-  async deleteProduct(product: Product) {
-    if (!confirm(`Are you sure you want to permanently delete "${product.name}"?`)) return;
+  deleteProduct(product: Product) {
+    this.openDeleteProductModal(product);
+  }
+
+  openDeleteProductModal(product: Product) {
+    this.deletingProduct = product;
+    this.isDeleteProductModalOpen.set(true);
+  }
+
+  async confirmDeleteProduct() {
+    if (!this.deletingProduct) return;
+    this.isDeletingProduct.set(true);
     try {
-      const res = await this.api.deleteProduct(product.id);
+      const res = await this.api.deleteProduct(this.deletingProduct.id);
       if (res.success) {
-        this.store.showToast('warning', 'Product Deleted', `"${product.name}" deleted.`);
+        this.store.showToast('warning', 'Product Deleted', `"${this.deletingProduct.name}" deleted.`);
         await this.loadProducts();
         await this.loadProductsSummary();
         await this.loadCategories();
-        this.selectedProductIds().delete(product.id);
+        this.selectedProductIds().delete(this.deletingProduct.id);
+        this.isDeleteProductModalOpen.set(false);
+        this.deletingProduct = null;
       } else {
         this.store.showToast('error', 'Delete Failed', res.message || 'Could not delete product');
       }
     } catch (err) {
       console.error(err);
       this.store.showToast('error', 'Error', 'Failed to delete product.');
+    } finally {
+      this.isDeletingProduct.set(false);
     }
   }
 
@@ -914,11 +910,24 @@ export class AdminViewComponent implements OnInit {
     }
   }
 
-  async executeBulkDelete() {
+  executeBulkDelete() {
+    this.openBulkDeleteModal();
+  }
+
+  openBulkDeleteModal() {
+    if (this.selectedProductIds().size === 0) return;
+    this.isBulkDeleteModalOpen.set(true);
+  }
+
+  getSelectedProductsForDelete(): Product[] {
+    const ids = this.selectedProductIds();
+    return this.productsList().filter(p => ids.has(p.id));
+  }
+
+  async confirmBulkDelete() {
     const ids = Array.from(this.selectedProductIds());
     if (ids.length === 0) return;
-    if (!confirm(`Are you sure you want to bulk delete ${ids.length} selected products?`)) return;
-
+    this.isDeletingBulk.set(true);
     try {
       const res = await this.api.bulkDeleteProducts(ids);
       if (res.success) {
@@ -927,10 +936,15 @@ export class AdminViewComponent implements OnInit {
         await this.loadProducts();
         await this.loadProductsSummary();
         await this.loadCategories();
+        this.isBulkDeleteModalOpen.set(false);
+      } else {
+        this.store.showToast('error', 'Delete Failed', 'Bulk delete failed.');
       }
     } catch (err) {
       console.error(err);
       this.store.showToast('error', 'Error', 'Bulk delete failed.');
+    } finally {
+      this.isDeletingBulk.set(false);
     }
   }
 
@@ -1007,167 +1021,8 @@ export class AdminViewComponent implements OnInit {
   }
 
   // ==========================================
-  // CMS CRUD (Menus, Pages, Forms, Banners)
+  // STOREFRONT BANNERS METHODS
   // ==========================================
-
-  getKeys(obj: Record<string, any>): string[] {
-    return Object.keys(obj || {});
-  }
-
-  openMenuModal(menu?: MenuItem) {
-    if (menu) {
-      this.editingMenuId = menu.id;
-      this.menuLabel = menu.label;
-      this.menuIcon = menu.icon;
-      this.menuPath = menu.path;
-      this.menuOrder = menu.order;
-      this.menuBadge = menu.badge || '';
-      this.selectedRoles = [...menu.visibleRoles];
-    } else {
-      this.editingMenuId = null;
-      this.menuLabel = '';
-      this.menuIcon = 'link';
-      this.menuPath = '/page/new';
-      this.menuOrder = this.store.menus().length + 1;
-      this.menuBadge = '';
-      this.selectedRoles = ['Customer', 'Manager', 'Admin'];
-    }
-    this.isMenuModalOpen.set(true);
-  }
-
-  isRoleSelected(r: AppRole): boolean {
-    return this.selectedRoles.includes(r);
-  }
-
-  toggleRoleSelection(r: AppRole) {
-    if (this.isRoleSelected(r)) {
-      this.selectedRoles = this.selectedRoles.filter(role => role !== r);
-    } else {
-      this.selectedRoles.push(r);
-    }
-  }
-
-  onMenuSubmit(event: Event) {
-    event.preventDefault();
-    if (this.editingMenuId) {
-      this.store.updateMenuItem({
-        id: this.editingMenuId,
-        label: this.menuLabel,
-        icon: this.menuIcon,
-        path: this.menuPath,
-        order: Number(this.menuOrder),
-        badge: this.menuBadge || undefined,
-        visibleRoles: this.selectedRoles
-      });
-    } else {
-      this.store.addMenuItem({
-        label: this.menuLabel,
-        icon: this.menuIcon,
-        path: this.menuPath,
-        order: Number(this.menuOrder),
-        badge: this.menuBadge || undefined,
-        visibleRoles: this.selectedRoles
-      });
-    }
-    this.isMenuModalOpen.set(false);
-  }
-
-  openPageModal(page?: CustomPage) {
-    if (page) {
-      this.editingPageId = page.id;
-      this.pageTitle = page.title;
-      this.pageSlug = page.slug;
-      this.pageSubtitle = page.subtitle;
-      this.pageBanner = page.bannerImage;
-      this.pageContent = page.content;
-      this.pageCtaText = page.ctaText || '';
-      this.pageCtaLink = page.ctaLink || '';
-    } else {
-      this.editingPageId = null;
-      this.pageTitle = '';
-      this.pageSlug = 'festive-offer';
-      this.pageSubtitle = '';
-      this.pageBanner = 'https://images.unsplash.com/photo-1605826832916-d0ea9d6fe71e?w=1000&auto=format&fit=crop&q=80';
-      this.pageContent = '<h3>Custom Page Heading</h3><p>Write custom story or details here.</p>';
-      this.pageCtaText = 'Shop Now';
-      this.pageCtaLink = '/store';
-    }
-    this.isPageModalOpen.set(true);
-  }
-
-  onPageSubmit(event: Event) {
-    event.preventDefault();
-    this.store.saveCustomPage({
-      id: this.editingPageId || undefined,
-      title: this.pageTitle,
-      slug: this.pageSlug,
-      subtitle: this.pageSubtitle,
-      bannerImage: this.pageBanner,
-      content: this.pageContent,
-      ctaText: this.pageCtaText || undefined,
-      ctaLink: this.pageCtaLink || undefined,
-      isPublished: true
-    });
-    this.isPageModalOpen.set(false);
-  }
-
-  openFormModal(formSchema?: DynamicFormSchema) {
-    if (formSchema) {
-      this.editingFormId = formSchema.id;
-      this.formTitle = formSchema.title;
-      this.formSlug = formSchema.slug;
-      this.formDescription = formSchema.description;
-      this.formSubmitText = formSchema.submitButtonText;
-      this.formFields = JSON.parse(JSON.stringify(formSchema.fields));
-    } else {
-      this.editingFormId = null;
-      this.formTitle = '';
-      this.formSlug = 'custom-inquiry';
-      this.formDescription = '';
-      this.formSubmitText = 'Submit Form';
-      this.formFields = [
-        { id: 'f_1', label: 'Full Name', name: 'fullName', type: 'text', placeholder: 'Enter name', required: true }
-      ];
-    }
-    this.isFormModalOpen.set(true);
-  }
-
-  addFormFieldRow() {
-    this.formFields.push({
-      id: `f_${Date.now()}`,
-      label: 'New Field',
-      name: `field_${this.formFields.length + 1}`,
-      type: 'text',
-      required: false
-    });
-  }
-
-  removeFormFieldRow(index: number) {
-    this.formFields.splice(index, 1);
-  }
-
-  getOptionsString(options?: string[]): string {
-    return (options || []).join(', ');
-  }
-
-  updateOptions(field: FormFieldSchema, event: Event) {
-    const val = (event.target as HTMLInputElement).value;
-    field.options = val.split(',').map(s => s.trim()).filter(s => s.length > 0);
-  }
-
-  onFormSubmit(event: Event) {
-    event.preventDefault();
-    this.store.saveDynamicForm({
-      id: this.editingFormId || undefined,
-      title: this.formTitle,
-      slug: this.formSlug,
-      description: this.formDescription,
-      submitButtonText: this.formSubmitText,
-      fields: this.formFields,
-      isPublished: true
-    });
-    this.isFormModalOpen.set(false);
-  }
 
   onSaveBanners(event: Event) {
     event.preventDefault();

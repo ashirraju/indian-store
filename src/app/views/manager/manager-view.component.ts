@@ -51,6 +51,23 @@ export class ManagerViewComponent {
     this.store.saveProduct({ id: prod.id, stock: newStock });
   }
 
+  isDeleteModalOpen = signal<boolean>(false);
+  deletingProduct = signal<Product | null>(null);
+
+  openDeleteModal(prod: Product) {
+    this.deletingProduct.set(prod);
+    this.isDeleteModalOpen.set(true);
+  }
+
+  confirmDelete() {
+    const prod = this.deletingProduct();
+    if (prod) {
+      this.store.deleteProduct(prod.id);
+      this.isDeleteModalOpen.set(false);
+      this.deletingProduct.set(null);
+    }
+  }
+
   promptEditPrice(prod: Product) {
     const val = prompt(`Enter new price in AUD for "${prod.name}" (Current: $${prod.price}):`, prod.price.toString());
     if (val && !isNaN(Number(val))) {

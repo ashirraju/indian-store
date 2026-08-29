@@ -6,7 +6,10 @@
         <span class="pulse-dot"></span>
         <span>{{ store.bannerConfig().announcementText }}</span>
         @if (store.bannerConfig().announcementLink) {
-          <button class="banner-link-btn" (click)="store.navigateTo(store.bannerConfig().announcementLink!)">
+          <button
+            class="banner-link-btn"
+            (click)="store.navigateTo(store.bannerConfig().announcementLink!)"
+          >
             Explore Deals →
           </button>
         }
@@ -52,15 +55,13 @@
 
       <!-- Right Header Actions -->
       <div class="header-actions">
-        <!-- Categories Panel Trigger -->
-        <button class="action-btn category-btn" (click)="store.isCategoryPanelOpen.set(true)" title="Browse Categories">
-          <span class="material-symbols-outlined cat-panel-icon">grid_view</span>
-          <span class="btn-label">Categories</span>
-        </button>
-
         @if (store.activeRole() === 'Customer') {
           <!-- Wishlist Trigger -->
-          <button class="action-btn wishlist-btn" (click)="store.isWishlistOpen.set(true)" title="Wishlist">
+          <button
+            class="action-btn wishlist-btn"
+            (click)="store.isWishlistOpen.set(true)"
+            title="Wishlist"
+          >
             <span class="material-symbols-outlined heart-icon">favorite</span>
             <span class="btn-label">Wishlist</span>
             @if (store.wishlistTotalCount() > 0) {
@@ -69,7 +70,11 @@
           </button>
 
           <!-- Orders History Trigger -->
-          <button class="action-btn orders-btn" (click)="store.isOrdersModalOpen.set(true)" title="My Orders">
+          <button
+            class="action-btn orders-btn"
+            (click)="store.isOrdersModalOpen.set(true)"
+            title="My Orders"
+          >
             <span class="material-symbols-outlined">receipt_long</span>
             <span class="btn-label">Orders</span>
             @if (store.orders().length > 0) {

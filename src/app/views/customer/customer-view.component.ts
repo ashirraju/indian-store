@@ -5,8 +5,6 @@ import { StoreStateService } from '../../services/store-state.service';
 import { ApiService } from '../../services/api.service';
 import { Product } from '../../models/product.model';
 import { Order } from '../../models/order.model';
-import { CustomPage } from '../../models/cms.model';
-import { DynamicFormSchema } from '../../models/dynamic-form.model';
 
 @Component({
   selector: 'app-customer-view',
@@ -23,30 +21,11 @@ export class CustomerViewComponent implements OnInit {
 
   readonly selectedProduct = signal<Product | null>(null);
   readonly selectedOrder = signal<Order | null>(null);
-  readonly formDataState = signal<Record<string, any>>({});
   readonly isLoadingProducts = signal<boolean>(false);
 
   readonly categoryListWithoutAll = computed(() =>
     this.store.categories().filter(c => c !== 'All Categories')
   );
-
-  readonly activeCustomPage = computed<CustomPage | null>(() => {
-    const path = this.store.activePath();
-    if (path.startsWith('/page/')) {
-      const slug = path.replace('/page/', '');
-      return this.store.customPages().find(p => p.slug === slug) || null;
-    }
-    return null;
-  });
-
-  readonly activeCustomForm = computed<DynamicFormSchema | null>(() => {
-    const path = this.store.activePath();
-    if (path.startsWith('/form/')) {
-      const slug = path.replace('/form/', '');
-      return this.store.customForms().find(f => f.slug === slug) || null;
-    }
-    return null;
-  });
 
   async ngOnInit() {
     await this.loadStoreProducts();
@@ -452,22 +431,5 @@ export class CustomerViewComponent implements OnInit {
       el.scrollBy({ left: 360, behavior: 'smooth' });
       setTimeout(() => this.updateScrollState(slug, el), 350);
     }
-  }
-
-  updateFormData(fieldName: string, event: Event) {
-    const target = event.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-    const value = target.type === 'checkbox' ? (target as HTMLInputElement).checked : target.value;
-
-    this.formDataState.set({
-      ...this.formDataState(),
-      [fieldName]: value
-    });
-  }
-
-  onDynamicFormSubmit(event: Event, formSchema: DynamicFormSchema) {
-    event.preventDefault();
-    this.store.submitForm(formSchema.id, formSchema.title, this.formDataState());
-    this.formDataState.set({});
-    this.store.navigateTo('/store');
   }
 }

@@ -1,106 +1,6 @@
 <!-- MAIN CUSTOMER CONTAINER -->
 <div class="customer-container">
 
-  <!-- Dynamic Route Handler: If path is /page/slug, render Custom Page -->
-  @if (activeCustomPage(); as page) {
-    <div class="cms-page-container">
-      <button class="back-btn" (click)="store.navigateTo('/store')">
-        ← Back to Store Catalog
-      </button>
-      <div class="cms-hero" [style.background-image]="'url(' + page.bannerImage + ')'">
-        <div class="cms-hero-overlay">
-          <span class="cms-badge">CUSTOM FEATURE STORY</span>
-          <h2>{{ page.title }}</h2>
-          <p>{{ page.subtitle }}</p>
-        </div>
-      </div>
-      <div class="cms-content-card card-surface" [innerHTML]="page.content"></div>
-      @if (page.ctaText && page.ctaLink) {
-        <div class="cms-cta-box">
-          <button class="cta-btn" (click)="store.navigateTo(page.ctaLink!)">
-            {{ page.ctaText }} →
-          </button>
-        </div>
-      }
-    </div>
-  }
-
-  <!-- Dynamic Route Handler: If path is /form/slug, render Custom Form -->
-  @else if (activeCustomForm(); as formSchema) {
-    <div class="cms-form-container">
-      <button class="back-btn" (click)="store.navigateTo('/store')">
-        ← Back to Store Catalog
-      </button>
-      <div class="form-card card-surface">
-        <div class="form-header">
-          <span class="material-symbols-outlined form-icon">dynamic_form</span>
-          <h2>{{ formSchema.title }}</h2>
-          <p>{{ formSchema.description }}</p>
-        </div>
-
-        <form (submit)="onDynamicFormSubmit($event, formSchema)" class="dynamic-form">
-          @for (field of formSchema.fields; track field.id) {
-            <div class="form-group">
-              <label>
-                {{ field.label }}
-                @if (field.required) { <span class="req">*</span> }
-              </label>
-
-              @switch (field.type) {
-                @case ('textarea') {
-                  <textarea
-                    [name]="field.name"
-                    [required]="field.required"
-                    [placeholder]="field.placeholder || ''"
-                    (change)="updateFormData(field.name, $event)"
-                  ></textarea>
-                }
-                @case ('select') {
-                  <select
-                    [name]="field.name"
-                    [required]="field.required"
-                    (change)="updateFormData(field.name, $event)"
-                  >
-                    <option value="">-- Select Option --</option>
-                    @for (opt of field.options || []; track opt) {
-                      <option [value]="opt">{{ opt }}</option>
-                    }
-                  </select>
-                }
-                @case ('checkbox') {
-                  <label class="chk-label">
-                    <input
-                      type="checkbox"
-                      [name]="field.name"
-                      (change)="updateFormData(field.name, $event)"
-                    />
-                    <span>Confirm yes</span>
-                  </label>
-                }
-                @default {
-                  <input
-                    [type]="field.type"
-                    [name]="field.name"
-                    [required]="field.required"
-                    [placeholder]="field.placeholder || ''"
-                    (change)="updateFormData(field.name, $event)"
-                  />
-                }
-              }
-            </div>
-          }
-
-          <button type="submit" class="submit-form-btn">
-            {{ formSchema.submitButtonText || 'Submit' }}
-          </button>
-        </form>
-      </div>
-    </div>
-  }
-
-  <!-- DEFAULT STOREFRONT VIEW -->
-  @else {
-
     <!-- 1. OFFERS & PROMOTIONS SECTION ("then show offers and all") -->
     <section class="offers-section" *ngIf="false">
       <!-- Main Hero Banner -->
@@ -531,7 +431,6 @@
         </div>
       </section>
     }
-  }
 
   <!-- PRODUCT DETAIL MODAL -->
   @if (selectedProduct(); as prod) {

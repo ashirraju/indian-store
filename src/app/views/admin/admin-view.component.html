@@ -29,25 +29,9 @@
       <span class="material-symbols-outlined">inventory_2</span>
       Product Catalog ({{ totalProductCount() }})
     </button>
-    <button class="tab-btn" [class.active]="activeTab() === 'menus'" (click)="activeTab.set('menus')">
-      <span class="material-symbols-outlined">menu_book</span>
-      Menu Builder ({{ store.menus().length }})
-    </button>
-    <button class="tab-btn" [class.active]="activeTab() === 'pages'" (click)="activeTab.set('pages')">
-      <span class="material-symbols-outlined">description</span>
-      Page Builder ({{ store.customPages().length }})
-    </button>
-    <button class="tab-btn" [class.active]="activeTab() === 'forms'" (click)="activeTab.set('forms')">
-      <span class="material-symbols-outlined">dynamic_form</span>
-      Form Builder ({{ store.customForms().length }})
-    </button>
     <button class="tab-btn" [class.active]="activeTab() === 'banners'" (click)="activeTab.set('banners')">
       <span class="material-symbols-outlined">tune</span>
       Storefront & Banners
-    </button>
-    <button class="tab-btn" [class.active]="activeTab() === 'submissions'" (click)="activeTab.set('submissions')">
-      <span class="material-symbols-outlined">inbox</span>
-      Submissions ({{ store.formSubmissions().length }})
     </button>
   </div>
 
@@ -555,184 +539,7 @@
   }
 
   <!-- ========================================================================= -->
-  <!-- TAB 3: DYNAMIC MENU BUILDER -->
-  <!-- ========================================================================= -->
-  @else if (activeTab() === 'menus') {
-    <div class="tab-content card-surface">
-      <div class="tab-title-row">
-        <div>
-          <h3>Navigation Menu Manager</h3>
-          <p>Add, edit, reorder or restrict navbar links for specific roles.</p>
-        </div>
-        <button class="primary-admin-btn" (click)="openMenuModal()">
-          <span class="material-symbols-outlined">add</span>
-          Create Menu Link
-        </button>
-      </div>
-
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Order</th>
-            <th>Menu Label</th>
-            <th>Icon</th>
-            <th>Route Path</th>
-            <th>Visible To Roles</th>
-            <th>Badge</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (menu of store.menus(); track menu.id) {
-            <tr>
-              <td>
-                <strong class="order-num">{{ menu.order }}</strong>
-              </td>
-              <td>
-                <div class="menu-label-cell">
-                  <span class="material-symbols-outlined menu-icon-preview">{{ menu.icon }}</span>
-                  <strong>{{ menu.label }}</strong>
-                </div>
-              </td>
-              <td><code>{{ menu.icon }}</code></td>
-              <td><code>{{ menu.path }}</code></td>
-              <td>
-                <div class="role-tags">
-                  @for (role of menu.visibleRoles; track role) {
-                    <span class="role-tag">{{ role }}</span>
-                  }
-                </div>
-              </td>
-              <td>
-                @if (menu.badge) {
-                  <span class="badge badge-red">{{ menu.badge }}</span>
-                } @else {
-                  <span class="text-muted">-</span>
-                }
-              </td>
-              <td>
-                <div class="action-btns-row">
-                  <button class="icon-action-btn" (click)="openMenuModal(menu)">
-                    <span class="material-symbols-outlined">edit</span>
-                  </button>
-                  <button class="icon-action-btn red" (click)="store.deleteMenuItem(menu.id)">
-                    <span class="material-symbols-outlined">delete</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  }
-
-  <!-- ========================================================================= -->
-  <!-- TAB 4: DYNAMIC PAGE BUILDER -->
-  <!-- ========================================================================= -->
-  @else if (activeTab() === 'pages') {
-    <div class="tab-content card-surface">
-      <div class="tab-title-row">
-        <div>
-          <h3>Custom Page Builder</h3>
-          <p>Create rich festival stories, about us pages, or campaign landing pages.</p>
-        </div>
-        <button class="primary-admin-btn" (click)="openPageModal()">
-          <span class="material-symbols-outlined">post_add</span>
-          Create Custom Page
-        </button>
-      </div>
-
-      <div class="pages-grid">
-        @for (page of store.customPages(); track page.id) {
-          <div class="page-admin-card card-surface">
-            <img [src]="page.bannerImage" [alt]="page.title" class="page-thumb" />
-            <div class="page-card-body">
-              <div class="slug-row">
-                <code>/page/{{ page.slug }}</code>
-                <span class="badge badge-green">Published</span>
-              </div>
-              <h4>{{ page.title }}</h4>
-              <p class="subtitle">{{ page.subtitle }}</p>
-
-              <div class="page-card-footer">
-                <button class="preview-btn" (click)="store.navigateTo('/page/' + page.slug)">
-                  View Page Live →
-                </button>
-                <div class="action-btns-row">
-                  <button class="icon-action-btn" (click)="openPageModal(page)">
-                    <span class="material-symbols-outlined">edit</span>
-                  </button>
-                  <button class="icon-action-btn red" (click)="store.deleteCustomPage(page.id)">
-                    <span class="material-symbols-outlined">delete</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        }
-      </div>
-    </div>
-  }
-
-  <!-- ========================================================================= -->
-  <!-- TAB 5: DYNAMIC FORM BUILDER -->
-  <!-- ========================================================================= -->
-  @else if (activeTab() === 'forms') {
-    <div class="tab-content card-surface">
-      <div class="tab-title-row">
-        <div>
-          <h3>Dynamic Form Builder</h3>
-          <p>Build custom forms for customer inquiries, bulk requests, feedback, or delivery signups.</p>
-        </div>
-        <button class="primary-admin-btn" (click)="openFormModal()">
-          <span class="material-symbols-outlined">add_task</span>
-          Create New Form
-        </button>
-      </div>
-
-      <div class="forms-admin-list">
-        @for (formSchema of store.customForms(); track formSchema.id) {
-          <div class="form-admin-card card-surface">
-            <div class="form-card-top">
-              <div>
-                <span class="form-path">Route: <code>/form/{{ formSchema.slug }}</code></span>
-                <h4>{{ formSchema.title }}</h4>
-                <p>{{ formSchema.description }}</p>
-              </div>
-              <span class="field-count">{{ formSchema.fields.length }} Fields</span>
-            </div>
-
-            <div class="fields-preview-list">
-              @for (field of formSchema.fields; track field.id) {
-                <span class="field-pill">
-                  <strong>{{ field.label }}</strong> ({{ field.type }})
-                  @if (field.required) { * }
-                </span>
-              }
-            </div>
-
-            <div class="form-card-bottom">
-              <button class="preview-btn" (click)="store.navigateTo('/form/' + formSchema.slug)">
-                Test Live Form →
-              </button>
-              <div class="action-btns-row">
-                <button class="icon-action-btn" (click)="openFormModal(formSchema)">
-                  <span class="material-symbols-outlined">edit</span>
-                </button>
-                <button class="icon-action-btn red" (click)="store.deleteDynamicForm(formSchema.id)">
-                  <span class="material-symbols-outlined">delete</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        }
-      </div>
-    </div>
-  }
-
-  <!-- ========================================================================= -->
-  <!-- TAB 6: STOREFRONT BANNERS & PROMO -->
+  <!-- TAB 3: STOREFRONT BANNERS & PROMO -->
   <!-- ========================================================================= -->
   @else if (activeTab() === 'banners') {
     <div class="tab-content card-surface">
@@ -788,49 +595,6 @@
           Publish Banner Updates
         </button>
       </form>
-    </div>
-  }
-
-  <!-- ========================================================================= -->
-  <!-- TAB 7: FORM SUBMISSIONS -->
-  <!-- ========================================================================= -->
-  @else if (activeTab() === 'submissions') {
-    <div class="tab-content card-surface">
-      <div class="tab-title-row">
-        <div>
-          <h3>Inbound Form Submissions</h3>
-          <p>Real-time customer inquiries, corporate bulk purchase requests, and custom feedback responses.</p>
-        </div>
-      </div>
-
-      @if (store.formSubmissions().length === 0) {
-        <div class="empty-state">
-          <span class="material-symbols-outlined">inbox</span>
-          <p>No form responses received yet.</p>
-        </div>
-      } @else {
-        <div class="submissions-list">
-          @for (sub of store.formSubmissions(); track sub.id) {
-            <div class="submission-card card-surface">
-              <div class="submission-header">
-                <div>
-                  <strong>{{ sub.formTitle }}</strong>
-                  <span class="text-muted"> • {{ sub.submittedAt }}</span>
-                </div>
-                <span class="badge badge-blue">ID: {{ sub.id }}</span>
-              </div>
-              <div class="submission-data-grid">
-                @for (key of getKeys(sub.data); track key) {
-                  <div class="data-item">
-                    <span class="data-label">{{ key }}:</span>
-                    <span class="data-val">{{ sub.data[key] }}</span>
-                  </div>
-                }
-              </div>
-            </div>
-          }
-        </div>
-      }
     </div>
   }
 
@@ -1459,215 +1223,103 @@
 }
 
 <!-- ========================================================================= -->
-<!-- MODALS FOR EXISTING CMS: MENU, PAGE, FORM -->
+<!-- MODAL 8: SINGLE PRODUCT DELETE CONFIRMATION DIALOG -->
 <!-- ========================================================================= -->
-@if (isMenuModalOpen()) {
-  <div class="admin-modal-backdrop" (click)="isMenuModalOpen.set(false)">
-    <div class="admin-modal" (click)="$event.stopPropagation()">
+@if (isDeleteProductModalOpen() && deletingProduct) {
+  <div class="admin-modal-backdrop" (click)="isDeleteProductModalOpen.set(false)">
+    <div class="admin-modal modal-danger" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>{{ editingMenuId ? 'Edit Navigation Link' : 'Create Navigation Link' }}</h3>
-        <button class="close-btn" (click)="isMenuModalOpen.set(false)">
+        <h3 class="danger-title">Delete Product Confirmation</h3>
+        <button class="close-btn" (click)="isDeleteProductModalOpen.set(false)">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
 
-      <form (submit)="onMenuSubmit($event)">
-        <div class="form-group">
-          <label>Menu Label *</label>
-          <input type="text" [(ngModel)]="menuLabel" name="menuLabel" required />
-        </div>
-
-        <div class="form-group">
-          <label>Material Icon</label>
-          <input type="text" [(ngModel)]="menuIcon" name="menuIcon" placeholder="grain, coffee..." required />
-        </div>
-
-        <div class="form-group">
-          <label>Route Path *</label>
-          <input type="text" [(ngModel)]="menuPath" name="menuPath" placeholder="/page/diwali-special" required />
-        </div>
-
-        <div class="form-group">
-          <label>Sort Order</label>
-          <input type="number" [(ngModel)]="menuOrder" name="menuOrder" required />
-        </div>
-
-        <div class="form-group">
-          <label>Badge Tag (Optional)</label>
-          <input type="text" [(ngModel)]="menuBadge" name="menuBadge" placeholder="NEW, 50% OFF" />
-        </div>
-
-        <div class="form-group">
-          <label>Visible to Roles</label>
-          <div class="roles-checklist">
-            @for (role of allRoles; track role) {
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  [checked]="isRoleSelected(role)"
-                  (change)="toggleRoleSelection(role)"
-                />
-                {{ role }}
-              </label>
-            }
+      <div class="modal-body-danger">
+        <div class="delete-product-preview card-surface">
+          <img
+            [src]="deletingProduct.imageUrl || deletingProduct.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80'"
+            [alt]="deletingProduct.name"
+            class="delete-prod-thumb"
+          />
+          <div class="delete-prod-info">
+            <strong class="prod-title">{{ deletingProduct.name }}</strong>
+            <div class="prod-meta-tags">
+              <span class="meta-tag">SKU: {{ deletingProduct.sku }}</span>
+              <span class="meta-tag">Category: {{ deletingProduct.category }}</span>
+              <span class="meta-tag price">${{ deletingProduct.price }} AUD</span>
+            </div>
           </div>
         </div>
 
-        <div class="modal-footer">
-          <button type="button" class="secondary-admin-btn" (click)="isMenuModalOpen.set(false)">Cancel</button>
-          <button type="submit" class="primary-admin-btn">Save Menu</button>
+        <div class="alert-box-warning">
+          <span class="material-symbols-outlined">warning</span>
+          <span>Are you sure you want to permanently delete this product? This action cannot be undone.</span>
         </div>
-      </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="secondary-admin-btn" (click)="isDeleteProductModalOpen.set(false)">Cancel</button>
+        <button
+          type="button"
+          class="danger-btn"
+          [disabled]="isDeletingProduct()"
+          (click)="confirmDeleteProduct()"
+        >
+          <span class="material-symbols-outlined" [class.spin]="isDeletingProduct()">delete</span>
+          {{ isDeletingProduct() ? 'Deleting...' : 'Confirm Delete' }}
+        </button>
+      </div>
     </div>
   </div>
 }
 
-@if (isPageModalOpen()) {
-  <div class="admin-modal-backdrop" (click)="isPageModalOpen.set(false)">
-    <div class="admin-modal modal-lg" (click)="$event.stopPropagation()">
+<!-- ========================================================================= -->
+<!-- MODAL 9: MULTIPLE / BULK PRODUCTS DELETE CONFIRMATION DIALOG -->
+<!-- ========================================================================= -->
+@if (isBulkDeleteModalOpen()) {
+  <div class="admin-modal-backdrop" (click)="isBulkDeleteModalOpen.set(false)">
+    <div class="admin-modal modal-danger modal-lg" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h3>{{ editingPageId ? 'Edit Custom Landing Page' : 'Create Custom Landing Page' }}</h3>
-        <button class="close-btn" (click)="isPageModalOpen.set(false)">
+        <h3 class="danger-title">Bulk Delete ({{ selectedProductIds().size }} Products)</h3>
+        <button class="close-btn" (click)="isBulkDeleteModalOpen.set(false)">
           <span class="material-symbols-outlined">close</span>
         </button>
       </div>
 
-      <form (submit)="onPageSubmit($event)">
-        <div class="form-group">
-          <label>Page Title *</label>
-          <input type="text" [(ngModel)]="pageTitle" name="pageTitle" required />
+      <div class="modal-body-danger">
+        <div class="alert-box-warning">
+          <span class="material-symbols-outlined">warning</span>
+          <span>You are about to permanently delete <strong>{{ selectedProductIds().size }} selected products</strong> from the catalog. This action cannot be undone.</span>
         </div>
 
-        <div class="form-group">
-          <label>URL Slug (/page/...) *</label>
-          <input type="text" [(ngModel)]="pageSlug" name="pageSlug" required />
-        </div>
-
-        <div class="form-group">
-          <label>Subtitle</label>
-          <input type="text" [(ngModel)]="pageSubtitle" name="pageSubtitle" />
-        </div>
-
-        <div class="form-group">
-          <label>Banner Image URL</label>
-          <input type="text" [(ngModel)]="pageBanner" name="pageBanner" />
-        </div>
-
-        <div class="form-group">
-          <label>Page Content (HTML allowed)</label>
-          <textarea [(ngModel)]="pageContent" name="pageContent" rows="6" required></textarea>
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label>CTA Button Text</label>
-            <input type="text" [(ngModel)]="pageCtaText" name="pageCtaText" placeholder="Shop Collection" />
-          </div>
-          <div class="form-group">
-            <label>CTA Button Link</label>
-            <input type="text" [(ngModel)]="pageCtaLink" name="pageCtaLink" placeholder="/store" />
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <button type="button" class="secondary-admin-btn" (click)="isPageModalOpen.set(false)">Cancel</button>
-          <button type="submit" class="primary-admin-btn">Publish Page</button>
-        </div>
-      </form>
-    </div>
-  </div>
-}
-
-@if (isFormModalOpen()) {
-  <div class="admin-modal-backdrop" (click)="isFormModalOpen.set(false)">
-    <div class="admin-modal modal-lg" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3>{{ editingFormId ? 'Edit Dynamic Form' : 'Create Dynamic Form' }}</h3>
-        <button class="close-btn" (click)="isFormModalOpen.set(false)">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-      </div>
-
-      <form (submit)="onFormSubmit($event)">
-        <div class="form-group">
-          <label>Form Title *</label>
-          <input type="text" [(ngModel)]="formTitle" name="formTitle" required />
-        </div>
-
-        <div class="form-group">
-          <label>URL Slug (/form/...) *</label>
-          <input type="text" [(ngModel)]="formSlug" name="formSlug" required />
-        </div>
-
-        <div class="form-group">
-          <label>Form Description</label>
-          <input type="text" [(ngModel)]="formDescription" name="formDescription" />
-        </div>
-
-        <div class="form-group">
-          <label>Submit Button Text</label>
-          <input type="text" [(ngModel)]="formSubmitText" name="formSubmitText" required />
-        </div>
-
-        <div class="fields-builder-section">
-          <div class="fields-builder-header">
-            <h4>Form Fields ({{ formFields.length }})</h4>
-            <button type="button" class="secondary-admin-btn" (click)="addFormFieldRow()">
-              <span class="material-symbols-outlined">add</span>
-              Add Field
-            </button>
-          </div>
-
-          @for (f of formFields; track f.id; let idx = $index) {
-            <div class="field-edit-row">
-              <div class="form-group">
-                <label>Label</label>
-                <input type="text" [(ngModel)]="f.label" [name]="'f_label_' + idx" required />
-              </div>
-
-              <div class="form-group">
-                <label>Type</label>
-                <select [(ngModel)]="f.type" [name]="'f_type_' + idx">
-                  <option value="text">Text</option>
-                  <option value="email">Email</option>
-                  <option value="number">Number</option>
-                  <option value="textarea">Textarea</option>
-                  <option value="select">Dropdown</option>
-                </select>
-              </div>
-
-              @if (f.type === 'select') {
-                <div class="form-group">
-                  <label>Options (Comma-separated)</label>
-                  <input
-                    type="text"
-                    [value]="getOptionsString(f.options)"
-                    (input)="updateOptions(f, $event)"
-                    [name]="'f_opts_' + idx"
-                    placeholder="Option 1, Option 2"
-                  />
-                </div>
-              }
-
-              <div class="form-group checkbox-cell">
-                <label>
-                  <input type="checkbox" [(ngModel)]="f.required" [name]="'f_req_' + idx" />
-                  Required
-                </label>
-              </div>
-
-              <button type="button" class="icon-action-btn red remove-field-btn" (click)="removeFormFieldRow(idx)">
-                <span class="material-symbols-outlined">delete</span>
-              </button>
+        <p class="bulk-list-title">Selected products to be deleted:</p>
+        <div class="bulk-delete-items-list">
+          @for (prod of getSelectedProductsForDelete(); track prod.id) {
+            <div class="bulk-item-row">
+              <span class="material-symbols-outlined delete-bullet">inventory_2</span>
+              <span class="bulk-item-name">{{ prod.name }}</span>
+              <span class="bulk-item-sku">({{ prod.sku }})</span>
+              <strong class="bulk-item-price">${{ prod.price }} AUD</strong>
             </div>
           }
         </div>
+      </div>
 
-        <div class="modal-footer">
-          <button type="button" class="secondary-admin-btn" (click)="isFormModalOpen.set(false)">Cancel</button>
-          <button type="submit" class="primary-admin-btn">Save & Publish Form</button>
-        </div>
-      </form>
+      <div class="modal-footer">
+        <button type="button" class="secondary-admin-btn" (click)="isBulkDeleteModalOpen.set(false)">Cancel</button>
+        <button
+          type="button"
+          class="danger-btn"
+          [disabled]="isDeletingBulk()"
+          (click)="confirmBulkDelete()"
+        >
+          <span class="material-symbols-outlined" [class.spin]="isDeletingBulk()">delete_sweep</span>
+          {{ isDeletingBulk() ? 'Deleting Products...' : 'Confirm Bulk Delete (' + selectedProductIds().size + ' Products)' }}
+        </button>
+      </div>
     </div>
   </div>
 }
+
+

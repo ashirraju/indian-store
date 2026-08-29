@@ -127,7 +127,7 @@
                   <button class="action-icon-btn edit" (click)="promptEditPrice(prod)" title="Edit Price">
                     <span class="material-symbols-outlined">edit</span>
                   </button>
-                  <button class="action-icon-btn delete" (click)="store.deleteProduct(prod.id)" title="Delete Product">
+                  <button class="action-icon-btn delete" (click)="openDeleteModal(prod)" title="Delete Product">
                     <span class="material-symbols-outlined">delete</span>
                   </button>
                 </div>
@@ -200,6 +200,38 @@
 
           <button type="submit" class="submit-prod-btn">Add Product to Store</button>
         </form>
+      </div>
+    </div>
+  }
+
+  <!-- Delete Confirmation Modal -->
+  @if (isDeleteModalOpen() && deletingProduct()) {
+    <div class="modal-backdrop" (click)="isDeleteModalOpen.set(false)">
+      <div class="modal-card modal-danger" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>Delete Product Confirmation</h3>
+          <button class="close-btn" (click)="isDeleteModalOpen.set(false)">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="modal-body" style="padding: 16px 0;">
+          <p style="margin-bottom: 12px; font-size: 14px; color: #334155;">
+            Are you sure you want to permanently delete <strong>"{{ deletingProduct()!.name }}"</strong>?
+          </p>
+          <div style="background: #fef2f2; border: 1px solid #fee2e2; padding: 10px; border-radius: 8px; font-size: 12px; color: #991b1b;">
+            ⚠️ This will remove the item from manager inventory and store catalog.
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
+          <button type="button" style="padding: 8px 16px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer;" (click)="isDeleteModalOpen.set(false)">
+            Cancel
+          </button>
+          <button type="button" style="padding: 8px 16px; border-radius: 6px; border: none; background: #ef4444; color: #fff; font-weight: 600; cursor: pointer;" (click)="confirmDelete()">
+            Delete Product
+          </button>
+        </div>
       </div>
     </div>
   }

@@ -2,8 +2,7 @@ import { Injectable, signal, computed, inject } from '@angular/core';
 import { AppRole, UserProfile } from '../models/user.model';
 import { Product, CartItem } from '../models/product.model';
 import { Order, OrderStatus } from '../models/order.model';
-import { MenuItem, CustomPage, BannerConfig, OfferItem } from '../models/cms.model';
-import { DynamicFormSchema, FormSubmission } from '../models/dynamic-form.model';
+import { MenuItem, BannerConfig, OfferItem } from '../models/cms.model';
 import { Category } from '../models/category.model';
 import { ApiService } from './api.service';
 
@@ -216,63 +215,6 @@ export class StoreStateService {
     { id: 'm8', label: 'Laundry detergents', icon: 'local_laundry_service', path: '/category/laundry-detergents', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 8 },
     { id: 'm9', label: 'Baby care', icon: 'child_care', path: '/category/baby-care', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 9 },
     { id: 'm10', label: 'Pet care', icon: 'pets', path: '/category/pet-care', visibleRoles: ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'], order: 10 }
-  ]);
-
-  // Dynamic Custom Pages (Admin Customizable!)
-  readonly customPages = signal<CustomPage[]>([
-    {
-      id: 'p1',
-      slug: 'diwali-special',
-      title: 'Grand Festive & Diwali Gift Hampers',
-      subtitle: 'Handpicked organic dry fruits, pure saffron, artisanal brass diyas, and authentic Bengali sweets.',
-      bannerImage: 'https://images.unsplash.com/photo-1605826832916-d0ea9d6fe71e?w=1000&auto=format&fit=crop&q=80',
-      content: `
-        <h3>Brighten Your Celebrations with Pure Heritage</h3>
-        <p>Every festive box is crafted with passion. Our signature hampers feature GI-tagged Kashmiri Saffron, organic A2 Ghee sweets, and hand-cast Brass Lakshmi Diyas made by artisans in Uttar Pradesh.</p>
-        <br/>
-        <h4>What's inside our Royal Festive Collection?</h4>
-        <ul>
-          <li><strong>Kashmiri Mongra Saffron (A++ Grade)</strong> - 5 grams in wooden gift box</li>
-          <li><strong>Artisanal Kaju Katli & Dry Fruit Ladoo</strong> - 500g freshly made</li>
-          <li><strong>Hand-Carved Brass Diya Set</strong> - Set of 4 with pure cotton wicks</li>
-          <li><strong>Assorted Single-Origin Darjeeling First Flush Tea</strong> - 100g tins</li>
-        </ul>
-      `,
-      ctaText: 'Shop Festive Gift Boxes',
-      ctaLink: '/store',
-      isPublished: true,
-      createdAt: '2026-08-01'
-    }
-  ]);
-
-  // Dynamic Custom Forms (Admin Customizable!)
-  readonly customForms = signal<DynamicFormSchema[]>([
-    {
-      id: 'f1',
-      slug: 'bulk-wholesale',
-      title: 'Bulk & Corporate Wholesale Request',
-      description: 'Request customized corporate gift boxes, restaurant spice supplies, or export quantities with tier discounts.',
-      submitButtonText: 'Submit Wholesale Request',
-      isPublished: true,
-      fields: [
-        { id: 'f1_1', label: 'Company / Organization Name', name: 'companyName', type: 'text', placeholder: 'e.g. Spice Route Bistro', required: true },
-        { id: 'f1_2', label: 'Contact Email Address', name: 'email', type: 'email', placeholder: 'contact@yourcompany.com', required: true },
-        { id: 'f1_3', label: 'Product Category Required', name: 'category', type: 'select', options: ['Atta, rice & grains', 'Dal & pulses', 'Oil & ghee', 'Tea & coffee'], required: true },
-        { id: 'f1_4', label: 'Estimated Order Quantity (KG or Units)', name: 'quantity', type: 'number', placeholder: 'e.g. 100', required: true },
-        { id: 'f1_5', label: 'Special Instructions / Requirements', name: 'notes', type: 'textarea', placeholder: 'Specify custom branding, packaging preferences, or delivery timeline...', required: false }
-      ]
-    }
-  ]);
-
-  // Submissions for Dynamic Forms
-  readonly formSubmissions = signal<FormSubmission[]>([
-    {
-      id: 'sub_1',
-      formId: 'f1',
-      formTitle: 'Bulk & Corporate Wholesale Request',
-      submittedAt: '2026-08-27 14:30',
-      data: { companyName: 'Royal Spice House NYC', email: 'orders@royalspice.com', category: 'Atta, rice & grains', quantity: '250', notes: 'Need vacuum packed 5kg sacks of Basmati Rice.' }
-    }
   ]);
 
   // Initial Hardcoded Products (Inspired by Amazon Fresh & Tales of India Catalog)
@@ -1198,60 +1140,6 @@ export class StoreStateService {
   deleteMenuItem(id: string) {
     this.menus.set(this.menus().filter(m => m.id !== id));
     this.showToast('warning', 'Menu Deleted', 'Menu item removed from navigation.');
-  }
-
-  // Admin CMS - Custom Page CRUD
-  saveCustomPage(page: Omit<CustomPage, 'id' | 'createdAt'> & { id?: string }) {
-    if (page.id) {
-      this.customPages.set(this.customPages().map(p => p.id === page.id ? { ...p, ...page } as CustomPage : p));
-      this.showToast('success', 'Page Saved', `Page "${page.title}" updated.`);
-    } else {
-      const newPage: CustomPage = {
-        ...page,
-        id: `p_${Date.now()}`,
-        createdAt: new Date().toISOString().split('T')[0]
-      };
-      this.customPages.set([...this.customPages(), newPage]);
-      this.showToast('success', 'Page Created', `Page "${newPage.title}" created.`);
-    }
-  }
-
-  deleteCustomPage(id: string) {
-    this.customPages.set(this.customPages().filter(p => p.id !== id));
-    this.showToast('warning', 'Page Deleted', 'Custom page removed.');
-  }
-
-  // Admin CMS - Dynamic Form CRUD
-  saveDynamicForm(form: Omit<DynamicFormSchema, 'id'> & { id?: string }) {
-    if (form.id) {
-      this.customForms.set(this.customForms().map(f => f.id === form.id ? { ...f, ...form } as DynamicFormSchema : f));
-      this.showToast('success', 'Form Saved', `Form "${form.title}" updated.`);
-    } else {
-      const newForm: DynamicFormSchema = {
-        ...form,
-        id: `f_${Date.now()}`
-      };
-      this.customForms.set([...this.customForms(), newForm]);
-      this.showToast('success', 'Form Created', `Form "${newForm.title}" published.`);
-    }
-  }
-
-  deleteDynamicForm(id: string) {
-    this.customForms.set(this.customForms().filter(f => f.id !== id));
-    this.showToast('warning', 'Form Deleted', 'Dynamic form removed.');
-  }
-
-  // Submit Dynamic Form response
-  submitForm(formId: string, formTitle: string, formData: Record<string, any>) {
-    const submission: FormSubmission = {
-      id: `sub_${Date.now()}`,
-      formId,
-      formTitle,
-      submittedAt: new Date().toLocaleString(),
-      data: formData
-    };
-    this.formSubmissions.set([submission, ...this.formSubmissions()]);
-    this.showToast('success', 'Response Submitted!', 'Thank you for your submission.');
   }
 
   // Admin Store Banner Edit

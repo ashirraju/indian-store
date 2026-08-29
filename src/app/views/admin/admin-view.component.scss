@@ -1999,3 +1999,116 @@
 .remove-field-btn {
   margin-bottom: 4px;
 }
+
+/* Product Delete Confirmation Dialogs */
+.delete-product-preview {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 16px;
+
+  .delete-prod-thumb {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid #e2e8f0;
+    flex-shrink: 0;
+  }
+
+  .delete-prod-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+
+    .prod-title {
+      font-size: 15px;
+      color: #0f172a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .prod-meta-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+
+      .meta-tag {
+        font-size: 11px;
+        color: #64748b;
+        background: #f1f5f9;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 500;
+
+        &.price {
+          color: #059669;
+          background: #ecfdf5;
+          font-weight: 700;
+        }
+      }
+    }
+  }
+}
+
+.bulk-list-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  margin: 14px 0 8px 0;
+}
+
+.bulk-delete-items-list {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 4px;
+
+  .bulk-item-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .delete-bullet {
+      font-size: 18px;
+      color: #ef4444;
+      flex-shrink: 0;
+    }
+
+    .bulk-item-name {
+      flex: 1;
+      color: #1e293b;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bulk-item-sku {
+      color: #64748b;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    .bulk-item-price {
+      color: #059669;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+  }
+}

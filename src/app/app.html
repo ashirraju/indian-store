@@ -78,12 +78,9 @@
       <div class="col">
         <h4>Customer Care</h4>
         <a (click)="store.navigateTo('/store')">Browse All Products</a>
-        <a (click)="store.navigateTo('/page/diwali-special')">Festive Hampers & Sweets</a>
-        <a (click)="store.navigateTo('/form/bulk-wholesale')">Wholesale & Restaurants</a>
-        <a (click)="store.navigateTo('/form/customer-feedback')">Help Centre & Feedback</a>
-        @for (page of store.customPages(); track page.id) {
-          <a (click)="store.navigateTo('/page/' + page.slug)">{{ page.title }}</a>
-        }
+        <a (click)="store.isCategoryPanelOpen.set(true)">Shop by Category</a>
+        <a (click)="store.isOrdersModalOpen.set(true)">Track My Order</a>
+        <a (click)="store.isWishlistOpen.set(true)">My Saved Wishlist</a>
       </div>
 
       <!-- Col 2: Internal Staff Portals -->
