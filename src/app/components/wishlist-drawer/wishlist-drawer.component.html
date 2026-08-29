@@ -17,7 +17,7 @@
       <div class="drawer-body">
         @for (item of store.wishlist(); track item.id) {
           <div class="wishlist-item-card">
-            <img [src]="item.imageUrl" [alt]="item.name" class="item-img" />
+            <img [src]="item.imageUrl || item.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80'" [alt]="item.name" class="item-img" />
 
             <div class="item-details">
               <span class="item-category">{{ item.category }}</span>
@@ -25,9 +25,9 @@
               <span class="item-weight">{{ item.weight }}</span>
 
               <div class="item-price-row">
-                <strong class="item-price">₹{{ item.price }}</strong>
+                <strong class="item-price">${{ item.price }}</strong>
                 @if (item.originalPrice) {
-                  <span class="orig-price">₹{{ item.originalPrice }}</span>
+                  <span class="orig-price">${{ item.originalPrice }}</span>
                 }
               </div>
             </div>

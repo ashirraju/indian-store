@@ -7,67 +7,188 @@
 .app-footer {
   background: #ffffff;
   border-top: 1px solid #e2e8f0;
-  padding: 40px 20px 20px 20px;
+  padding: 48px 24px 24px 24px;
   color: #475569;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.02);
 }
 
 .footer-container {
   max-width: 1400px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1.5fr 3fr;
-  gap: 40px;
-  margin-bottom: 30px;
+  grid-template-columns: 1.3fr 2fr;
+  gap: 48px;
+  margin-bottom: 36px;
 }
 
 .footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
   .logo-box {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     font-size: 18px;
     font-weight: 800;
     color: #0f172a;
-    margin-bottom: 10px;
+    cursor: pointer;
+    letter-spacing: -0.3px;
 
     .icon {
       color: #0296e0;
-      font-size: 24px;
+      font-size: 26px;
     }
   }
-  p {
+
+  .brand-desc {
     font-size: 13px;
     color: #64748b;
-    line-height: 1.5;
+    line-height: 1.55;
+    margin: 0;
+  }
+
+  .au-addresses {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #f1f5f9;
+
+    .address-item {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+
+      .addr-icon {
+        color: #0296e0;
+        font-size: 18px;
+        margin-top: 2px;
+      }
+      strong {
+        font-size: 12px;
+        color: #1e293b;
+        display: block;
+      }
+      p {
+        font-size: 12px;
+        color: #64748b;
+        margin: 2px 0 0 0;
+      }
+    }
+  }
+
+  .contact-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+
+    .contact-chip {
+      font-size: 11px;
+      font-weight: 600;
+      color: #0369a1;
+      background: #f0f9ff;
+      border: 1px solid #e0f2fe;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
   }
 }
 
 .footer-links {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-template-columns: 1fr 1.2fr 1.2fr;
+  gap: 28px;
 
   .col {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
 
     h4 {
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 14px;
+      font-weight: 800;
       color: #0f172a;
-      margin-bottom: 4px;
+      margin: 0 0 4px 0;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #f1f5f9;
     }
 
     a {
-      font-size: 12px;
-      color: #64748b;
+      font-size: 13px;
+      color: #475569;
       cursor: pointer;
       text-decoration: none;
-      transition: color 0.2s ease;
+      transition: color 0.15s ease, transform 0.15s ease;
+      display: inline-block;
 
       &:hover {
         color: #0296e0;
+        transform: translateX(2px);
+      }
+    }
+  }
+
+  .portal-col {
+    .portal-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      font-size: 12px;
+      font-weight: 600;
+      color: #1e293b;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      .portal-icon {
+        font-size: 16px;
+        color: #0296e0;
+      }
+
+      &:hover {
+        background: #f0f9ff;
+        border-color: #bae6fd;
+        color: #0284c7;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 6px rgba(2, 150, 224, 0.12);
+      }
+    }
+  }
+
+  .trust-col {
+    .trust-badge {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 8px 10px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border: 1px solid #f1f5f9;
+
+      .trust-icon {
+        font-size: 20px;
+        color: #10b981;
+        margin-top: 1px;
+      }
+      strong {
+        font-size: 12px;
+        color: #0f172a;
+        display: block;
+      }
+      p {
+        font-size: 11px;
+        color: #64748b;
+        margin: 2px 0 0 0;
+        line-height: 1.4;
       }
     }
   }
@@ -76,18 +197,42 @@
 .footer-bottom {
   max-width: 1400px;
   margin: 0 auto;
-  padding-top: 20px;
+  padding-top: 24px;
   border-top: 1px solid #f1f5f9;
-  text-align: center;
-  font-size: 12px;
-  color: #94a3b8;
+
+  .bottom-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-size: 12px;
+    color: #94a3b8;
+
+    .tax-notice {
+      color: #64748b;
+      font-weight: 600;
+    }
+  }
+}
+
+@media (max-width: 1024px) {
+  .footer-container {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .footer-links {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
-  .footer-container {
-    grid-template-columns: 1fr;
-  }
   .footer-links {
     grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .footer-bottom .bottom-container {
+    flex-direction: column;
+    text-align: center;
   }
 }

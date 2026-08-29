@@ -69,10 +69,10 @@
               <div class="items-list">
                 @for (item of order.items; track item.product.id) {
                   <div class="item-row">
-                    <img [src]="item.product.imageUrl" [alt]="item.product.name" class="item-thumb" />
+                    <img [src]="item.product.imageUrl || item.product.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80'" [alt]="item.product.name" class="item-thumb" />
                     <div class="item-info">
                       <span class="name">{{ item.product.name }}</span>
-                      <span class="qty">Qty: {{ item.quantity }} • ₹{{ item.product.price }} each</span>
+                      <span class="qty">Qty: {{ item.quantity }} • ${{ item.product.price }} each</span>
                     </div>
                   </div>
                 }
@@ -80,13 +80,13 @@
 
               <div class="order-meta">
                 <div class="meta-block">
-                  <span class="meta-label">Shipping Address</span>
+                  <span class="meta-label">AU Delivery Address</span>
                   <strong>{{ order.customerName }}</strong>
-                  <p>{{ order.deliveryAddress }}, {{ order.city }} - {{ order.pincode }}</p>
+                  <p>{{ order.deliveryAddress }}, {{ order.city }} {{ order.state || 'NSW' }} {{ order.postcode || order.pincode }}</p>
                 </div>
                 <div class="meta-block">
-                  <span class="meta-label">Total Payment ({{ order.paymentMethod }})</span>
-                  <strong class="total-price">₹{{ order.totalAmount }}</strong>
+                  <span class="meta-label">Total Paid ({{ order.paymentMethod }})</span>
+                  <strong class="total-price">${{ order.totalAmount }} AUD</strong>
                 </div>
               </div>
             </div>

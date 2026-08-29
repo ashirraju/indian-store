@@ -16,12 +16,13 @@ export class CartDrawerComponent {
   readonly showCheckoutForm = signal<boolean>(false);
 
   checkoutName = 'Aarav Sharma';
-  checkoutPhone = '+91 98765 43210';
-  checkoutEmail = 'aarav@example.com';
-  checkoutAddress = 'Flat 402, Lotus Heights, MG Road';
-  checkoutCity = 'Bengaluru';
-  checkoutPincode = '560001';
-  checkoutPayment = 'UPI Instant (GPay/PhonePe)';
+  checkoutPhone = '+61 412 345 678';
+  checkoutEmail = 'aarav.sharma@example.com.au';
+  checkoutAddress = '24 George Street, The Rocks';
+  checkoutCity = 'Sydney';
+  checkoutState = 'NSW';
+  checkoutPostcode = '2000';
+  checkoutPayment = 'Credit/Debit Card';
 
   onConfirmOrder(event: Event) {
     event.preventDefault();
@@ -31,7 +32,9 @@ export class CartDrawerComponent {
       email: this.checkoutEmail,
       address: this.checkoutAddress,
       city: this.checkoutCity,
-      pincode: this.checkoutPincode,
+      state: this.checkoutState,
+      pincode: this.checkoutPostcode,
+      postcode: this.checkoutPostcode,
       paymentMethod: this.checkoutPayment
     });
     this.showCheckoutForm.set(false);

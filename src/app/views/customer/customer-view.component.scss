@@ -1047,11 +1047,40 @@
   object-fit: cover;
   border-radius: 12px;
 }
+.modal-img-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .modal-badges-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+}
+
 .modal-info {
   display: flex;
   flex-direction: column;
-  h2 { font-size: 20px; color: #0f172a; margin-top: 4px; }
+  h2 { font-size: 20px; color: #0f172a; margin: 4px 0 6px 0; }
 }
+
+.modal-top-tags {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.sku-pill {
+  font-size: 11px;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
 .origin-pill {
   font-size: 11px;
   background: #e0f2fe;
@@ -1061,21 +1090,34 @@
   font-weight: 600;
   width: fit-content;
 }
+
+.badge-discount {
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
 .modal-rating {
   font-size: 12px;
   color: #64748b;
-  margin: 6px 0;
+  margin: 4px 0 10px 0;
 }
+
 .modal-desc {
   font-size: 13px;
   color: #334155;
   line-height: 1.5;
   margin-bottom: 12px;
 }
+
 .modal-tags {
   display: flex;
   gap: 6px;
   margin-bottom: 12px;
+  flex-wrap: wrap;
 
   .tag-pill {
     background: #f1f5f9;
@@ -1085,24 +1127,61 @@
     color: #475569;
   }
 }
+
 .modal-stock {
   font-size: 12px;
   color: #10b981;
   margin-bottom: 16px;
+
+  .stock-warning {
+    color: #d97706;
+    background: #fefce8;
+    border: 1px solid #fef08a;
+    padding: 4px 8px;
+    border-radius: 6px;
+    display: inline-block;
+  }
 }
+
 .modal-footer {
   margin-top: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
-.modal-price {
-  font-size: 22px;
-  font-weight: 800;
-  color: #0f172a;
 
-  del { font-size: 14px; color: #94a3b8; margin-left: 6px; }
+.modal-price-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .price-line {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .main-price {
+    font-size: 24px;
+    font-weight: 800;
+    color: #0f172a;
+  }
+
+  .orig-price {
+    font-size: 14px;
+    color: #94a3b8;
+    text-decoration: line-through;
+  }
+
+  .savings-text {
+    font-size: 11px;
+    color: #16a34a;
+    font-weight: 700;
+  }
 }
+
 .modal-add-btn {
   background: #0296e0;
   color: #ffffff;
@@ -1111,6 +1190,13 @@
   border-radius: 20px;
   font-weight: 700;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    background: #0284c7;
+  }
 }
 
 /* CMS Dynamic Page Styles */

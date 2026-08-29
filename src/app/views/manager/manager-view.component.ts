@@ -52,7 +52,7 @@ export class ManagerViewComponent {
   }
 
   promptEditPrice(prod: Product) {
-    const val = prompt(`Enter new price for "${prod.name}" (Current: ₹${prod.price}):`, prod.price.toString());
+    const val = prompt(`Enter new price in AUD for "${prod.name}" (Current: $${prod.price}):`, prod.price.toString());
     if (val && !isNaN(Number(val))) {
       this.store.saveProduct({ id: prod.id, price: Number(val) });
     }

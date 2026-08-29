@@ -241,12 +241,12 @@
           </div>
 
           <div class="kpi-card">
-            <div class="kpi-icon orange">
-              <span class="material-symbols-outlined">currency_rupee</span>
+            <div class="kpi-icon blue">
+              <span class="material-symbols-outlined">payments</span>
             </div>
             <div>
-              <span class="kpi-label">Catalog Inventory Value</span>
-              <h3>₹{{ sum.totalCatalogValuation | number }}</h3>
+              <span class="kpi-label">Catalog Inventory Value (AUD)</span>
+              <h3>${{ sum.totalCatalogValuation | number }}</h3>
             </div>
           </div>
 
@@ -475,9 +475,9 @@
                   <td>
                     <div class="price-cell">
                       <div class="price-row">
-                        <strong class="current-price">₹{{ prod.price }}</strong>
+                        <strong class="current-price">${{ prod.price }}</strong>
                         @if ((prod.original_price || prod.originalPrice) && (prod.original_price || prod.originalPrice)! > prod.price) {
-                          <span class="mrp-strikethrough">₹{{ prod.original_price || prod.originalPrice }}</span>
+                          <span class="mrp-strikethrough">${{ prod.original_price || prod.originalPrice }}</span>
                         }
                       </div>
                       @if (prod.has_discount || prod.discount_percent) {
@@ -1062,8 +1062,8 @@
                 <th style="min-width: 120px;">SKU Code</th>
                 <th style="min-width: 170px;">Category *</th>
                 <th style="min-width: 160px;">Sub-Category</th>
-                <th style="min-width: 100px;">Price (₹) *</th>
-                <th style="min-width: 100px;">MRP (₹)</th>
+                <th style="min-width: 100px;">Price ($ AUD) *</th>
+                <th style="min-width: 100px;">MRP ($ AUD)</th>
                 <th style="min-width: 110px;">Weight *</th>
                 <th style="min-width: 90px;">Stock *</th>
                 <th style="min-width: 130px;">Origin Region</th>
@@ -1357,12 +1357,12 @@
       <form (submit)="onDiscountSubmit($event)">
         <div class="stock-modal-info">
           <strong>{{ discountTargetProduct.name }}</strong>
-          <p>Current Price: <strong>₹{{ discountTargetProduct.price }}</strong> (MRP: ₹{{ discountTargetProduct.original_price || discountTargetProduct.originalPrice || discountTargetProduct.price }})</p>
+          <p>Current Price: <strong>${{ discountTargetProduct.price }} AUD</strong> (MRP: ${{ discountTargetProduct.original_price || discountTargetProduct.originalPrice || discountTargetProduct.price }})</p>
         </div>
 
         <div class="form-group">
-          <label>Original MRP (₹)</label>
-          <input type="number" [(ngModel)]="discountOriginalPrice" name="discountOriginalPrice" min="1" required />
+          <label>Original MRP ($ AUD)</label>
+          <input type="number" step="0.01" [(ngModel)]="discountOriginalPrice" name="discountOriginalPrice" min="0.01" required />
         </div>
 
         <div class="form-row">
@@ -1370,19 +1370,19 @@
             <label>Discount Type</label>
             <select [(ngModel)]="discountType" name="discountType">
               <option value="PERCENTAGE">Percentage (%)</option>
-              <option value="FLAT">Flat Amount (₹)</option>
+              <option value="FLAT">Flat Amount ($ AUD)</option>
             </select>
           </div>
 
           <div class="form-group">
             <label>Discount Value</label>
-            <input type="number" [(ngModel)]="discountValue" name="discountValue" min="0" required />
+            <input type="number" step="0.01" [(ngModel)]="discountValue" name="discountValue" min="0" required />
           </div>
         </div>
 
         <div class="calculated-price-box">
           <span>Final Discounted Selling Price:</span>
-          <strong>₹{{ calculatedDiscountedPrice }}</strong>
+          <strong>${{ calculatedDiscountedPrice }} AUD</strong>
         </div>
 
         <div class="modal-footer">

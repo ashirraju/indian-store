@@ -74,7 +74,17 @@ export class StoreStateService {
         this.syncCategoriesToMenus(sortedCats);
       }
       if (prodsRes.success && prodsRes.data?.length) {
-        this.products.set(prodsRes.data);
+        const normalized = prodsRes.data.map(p => ({
+          ...p,
+          imageUrl: p.imageUrl || p.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80',
+          image_url: p.image_url || p.imageUrl || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80',
+          originalPrice: p.originalPrice || p.original_price,
+          reviewsCount: p.reviewsCount || p.reviews_count || 0,
+          isOrganic: p.isOrganic !== undefined ? p.isOrganic : p.is_organic,
+          isBestseller: p.isBestseller !== undefined ? p.isBestseller : p.is_bestseller,
+          originRegion: p.originRegion || p.origin_region || 'India'
+        }));
+        this.products.set(normalized);
       }
     } catch {
       // Offline fallback
@@ -139,30 +149,30 @@ export class StoreStateService {
     }
   });
 
-  // Dynamic Storefront Banner & Quick Info Configuration
+  // Dynamic Storefront Banner & Quick Info Configuration (AU Location & Currency)
   readonly bannerConfig = signal<BannerConfig>({
-    announcementText: '🚀 Festive Special: Free express shipping across India on orders above ₹999!',
+    announcementText: '🦘 Free Express Delivery across Australia on orders over $75 | Authentic Indian Groceries Delivered to Your Doorstep',
     announcementLink: '/page/diwali-special',
     quickInfoItems: [
-      '⚡ Express 24-Hour Dispatch',
-      '🚚 Free Shipping Above ₹999',
-      '🏷️ Extra 15% OFF Code: FESTIVE15',
-      '🌱 100% Certified Organic',
-      '📞 Toll Free Helpline: 1800-425-4634'
+      '🇦🇺 Australia-wide Express Dispatch',
+      '🚚 Free Shipping Over $75',
+      '🏷️ Extra 15% OFF Code: AUSSIE15',
+      '🌿 100% Certified Organic & Fresh',
+      '📞 Toll-Free Helpline: 1300 463 426'
     ],
-    heroHeadline: 'Authentic Indian Flavors & Handcrafted Elegance',
-    heroSubheadline: 'Directly sourced from organic spice farms of Kerala, weavers of Varanasi, and master sweet artisans of Bengal.',
+    heroHeadline: 'Authentic Indian Groceries & Heritage Delivered Across Australia 🇦🇺',
+    heroSubheadline: 'Directly sourced premium Basmati, whole spices, pure desi ghee, sweets & regional staples dispatched daily from our Sydney & Melbourne hubs.',
     heroBannerImage: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=1200&auto=format&fit=crop&q=80',
-    promoBadge: '✨ 100% Sourced Direct From Farmers & Artisans',
+    promoBadge: '✨ 100% Authentic Indian Products • Sourced Direct & Delivered in AU',
     primaryButtonText: 'Explore Collection'
   });
 
-  // Dynamic Offers & Promotional Banners
+  // Dynamic Offers & Promotional Banners (AUD Currency)
   readonly offers = signal<OfferItem[]>([
     {
       id: 'off-1',
       badge: 'FESTIVE SPECIAL',
-      title: 'Grand Diwali Sweet & Spice Hampers',
+      title: 'Grand Festive Sweet & Royal Spice Hampers',
       code: 'DIWALI2026',
       discount: 'UP TO 30% OFF',
       bgColor: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)',
@@ -173,9 +183,9 @@ export class StoreStateService {
     {
       id: 'off-2',
       badge: 'FARM FRESH',
-      title: 'Pure Kashmiri Mongra Saffron & Spices Pack',
+      title: 'Pure Kashmiri Mongra Saffron & Gourmet Spices Pack',
       code: 'SPICE15',
-      discount: 'FLAT ₹250 OFF',
+      discount: 'FLAT $15 OFF',
       bgColor: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
       validTill: 'Valid Till Stock Lasts',
       image: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=500&auto=format&fit=crop&q=80',
@@ -855,37 +865,33 @@ export class StoreStateService {
 
   // Cart State
   readonly cart = signal<CartItem[]>([]);
-  readonly cartTotalCount = computed<number>(() =>
-    this.cart().reduce((sum, item) => sum + item.quantity, 0)
-  );
-  readonly cartSubtotal = computed<number>(() =>
-    this.cart().reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-  );
-
-  // Orders State
+  
+  // Sample Mock Initial Orders (Australian Locations: Sydney, Melbourne)
   readonly orders = signal<Order[]>([
     {
       id: 'ORD-9821',
       customerName: 'Aarav Sharma',
-      customerEmail: 'aarav@example.com',
-      customerPhone: '+91 98765 43210',
-      deliveryAddress: 'Flat 402, Lotus Heights, MG Road',
-      city: 'Bengaluru',
-      pincode: '560001',
+      customerEmail: 'aarav.sharma@example.com.au',
+      customerPhone: '+61 412 345 678',
+      deliveryAddress: '24 George Street, The Rocks',
+      city: 'Sydney',
+      state: 'NSW',
+      pincode: '2000',
+      postcode: '2000',
       items: [
         {
           product: {
             id: 'p-101',
             name: 'Organic Malabar Black Whole Pepper',
             category: 'Spices & Seasonings',
-            price: 499,
+            price: 14.99,
             rating: 4.9,
             reviewsCount: 142,
             imageUrl: 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=600&auto=format&fit=crop&q=80',
-            description: 'Sun-dried black pepper',
+            description: 'Sun-dried black pepper imported from Malabar',
             weight: '250g Pack',
             stock: 85,
-            originRegion: 'Kerala',
+            originRegion: 'Kerala, India',
             tags: ['Spices']
           },
           quantity: 2
@@ -894,69 +900,71 @@ export class StoreStateService {
           product: {
             id: 'p-103',
             name: 'Pure Desi Cow Ghee (A2 Bilona Method)',
-            category: 'Dairy & Ghee',
-            price: 950,
+            category: 'Oil & ghee',
+            price: 24.50,
             rating: 4.8,
             reviewsCount: 215,
             imageUrl: 'https://images.unsplash.com/photo-1631451095765-2c91616fc9e6?w=600&auto=format&fit=crop&q=80',
-            description: 'Bilona churning method',
+            description: 'Traditional A2 bilona churning method',
             weight: '500ml Glass Jar',
             stock: 62,
-            originRegion: 'Gujarat',
+            originRegion: 'Gujarat, India',
             tags: ['Ghee']
           },
           quantity: 1
         }
       ],
-      totalAmount: 1948,
-      paymentMethod: 'UPI Direct (Google Pay)',
+      totalAmount: 54.48,
+      paymentMethod: 'Credit Card (Mastercard / Visa)',
       status: 'Out for Delivery',
       placedAt: '2026-08-28 10:15 AM',
-      assignedDeliveryAgent: 'Vikram Singh (Express Logistics)',
-      deliveryNotes: 'Leave near security gate if customer unavailable',
+      assignedDeliveryAgent: 'David Miller (Express AU Logistics)',
+      deliveryNotes: 'Leave at front porch if unattended',
       timeline: [
-        { status: 'Placed', timestamp: '10:15 AM', completed: true, notes: 'Order placed successfully' },
-        { status: 'In Packing', timestamp: '10:45 AM', completed: true, notes: 'Packed at Central Warehouse' },
-        { status: 'Ready for Dispatch', timestamp: '11:30 AM', completed: true, notes: 'Handed over to delivery agent' },
-        { status: 'Out for Delivery', timestamp: '01:20 PM', completed: true, notes: 'Delivery agent Vikram en route' },
+        { status: 'Placed', timestamp: '10:15 AM', completed: true, notes: 'Order placed by customer' },
+        { status: 'In Packing', timestamp: '10:45 AM', completed: true, notes: 'Packed at Sydney Distribution Centre' },
+        { status: 'Ready for Dispatch', timestamp: '11:30 AM', completed: true, notes: 'Handed over to AU express courier' },
+        { status: 'Out for Delivery', timestamp: '01:20 PM', completed: true, notes: 'Courier driver David on delivery route' },
         { status: 'Delivered', timestamp: 'Expected 3:30 PM', completed: false }
       ]
     },
     {
       id: 'ORD-9822',
       customerName: 'Meera Iyer',
-      customerEmail: 'meera.iyer@example.com',
-      customerPhone: '+91 91234 56789',
-      deliveryAddress: 'No. 12, Besant Avenue, Adyar',
-      city: 'Chennai',
-      pincode: '600020',
+      customerEmail: 'meera.iyer@example.com.au',
+      customerPhone: '+61 423 456 789',
+      deliveryAddress: '108 Collins Street',
+      city: 'Melbourne',
+      state: 'VIC',
+      pincode: '3000',
+      postcode: '3000',
       items: [
         {
           product: {
             id: 'p-102',
             name: 'Pure Kashmiri Mongra Saffron (Kesar)',
             category: 'Spices & Seasonings',
-            price: 1299,
+            price: 29.99,
             rating: 5.0,
             reviewsCount: 98,
-            imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=600&auto=format&fit=crop&q=80',
-            description: 'Kashmiri Mongra Saffron',
-            weight: '2g',
+            imageUrl: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=500&auto=format&fit=crop&q=80',
+            description: 'Grade-A Kashmiri Mongra Saffron',
+            weight: '2g Box',
             stock: 40,
-            originRegion: 'Kashmir',
+            originRegion: 'Kashmir, India',
             tags: ['Kesar']
           },
           quantity: 1
         }
       ],
-      totalAmount: 1299,
-      paymentMethod: 'Credit Card',
+      totalAmount: 39.98,
+      paymentMethod: 'Apple Pay / PayPal',
       status: 'In Packing',
       placedAt: '2026-08-28 12:40 PM',
       assignedDeliveryAgent: 'Unassigned',
       timeline: [
         { status: 'Placed', timestamp: '12:40 PM', completed: true },
-        { status: 'In Packing', timestamp: '01:10 PM', completed: true, notes: 'Packing with protective bubble wrap' },
+        { status: 'In Packing', timestamp: '01:10 PM', completed: true, notes: 'Packing with temperature-safe wrap' },
         { status: 'Ready for Dispatch', timestamp: '--', completed: false },
         { status: 'Out for Delivery', timestamp: '--', completed: false },
         { status: 'Delivered', timestamp: '--', completed: false }
@@ -968,7 +976,96 @@ export class StoreStateService {
   readonly toast = signal<ToastMessage | null>(null);
   readonly wishlistTotalCount = computed(() => this.wishlist().length);
 
-  // Actions
+  // Cart operations
+  readonly cartTotalCount = computed(() =>
+    this.cart().reduce((sum, item) => sum + item.quantity, 0)
+  );
+
+  readonly cartSubtotal = computed(() =>
+    Math.round(this.cart().reduce((sum, item) => sum + (item.product.price * item.quantity), 0) * 100) / 100
+  );
+
+  addToCart(product: Product, quantity = 1) {
+    this.playAddToCartSound();
+    const existing = this.cart().find(item => item.product.id === product.id);
+    if (existing) {
+      this.cart.set(
+        this.cart().map(item =>
+          item.product.id === product.id
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        )
+      );
+    } else {
+      this.cart.set([...this.cart(), { product, quantity }]);
+    }
+    this.showToast('success', 'Added to Cart', `${product.name} (x${quantity}) added.`);
+  }
+
+  updateCartQuantity(productId: string, delta: number) {
+    const item = this.cart().find(i => i.product.id === productId);
+    if (!item) return;
+
+    const newQty = item.quantity + delta;
+    if (newQty <= 0) {
+      this.removeFromCart(productId);
+    } else {
+      this.cart.set(
+        this.cart().map(i =>
+          i.product.id === productId ? { ...i, quantity: newQty } : i
+        )
+      );
+    }
+  }
+
+  getCartQuantity(productId: string): number {
+    return this.cart().find(item => item.product.id === productId)?.quantity ?? 0;
+  }
+
+  removeFromCart(productId: string) {
+    this.cart.set(this.cart().filter(item => item.product.id !== productId));
+    this.showToast('info', 'Item Removed', 'Product removed from cart.');
+  }
+
+  clearCart() {
+    this.cart.set([]);
+  }
+
+  // Checkout operation (AU Currency & Postcode)
+  placeOrder(deliveryDetails: { name: string; email: string; phone: string; address: string; city: string; state?: string; pincode: string; postcode?: string; paymentMethod: string }): Order {
+    const isFreeShipping = this.cartSubtotal() >= 75;
+    const shippingFee = isFreeShipping ? 0 : 9.99;
+    const newOrder: Order = {
+      id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+      customerName: deliveryDetails.name,
+      customerEmail: deliveryDetails.email,
+      customerPhone: deliveryDetails.phone,
+      deliveryAddress: deliveryDetails.address,
+      city: deliveryDetails.city,
+      state: deliveryDetails.state || 'NSW',
+      pincode: deliveryDetails.pincode || deliveryDetails.postcode || '2000',
+      postcode: deliveryDetails.postcode || deliveryDetails.pincode || '2000',
+      items: [...this.cart()],
+      totalAmount: Math.round((this.cartSubtotal() + shippingFee) * 100) / 100,
+      paymentMethod: deliveryDetails.paymentMethod,
+      status: 'Placed',
+      placedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', Today',
+      timeline: [
+        { status: 'Placed', timestamp: 'Just now', completed: true, notes: 'Order placed by customer' },
+        { status: 'In Packing', timestamp: 'Pending', completed: false },
+        { status: 'Ready for Dispatch', timestamp: 'Pending', completed: false },
+        { status: 'Out for Delivery', timestamp: 'Pending', completed: false },
+        { status: 'Delivered', timestamp: 'Pending', completed: false }
+      ]
+    };
+
+    this.orders.set([newOrder, ...this.orders()]);
+    this.clearCart();
+    this.isCartOpen.set(false);
+    this.showToast('success', 'Order Placed!', `Order ID #${newOrder.id} confirmed.`);
+    return newOrder;
+  }
+
   setRole(role: AppRole) {
     this.activeRole.set(role);
     this.showToast('info', `Switched Role to ${role}`, `You are now interacting as ${role}`);
@@ -1057,83 +1154,6 @@ export class StoreStateService {
     } catch {
       // Audio context fallback if audio block occurs
     }
-  }
-
-  // Cart operations
-  getCartQuantity(productId: string): number {
-    const item = this.cart().find(i => i.product.id === productId);
-    return item ? item.quantity : 0;
-  }
-
-  addToCart(product: Product, quantity = 1) {
-    this.playAddToCartSound();
-    const current = this.cart();
-    const existingIndex = current.findIndex(i => i.product.id === product.id);
-
-    if (existingIndex > -1) {
-      const updated = [...current];
-      updated[existingIndex].quantity += quantity;
-      this.cart.set(updated);
-    } else {
-      this.cart.set([...current, { product, quantity }]);
-    }
-
-    this.showToast('success', 'Added to Cart', `${product.name} (x${quantity}) added.`);
-  }
-
-  updateCartQuantity(productId: string, delta: number) {
-    const current = this.cart();
-    const updated = current
-      .map(item => {
-        if (item.product.id === productId) {
-          const newQty = item.quantity + delta;
-          return newQty > 0 ? { ...item, quantity: newQty } : null;
-        }
-        return item;
-      })
-      .filter((item): item is CartItem => item !== null);
-
-    this.cart.set(updated);
-  }
-
-  removeFromCart(productId: string) {
-    this.cart.set(this.cart().filter(item => item.product.id !== productId));
-    this.showToast('info', 'Item Removed', 'Product removed from cart.');
-  }
-
-  clearCart() {
-    this.cart.set([]);
-  }
-
-  // Checkout operation
-  placeOrder(deliveryDetails: { name: string; email: string; phone: string; address: string; city: string; pincode: string; paymentMethod: string }): Order {
-    const newOrder: Order = {
-      id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-      customerName: deliveryDetails.name,
-      customerEmail: deliveryDetails.email,
-      customerPhone: deliveryDetails.phone,
-      deliveryAddress: deliveryDetails.address,
-      city: deliveryDetails.city,
-      pincode: deliveryDetails.pincode,
-      items: [...this.cart()],
-      totalAmount: this.cartSubtotal() + (this.cartSubtotal() > 999 ? 0 : 99),
-      paymentMethod: deliveryDetails.paymentMethod,
-      status: 'Placed',
-      placedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', Today',
-      timeline: [
-        { status: 'Placed', timestamp: 'Just now', completed: true, notes: 'Order placed by customer' },
-        { status: 'In Packing', timestamp: 'Pending', completed: false },
-        { status: 'Ready for Dispatch', timestamp: 'Pending', completed: false },
-        { status: 'Out for Delivery', timestamp: 'Pending', completed: false },
-        { status: 'Delivered', timestamp: 'Pending', completed: false }
-      ]
-    };
-
-    this.orders.set([newOrder, ...this.orders()]);
-    this.clearCart();
-    this.isCartOpen.set(false);
-    this.showToast('success', 'Order Placed!', `Order ID #${newOrder.id} confirmed.`);
-    return newOrder;
   }
 
   // Operations & Delivery Order Status Updates

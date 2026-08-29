@@ -37,41 +37,109 @@
 <!-- Floating Toast Notifications -->
 <app-toast></app-toast>
 
-<!-- Footer -->
+<!-- Unified Application Footer (Australian Location, ABN, Hub Addresses & Internal Portals) -->
 <footer class="app-footer">
   <div class="footer-container">
+    <!-- Brand & Physical AU Addresses -->
     <div class="footer-brand">
-      <div class="logo-box">
+      <div class="logo-box" (click)="store.navigateTo('/store')">
         <span class="material-symbols-outlined icon">synagogue</span>
-        <strong>INDIAN STORE</strong>
+        <strong>INDIAN STORE AUSTRALIA 🇦🇺</strong>
       </div>
-      <p>Direct farm-to-table organic spices, handloom silks & GI-tagged sweets.</p>
+      <p class="brand-desc">Authentic Indian Groceries, GI-Tagged Regional Sweets, Pure Ghee & Handcrafted Heritage Delivered Across Australia.</p>
+      
+      <div class="au-addresses">
+        <div class="address-item">
+          <span class="material-symbols-outlined addr-icon">warehouse</span>
+          <div>
+            <strong>Sydney Distribution Centre:</strong>
+            <p>Unit 4, 15-17 Wentworth St, Parramatta NSW 2150</p>
+          </div>
+        </div>
+        <div class="address-item">
+          <span class="material-symbols-outlined addr-icon">storefront</span>
+          <div>
+            <strong>Melbourne Metro Hub:</strong>
+            <p>108 Collins Street, Melbourne VIC 3000</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact-chips">
+        <span class="contact-chip">📞 1300 463 426 (1300 INDIAN)</span>
+        <span class="contact-chip">✉️ support@indianstore.com.au</span>
+        <span class="contact-chip">🏢 ABN: 48 612 390 124</span>
+      </div>
     </div>
 
+    <!-- Links Grid -->
     <div class="footer-links">
+      <!-- Col 1: Customer Care & Catalog -->
       <div class="col">
-        <h4>Portals & Portals</h4>
-        <a (click)="store.navigateTo('/store')">Customer Storefront</a>
-        <a (click)="store.navigateTo('/manager')">Manager Console</a>
-        <a (click)="store.navigateTo('/operations')">Operations Pipeline</a>
-        <a (click)="store.navigateTo('/delivery')">Delivery Partner Portal</a>
-        <a (click)="store.navigateTo('/admin')">Admin CMS Hub</a>
-      </div>
-      <div class="col">
-        <h4>Custom Pages</h4>
+        <h4>Customer Care</h4>
+        <a (click)="store.navigateTo('/store')">Browse All Products</a>
+        <a (click)="store.navigateTo('/page/diwali-special')">Festive Hampers & Sweets</a>
+        <a (click)="store.navigateTo('/form/bulk-wholesale')">Wholesale & Restaurants</a>
+        <a (click)="store.navigateTo('/form/customer-feedback')">Help Centre & Feedback</a>
         @for (page of store.customPages(); track page.id) {
           <a (click)="store.navigateTo('/page/' + page.slug)">{{ page.title }}</a>
         }
       </div>
-      <div class="col">
-        <h4>Dynamic Forms</h4>
-        @for (form of store.customForms(); track form.id) {
-          <a (click)="store.navigateTo('/form/' + form.slug)">{{ form.title }}</a>
-        }
+
+      <!-- Col 2: Internal Staff Portals -->
+      <div class="col portal-col">
+        <h4>Internal Staff Portals</h4>
+        <a class="portal-btn" (click)="store.navigateTo('/admin')">
+          <span class="material-symbols-outlined portal-icon">shield_person</span>
+          <span>Super Admin (/admin)</span>
+        </a>
+        <a class="portal-btn" (click)="store.navigateTo('/manager')">
+          <span class="material-symbols-outlined portal-icon">monitoring</span>
+          <span>Store Manager (/manager)</span>
+        </a>
+        <a class="portal-btn" (click)="store.navigateTo('/operations')">
+          <span class="material-symbols-outlined portal-icon">precision_manufacturing</span>
+          <span>Operations & Packing (/operations)</span>
+        </a>
+        <a class="portal-btn" (click)="store.navigateTo('/delivery')">
+          <span class="material-symbols-outlined portal-icon">local_shipping</span>
+          <span>Delivery Partner (/delivery)</span>
+        </a>
+      </div>
+
+      <!-- Col 3: AU Delivery, Trust & Payments -->
+      <div class="col trust-col">
+        <h4>AU Delivery & Trust</h4>
+        <div class="trust-badge">
+          <span class="material-symbols-outlined trust-icon">local_shipping</span>
+          <div>
+            <strong>Fast Express Shipping</strong>
+            <p>Free on orders over $75 AUD nationwide (AusPost & Couriers)</p>
+          </div>
+        </div>
+        <div class="trust-badge">
+          <span class="material-symbols-outlined trust-icon">verified_user</span>
+          <div>
+            <strong>100% Authentic Indian Goods</strong>
+            <p>Direct farm-to-table spices & GI-tagged regional delicacies</p>
+          </div>
+        </div>
+        <div class="trust-badge">
+          <span class="material-symbols-outlined trust-icon">lock</span>
+          <div>
+            <strong>Secure AU Payments</strong>
+            <p>Visa, Mastercard, Amex, Apple Pay, PayPal, Afterpay, Zip</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- Bottom Copyright & Legal -->
   <div class="footer-bottom">
-    <span>© 2026 Indian Store. Built with Light Theme & Full Admin Customization.</span>
+    <div class="bottom-container">
+      <span>© 2026 Indian Store Australia Pty Ltd. All rights reserved. Registered in Australia.</span>
+      <span class="tax-notice">🇦🇺 All prices in AUD (Australian Dollars, inclusive of 10% GST).</span>
+    </div>
   </div>
 </footer>

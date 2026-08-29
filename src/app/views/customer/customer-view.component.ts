@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StoreStateService } from '../../services/store-state.service';
+import { ApiService } from '../../services/api.service';
 import { Product } from '../../models/product.model';
 import { Order } from '../../models/order.model';
 import { CustomPage } from '../../models/cms.model';
@@ -15,13 +16,15 @@ import { DynamicFormSchema } from '../../models/dynamic-form.model';
   styleUrl: './customer-view.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CustomerViewComponent {
+export class CustomerViewComponent implements OnInit {
   readonly Math = Math;
   readonly store = inject(StoreStateService);
+  readonly api = inject(ApiService);
 
   readonly selectedProduct = signal<Product | null>(null);
   readonly selectedOrder = signal<Order | null>(null);
   readonly formDataState = signal<Record<string, any>>({});
+  readonly isLoadingProducts = signal<boolean>(false);
 
   readonly categoryListWithoutAll = computed(() =>
     this.store.categories().filter(c => c !== 'All Categories')
@@ -45,6 +48,69 @@ export class CustomerViewComponent {
     return null;
   });
 
+  async ngOnInit() {
+    await this.loadStoreProducts();
+  }
+
+  readonly fallbackImage = 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80';
+
+  onImageError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    if (img && img.src !== this.fallbackImage) {
+      img.src = this.fallbackImage;
+    }
+  }
+
+  async loadStoreProducts() {
+    this.isLoadingProducts.set(true);
+    try {
+      const res = await this.api.getProducts({ limit: 100 });
+      if (res.success && res.data && res.data.length > 0) {
+        const normalized = res.data.map(p => ({
+          ...p,
+          imageUrl: p.imageUrl || p.image_url || this.fallbackImage,
+          image_url: p.image_url || p.imageUrl || this.fallbackImage,
+          originalPrice: p.originalPrice || p.original_price,
+          reviewsCount: p.reviewsCount || p.reviews_count || 0,
+          isOrganic: p.isOrganic !== undefined ? p.isOrganic : p.is_organic,
+          isBestseller: p.isBestseller !== undefined ? p.isBestseller : p.is_bestseller,
+          originRegion: p.originRegion || p.origin_region || 'India'
+        }));
+        this.store.products.set(normalized);
+      }
+    } catch (err) {
+      console.error('Error fetching live products in customer view:', err);
+    } finally {
+      this.isLoadingProducts.set(false);
+    }
+  }
+
+  async openProductDetail(product: Product) {
+    const prodWithImg: Product = {
+      ...product,
+      imageUrl: product.imageUrl || product.image_url || this.fallbackImage,
+      image_url: product.image_url || product.imageUrl || this.fallbackImage
+    };
+    this.selectedProduct.set(prodWithImg);
+    try {
+      const res = await this.api.getProduct(product.id);
+      if (res.success && res.data) {
+        const updated: Product = {
+          ...res.data,
+          imageUrl: res.data.imageUrl || res.data.image_url || this.fallbackImage,
+          image_url: res.data.image_url || res.data.imageUrl || this.fallbackImage,
+          originalPrice: res.data.originalPrice || res.data.original_price,
+          reviewsCount: res.data.reviewsCount || res.data.reviews_count || 0,
+          isOrganic: res.data.isOrganic !== undefined ? res.data.isOrganic : res.data.is_organic,
+          isBestseller: res.data.isBestseller !== undefined ? res.data.isBestseller : res.data.is_bestseller
+        };
+        this.selectedProduct.set(updated);
+      }
+    } catch {
+      // Keep optimistic product
+    }
+  }
+
   getCategoryIcon(catName: string): string {
     const found = this.store.apiCategories().find(c => c.name === catName);
     if (found?.icon) return found.icon;
@@ -64,7 +130,27 @@ export class CustomerViewComponent {
   }
 
   getProductsByCategory(categoryName: string): Product[] {
-    return this.store.products().filter(p => p.category === categoryName);
+    const targetCat = this.store.apiCategories().find(
+      c => c.name.toLowerCase() === categoryName.toLowerCase() || c.id === categoryName || c.slug === this.slugify(categoryName)
+    );
+    return this.store.products().filter(p => {
+      if (targetCat) {
+        if (
+          p.category === targetCat.id ||
+          p.category === targetCat.name ||
+          p.category_name === targetCat.name ||
+          p.category_slug === targetCat.slug
+        ) {
+          return true;
+        }
+      }
+      const lower = categoryName.toLowerCase();
+      return (
+        p.category?.toLowerCase() === lower ||
+        p.category_name?.toLowerCase() === lower ||
+        p.category_slug?.toLowerCase() === this.slugify(categoryName)
+      );
+    });
   }
 
   slugify(text: string): string {
@@ -164,11 +250,59 @@ export class CustomerViewComponent {
     ]
   };
 
-  openDepartmentView(categoryName: string) {
+  async openDepartmentView(categoryName: string) {
     this.store.activeDepartment.set(categoryName);
     this.activeSubMenu.set('All');
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    const targetCat = this.store.apiCategories().find(
+      c => c.name.toLowerCase() === categoryName.toLowerCase() || c.id === categoryName || c.slug === this.slugify(categoryName)
+    );
+    try {
+      const res = await this.api.getProducts({
+        category: targetCat?.id || categoryName,
+        limit: 100
+      });
+      if (res.success && res.data?.length) {
+        const existing = this.store.products();
+        const updatedMap = new Map(existing.map(p => [p.id, p]));
+        res.data.forEach(p => updatedMap.set(p.id, p));
+        this.store.products.set(Array.from(updatedMap.values()));
+      }
+    } catch (err) {
+      console.error('Error fetching live category products:', err);
+    }
+  }
+
+  async onDepartmentSortChange(sortOption: 'popular' | 'price-low' | 'price-high' | 'rating') {
+    this.departmentSortBy.set(sortOption);
+    const dept = this.store.activeDepartment();
+    if (!dept) return;
+
+    const targetCat = this.store.apiCategories().find(
+      c => c.name.toLowerCase() === dept.toLowerCase() || c.id === dept
+    );
+    let apiSort: any = '';
+    if (sortOption === 'price-low') apiSort = 'price-low';
+    else if (sortOption === 'price-high') apiSort = 'price-high';
+    else if (sortOption === 'rating') apiSort = 'rating';
+
+    try {
+      const res = await this.api.getProducts({
+        category: targetCat?.id || dept,
+        sort: apiSort,
+        limit: 100
+      });
+      if (res.success && res.data?.length) {
+        const existing = this.store.products();
+        const updatedMap = new Map(existing.map(p => [p.id, p]));
+        res.data.forEach(p => updatedMap.set(p.id, p));
+        this.store.products.set(Array.from(updatedMap.values()));
+      }
+    } catch (err) {
+      console.error('Error sorting department products:', err);
     }
   }
 

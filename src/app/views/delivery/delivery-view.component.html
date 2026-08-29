@@ -17,8 +17,8 @@
         <span class="stat-label">Delivered Today</span>
       </div>
       <div class="stat-pill">
-        <span class="stat-num">₹1,850</span>
-        <span class="stat-label">Today's Earnings</span>
+        <span class="stat-num">$285.00</span>
+        <span class="stat-label">Today's Earnings (AUD)</span>
       </div>
       <div class="stat-pill">
         <span class="stat-num">4.9 ★</span>
@@ -28,7 +28,7 @@
   </div>
 
   <div class="section-title">
-    <h3>Assigned Deliveries Queue</h3>
+    <h3>Assigned Deliveries Queue (Australia Metro Routes)</h3>
     <p>Active customer shipments pending delivery in your route zone.</p>
   </div>
 
@@ -51,7 +51,7 @@
           <div class="customer-info-box">
             <h4>{{ order.customerName }}</h4>
             <p class="phone">📞 {{ order.customerPhone }} <button class="call-btn" (click)="callCustomer(order.customerPhone)">Call Customer</button></p>
-            <p class="address">📍 {{ order.deliveryAddress }}, {{ order.city }} - {{ order.pincode }}</p>
+            <p class="address">📍 {{ order.deliveryAddress }}, {{ order.city }} {{ order.state || 'NSW' }} {{ order.postcode || order.pincode }}</p>
             @if (order.deliveryNotes) {
               <p class="notes">📝 Note: {{ order.deliveryNotes }}</p>
             }
@@ -59,7 +59,7 @@
 
           <!-- Package Items -->
           <div class="package-items-box">
-            <h5>Package Contents (₹{{ order.totalAmount }})</h5>
+            <h5>Package Contents (${{ order.totalAmount }} AUD)</h5>
             @for (item of order.items; track item.product.id) {
               <div class="item-line">
                 <span>{{ item.product.name }}</span>

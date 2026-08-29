@@ -21,7 +21,7 @@
       </div>
       <div class="metric-info">
         <span class="metric-label">Total Store Sales</span>
-        <strong class="metric-value">₹{{ totalSalesRevenue() }}</strong>
+        <strong class="metric-value">${{ totalSalesRevenue() }} AUD</strong>
         <span class="metric-sub green">↑ 18.4% this week</span>
       </div>
     </div>
@@ -43,8 +43,8 @@
       </div>
       <div class="metric-info">
         <span class="metric-label">Low Stock Items</span>
-        <strong class="metric-value red-text">{{ lowStockCount() }} Items</strong>
-        <span class="metric-sub">Requires replenishment</span>
+        <strong class="metric-value red-text">{{ lowStockCount() }} Products</strong>
+        <span class="metric-sub red">Needs reorder soon</span>
       </div>
     </div>
 
@@ -75,7 +75,7 @@
           <tr>
             <th>Product</th>
             <th>Category</th>
-            <th>Price (₹)</th>
+            <th>Price ($ AUD)</th>
             <th>Stock</th>
             <th>Origin</th>
             <th>Status</th>
@@ -87,7 +87,7 @@
             <tr>
               <td>
                 <div class="prod-cell">
-                  <img [src]="prod.imageUrl" [alt]="prod.name" class="thumb-img" />
+                  <img [src]="prod.imageUrl || prod.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80'" [alt]="prod.name" class="thumb-img" />
                   <div>
                     <strong>{{ prod.name }}</strong>
                     <span class="weight-label">{{ prod.weight }}</span>
@@ -99,7 +99,7 @@
               </td>
               <td>
                 <div class="price-edit-cell">
-                  <span>₹{{ prod.price }}</span>
+                  <span>${{ prod.price }}</span>
                   <button class="edit-sm-btn" (click)="promptEditPrice(prod)">Edit</button>
                 </div>
               </td>
@@ -110,18 +110,27 @@
                   <button (click)="adjustStock(prod, 5)">+</button>
                 </div>
               </td>
-              <td>{{ prod.originRegion }}</td>
               <td>
-                @if (prod.stock < 20) {
-                  <span class="badge badge-red">Low Stock Alert</span>
+                <span class="origin-label">📍 {{ prod.originRegion }}</span>
+              </td>
+              <td>
+                @if (prod.stock === 0) {
+                  <span class="badge badge-red">Out of Stock</span>
+                } @else if (prod.stock < 20) {
+                  <span class="badge badge-orange">Low Stock</span>
                 } @else {
                   <span class="badge badge-green">In Stock</span>
                 }
               </td>
               <td>
-                <button class="del-btn" (click)="store.deleteProduct(prod.id)">
-                  <span class="material-symbols-outlined">delete</span>
-                </button>
+                <div class="action-btns">
+                  <button class="action-icon-btn edit" (click)="promptEditPrice(prod)" title="Edit Price">
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+                  <button class="action-icon-btn delete" (click)="store.deleteProduct(prod.id)" title="Delete Product">
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
               </td>
             </tr>
           }
@@ -158,8 +167,8 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Price (₹) *</label>
-              <input type="number" [(ngModel)]="newProdPrice" name="price" required placeholder="399" />
+              <label>Price ($ AUD) *</label>
+              <input type="number" [(ngModel)]="newProdPrice" name="price" required placeholder="9.99" />
             </div>
           </div>
 

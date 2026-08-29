@@ -29,7 +29,7 @@
             </div>
             <div class="customer-info">
               <strong>{{ order.customerName }}</strong>
-              <p>📍 {{ order.city }}, {{ order.pincode }}</p>
+              <p>📍 {{ order.city }} {{ order.state || 'NSW' }} {{ order.postcode || order.pincode }}</p>
             </div>
             <div class="items-summary">
               @for (item of order.items; track item.product.id) {
