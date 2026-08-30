@@ -1,3 +1,5 @@
+import { environment } from '../../environments/environment';
+
 /**
  * Application Constants
  */
@@ -6,20 +8,20 @@
 // KEYCLOAK IAM CONFIGURATION
 // ==========================================
 export const KEYCLOAK_CONFIG = {
-  URL: 'http://localhost:8080',
-  REALM: 'indian-store',
-  CLIENT_ID: 'indian-store-public',
-  CLIENT_ID_STAFF: 'indian-store-public',
-  CLIENT_ID_CUSTOMER: 'indian-store-customer'
+  URL: environment.keycloak.url,
+  REALM: environment.keycloak.realm,
+  CLIENT_ID: environment.keycloak.clientId,
+  CLIENT_ID_STAFF: environment.keycloak.clientIdStaff,
+  CLIENT_ID_CUSTOMER: environment.keycloak.clientIdCustomer
 } as const;
 
 // ==========================================
 // BACKEND API ENDPOINTS
 // ==========================================
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:5001/api/v1',
-  HEALTH_URL: 'http://localhost:5001/api/health',
-  DOCS_URL: 'http://localhost:5001/api-docs/json'
+  BASE_URL: environment.api.baseUrl,
+  HEALTH_URL: environment.api.healthUrl,
+  DOCS_URL: environment.api.docsUrl
 } as const;
 
 // ==========================================
