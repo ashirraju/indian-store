@@ -90,6 +90,30 @@
               <span class="cart-count-badge">{{ store.cartTotalCount() }}</span>
             }
           </button>
+
+          <!-- Customer Sign In / Account Button -->
+          @if (!keycloak.isAuthenticated()) {
+            <button
+              class="action-btn signin-btn"
+              (click)="onCustomerSignIn()"
+              title="Sign in with your Account"
+            >
+              <span class="material-symbols-outlined">person</span>
+              <span class="btn-label">Sign In</span>
+            </button>
+          } @else {
+            <div class="customer-chip">
+              <div class="user-avatar-circle">
+                <span class="material-symbols-outlined">account_circle</span>
+              </div>
+              <div class="user-info-text">
+                <strong class="user-name">{{ keycloak.currentUser()?.firstName || 'Customer' }}</strong>
+              </div>
+              <button class="icon-logout-btn" (click)="onLogout()" title="Sign Out">
+                <span class="material-symbols-outlined">logout</span>
+              </button>
+            </div>
+          }
         } @else {
           <!-- Authenticated Staff Role Indicator & Sign Out -->
           <div class="staff-user-chip">

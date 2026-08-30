@@ -49,7 +49,11 @@ export class NavbarComponent {
     this.keycloak.logout();
     this.store.activeRole.set('Customer');
     this.store.navigateTo('/store');
-    this.store.showToast('info', 'Logged Out', 'You have been signed out from staff portals.');
+    this.store.showToast('info', 'Logged Out', 'You have been signed out.');
+  }
+
+  onCustomerSignIn() {
+    this.keycloak.loginWithKeycloak('/store', 'Customer');
   }
 
   onStaffLogin() {

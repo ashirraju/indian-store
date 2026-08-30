@@ -8,7 +8,9 @@
 export const KEYCLOAK_CONFIG = {
   URL: 'http://localhost:8080',
   REALM: 'indian-store',
-  CLIENT_ID: 'indian-store-public'
+  CLIENT_ID: 'indian-store-public',
+  CLIENT_ID_STAFF: 'indian-store-public',
+  CLIENT_ID_CUSTOMER: 'indian-store-customer'
 } as const;
 
 // ==========================================

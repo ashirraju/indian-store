@@ -118,14 +118,15 @@ export class AppKeycloakService {
           }
 
           const realmRoles = this.keycloakInstance.realmAccess?.roles || [];
-          const clientRoles = this.keycloakInstance.resourceAccess?.[this.config.clientId]?.roles || [];
-          const allRoles = Array.from(new Set([...realmRoles, ...clientRoles])).map(r => r.toLowerCase());
+          const staffRoles = this.keycloakInstance.resourceAccess?.[KEYCLOAK_CONFIG.CLIENT_ID_STAFF]?.roles || [];
+          const customerRoles = this.keycloakInstance.resourceAccess?.[KEYCLOAK_CONFIG.CLIENT_ID_CUSTOMER]?.roles || [];
+          const allRoles = Array.from(new Set([...realmRoles, ...staffRoles, ...customerRoles])).map(r => r.toLowerCase());
 
           const user: KeycloakUserProfile = {
-            username: profile.username || 'staff.user',
-            email: profile.email || 'staff@indianstore.com.au',
-            firstName: profile.firstName || 'Staff',
-            lastName: profile.lastName || 'Member',
+            username: profile.username || 'user',
+            email: profile.email || 'user@indianstore.com.au',
+            firstName: profile.firstName || 'Customer',
+            lastName: profile.lastName || '',
             roles: allRoles
           };
 
@@ -164,33 +165,33 @@ export class AppKeycloakService {
   }
 
   /**
-   * Directly redirect browser to Keycloak Login Page
+   * Get the appropriate Keycloak Client ID based on role
+   */
+  getClientIdForRole(role: AppRole | string): string {
+    const normalized = role.toString().toLowerCase();
+    if (normalized === 'customer') {
+      return KEYCLOAK_CONFIG.CLIENT_ID_CUSTOMER;
+    }
+    return KEYCLOAK_CONFIG.CLIENT_ID_STAFF;
+  }
+
+  /**
+   * Directly redirect browser to Keycloak Login Page (with customer vs staff client ID)
    */
   async loginWithKeycloak(targetPath: string = APP_ROUTES.ADMIN, targetRole: AppRole = 'Admin') {
     try {
+      const clientId = this.getClientIdForRole(targetRole);
       sessionStorage.setItem(STORAGE_KEYS.TARGET_PATH, targetPath);
       sessionStorage.setItem(STORAGE_KEYS.TARGET_ROLE, targetRole);
 
-      if (!this.keycloakInstance) {
-        this.keycloakInstance = new Keycloak({
-          url: this.config.url,
-          realm: this.config.realm,
-          clientId: this.config.clientId
-        });
-        await this.keycloakInstance.init({ onLoad: 'check-sso', checkLoginIframe: false });
-      }
-
       const redirectUri = window.location.origin + window.location.pathname + '#' + targetPath;
-      await this.keycloakInstance.login({
-        redirectUri
-      });
+      const authUrl = `${this.config.url}/realms/${this.config.realm}/protocol/openid-connect/auth?client_id=${encodeURIComponent(
+        clientId
+      )}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=openid`;
+
+      window.location.href = authUrl;
     } catch (err: any) {
       console.error('Keycloak login redirect error:', err);
-      // Direct redirect fallback to Keycloak auth endpoint
-      const authUrl = `${this.config.url}/realms/${this.config.realm}/protocol/openid-connect/auth?client_id=${encodeURIComponent(
-        this.config.clientId
-      )}&redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname + '#' + targetPath)}&response_type=code&scope=openid`;
-      window.location.href = authUrl;
     }
   }
 
@@ -198,7 +199,7 @@ export class AppKeycloakService {
    * Check access for protected roles. If not authenticated, immediately redirect to Keycloak login page.
    */
   requireAuthForRole(targetRole: AppRole, targetPath?: string): boolean {
-    if (targetRole === 'Customer') return true;
+    if ((targetRole as any) === 'Customer' || (targetRole as any) === AppRole.CUSTOMER) return true;
 
     if (this.isAuthenticated()) {
       return this.hasTokenRole(targetRole);
@@ -248,8 +249,9 @@ export class AppKeycloakService {
     if (this.keycloakInstance?.tokenParsed) {
       const parsed = this.keycloakInstance.tokenParsed as any;
       const realmRoles = (parsed.realm_access?.roles || []).map((r: string) => r.toLowerCase());
-      const clientRoles = (parsed.resource_access?.[this.config.clientId]?.roles || []).map((r: string) => r.toLowerCase());
-      const all = [...realmRoles, ...clientRoles];
+      const staffRoles = (parsed.resource_access?.[KEYCLOAK_CONFIG.CLIENT_ID_STAFF]?.roles || []).map((r: string) => r.toLowerCase());
+      const customerRoles = (parsed.resource_access?.[KEYCLOAK_CONFIG.CLIENT_ID_CUSTOMER]?.roles || []).map((r: string) => r.toLowerCase());
+      const all = [...realmRoles, ...staffRoles, ...customerRoles];
       if (all.includes(targetRole) || all.includes('admin')) {
         return true;
       }
@@ -260,8 +262,9 @@ export class AppKeycloakService {
       const decoded = this.parseJwt(tokenStr);
       if (decoded) {
         const realmRoles = (decoded.realm_access?.roles || []).map((r: string) => r.toLowerCase());
-        const clientRoles = (decoded.resource_access?.[this.config.clientId]?.roles || []).map((r: string) => r.toLowerCase());
-        const all = [...realmRoles, ...clientRoles];
+        const staffRoles = (decoded.resource_access?.[KEYCLOAK_CONFIG.CLIENT_ID_STAFF]?.roles || []).map((r: string) => r.toLowerCase());
+        const customerRoles = (decoded.resource_access?.[KEYCLOAK_CONFIG.CLIENT_ID_CUSTOMER]?.roles || []).map((r: string) => r.toLowerCase());
+        const all = [...realmRoles, ...staffRoles, ...customerRoles];
         if (all.includes(targetRole) || all.includes('admin')) {
           return true;
         }

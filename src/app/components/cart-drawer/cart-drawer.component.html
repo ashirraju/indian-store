@@ -16,8 +16,55 @@
 
     <!-- Body -->
     <div class="cart-body">
-      @if (!showCheckoutForm()) {
-        <!-- Cart Items List -->
+      <!-- 1. AUTH CHOICE STEP (Sign In vs Continue as Guest) -->
+      @if (showAuthChoice()) {
+        <div class="auth-choice-container">
+          <button class="back-link" (click)="backToCart()">
+            ← Back to Cart
+          </button>
+          <div class="auth-choice-header">
+            <div class="icon-circle">
+              <span class="material-symbols-outlined">lock_open</span>
+            </div>
+            <h4>How would you like to checkout?</h4>
+            <p>Sign in for instant checkout and order tracking, or proceed quickly as a guest.</p>
+          </div>
+
+          <div class="auth-choice-cards">
+            <!-- Option 1: Sign in with Keycloak -->
+            <div class="choice-card signin-card" (click)="signInWithKeycloak()">
+              <div class="choice-icon">
+                <span class="material-symbols-outlined">account_circle</span>
+              </div>
+              <div class="choice-content">
+                <strong>Sign In / Create Account</strong>
+                <p>Access saved delivery addresses, express 1-click checkout, and live order tracking.</p>
+              </div>
+              <button class="choice-btn signin-btn">
+                <span>Sign In</span>
+                <span class="material-symbols-outlined">arrow_forward</span>
+              </button>
+            </div>
+
+            <!-- Option 2: Continue as Guest -->
+            <div class="choice-card guest-card" (click)="continueAsGuest()">
+              <div class="choice-icon">
+                <span class="material-symbols-outlined">person_outline</span>
+              </div>
+              <div class="choice-content">
+                <strong>Continue as Guest</strong>
+                <p>No password needed. Simply provide your Australian mobile number for delivery updates.</p>
+              </div>
+              <button class="choice-btn guest-btn">
+                <span>Guest Checkout</span>
+                <span class="material-symbols-outlined">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+      <!-- 2. CART ITEMS LIST -->
+      @else if (!showCheckoutForm()) {
         @if (store.cart().length === 0) {
           <div class="empty-cart">
             <span class="material-symbols-outlined empty-icon">production_quantity_limits</span>
@@ -53,14 +100,32 @@
             }
           </div>
         }
-      } @else {
-        <!-- Quick Checkout Form -->
+      }
+      <!-- 3. QUICK CHECKOUT FORM -->
+      @else {
         <div class="checkout-form-container">
-          <button class="back-link" (click)="showCheckoutForm.set(false)">
+          <button class="back-link" (click)="backToCart()">
             ← Back to Cart Items
           </button>
-          <h4>Delivery & Payment Information</h4>
-          <p class="sub-text">Enter your Australian delivery details to confirm your order.</p>
+
+          <div class="checkout-header-row">
+            <div>
+              <h4>Delivery & Payment Information</h4>
+              <p class="sub-text">Enter your Australian delivery details to confirm your order.</p>
+            </div>
+            @if (isGuest()) {
+              <span class="guest-pill">Guest Checkout</span>
+            } @else if (keycloak.isAuthenticated()) {
+              <span class="auth-pill">Verified Member</span>
+            }
+          </div>
+
+          @if (isGuest()) {
+            <div class="guest-notice-banner">
+              <span class="material-symbols-outlined">info</span>
+              <span><strong>Guest Notice:</strong> A valid Australian mobile number is mandatory for courier dispatch and SMS tracking alerts.</span>
+            </div>
+          }
 
           <form (submit)="onConfirmOrder($event)" class="form-grid">
             <div class="form-group">
@@ -68,9 +133,24 @@
               <input type="text" [(ngModel)]="checkoutName" name="name" required placeholder="Aarav Sharma" />
             </div>
 
-            <div class="form-group">
-              <label>Mobile Number (AU) *</label>
-              <input type="tel" [(ngModel)]="checkoutPhone" name="phone" required placeholder="+61 412 345 678" />
+            <div class="form-group" [class.has-error]="phoneError()">
+              <label>Mobile Number (AU) * <span class="req-tag">Mandatory</span></label>
+              <div class="input-with-prefix">
+                <span class="phone-flag">🇦🇺</span>
+                <input
+                  type="tel"
+                  [(ngModel)]="checkoutPhone"
+                  name="phone"
+                  required
+                  placeholder="0412 345 678"
+                  (input)="phoneError.set(null)"
+                />
+              </div>
+              @if (phoneError()) {
+                <span class="error-msg">{{ phoneError() }}</span>
+              } @else {
+                <small class="field-hint">e.g. 0412 345 678 or +61 412 345 678</small>
+              }
             </div>
 
             <div class="form-group">
@@ -138,7 +218,7 @@
     </div>
 
     <!-- Summary Footer -->
-    @if (store.cart().length > 0) {
+    @if (store.cart().length > 0 && !showAuthChoice() && !showCheckoutForm()) {
       <div class="cart-footer">
         <div class="summary-row">
           <span>Subtotal</span>
@@ -157,11 +237,9 @@
           <span class="total-price">${{ (store.cartSubtotal() + (store.cartSubtotal() >= 75 ? 0 : 9.99)).toFixed(2) }}</span>
         </div>
 
-        @if (!showCheckoutForm()) {
-          <button class="checkout-btn" (click)="showCheckoutForm.set(true)">
-            Proceed to Checkout →
-          </button>
-        }
+        <button class="checkout-btn" (click)="startCheckoutFlow()">
+          Proceed to Checkout →
+        </button>
       </div>
     }
   </div>

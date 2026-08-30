@@ -949,8 +949,9 @@ export class StoreStateService {
   readonly toast = signal<ToastMessage | null>(null);
   readonly wishlistTotalCount = computed(() => this.wishlist().length);
 
-  // Cart operations
-  readonly cartTotalCount = computed(() =>
+  // Cart operations (Unique items count in cart)
+  readonly cartTotalCount = computed(() => this.cart().length);
+  readonly cartTotalUnits = computed(() =>
     this.cart().reduce((sum, item) => sum + item.quantity, 0)
   );
 
