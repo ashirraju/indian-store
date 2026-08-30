@@ -248,40 +248,105 @@ export class ApiService {
     return await res.json();
   }
 
+  async getOrders(params?: {
+    status?: string;
+    customerEmail?: string;
+    page?: number;
+    limit?: number;
+    sort?: string;
+  }, role = 'Admin'): Promise<{ success: boolean; totalCount: number; page: number; limit: number; totalPages: number; data: any[] }> {
+    const url = new URL(`${this.baseUrl}/orders`);
+    if (params?.status) url.searchParams.set('status', params.status);
+    if (params?.customerEmail) url.searchParams.set('customerEmail', params.customerEmail);
+    if (params?.page) url.searchParams.set('page', params.page.toString());
+    if (params?.limit) url.searchParams.set('limit', params.limit.toString());
+    if (params?.sort) url.searchParams.set('sort', params.sort);
+
+    const res = await fetch(url.toString(), {
+      headers: this.getAuthHeaders(role)
+    });
+    return await res.json();
+  }
+
+  async getOrder(id: string, role = 'Admin'): Promise<{ success: boolean; data: any }> {
+    const res = await fetch(`${this.baseUrl}/orders/${encodeURIComponent(id)}`, {
+      headers: this.getAuthHeaders(role)
+    });
+    return await res.json();
+  }
+
   async checkoutOrder(orderData: {
     items: Array<{ productId: string; quantity: number }>;
-    shippingAddress: any;
+    shippingAddress: {
+      fullName: string;
+      phone: string;
+      email?: string;
+      addressLine: string;
+      city: string;
+      state: string;
+      pincode: string;
+    };
     couponCode?: string;
     paymentMethod: string;
-  }): Promise<any> {
+  }, role = 'Customer'): Promise<{
+    success: boolean;
+    message: string;
+    data: any;
+    error?: string;
+  }> {
     const res = await fetch(`${this.baseUrl}/orders/checkout`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer dev-token',
-        'x-mock-role': 'Customer'
-      },
+      headers: this.getAuthHeaders(role),
       body: JSON.stringify(orderData)
+    });
+    return await res.json();
+  }
+
+  async updateOrderStatus(
+    id: string,
+    payload: { status: string; notes?: string; assignedDeliveryAgent?: string },
+    role = 'Operations'
+  ): Promise<{ success: boolean; message: string; data: any }> {
+    const res = await fetch(`${this.baseUrl}/orders/${encodeURIComponent(id)}/status`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(role),
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  }
+
+  async cancelOrder(id: string, reason?: string, role = 'Customer'): Promise<{ success: boolean; message: string; data: any }> {
+    const res = await fetch(`${this.baseUrl}/orders/${encodeURIComponent(id)}/cancel`, {
+      method: 'POST',
+      headers: this.getAuthHeaders(role),
+      body: JSON.stringify({ reason: reason || 'Customer requested cancellation' })
+    });
+    return await res.json();
+  }
+
+  async updateOrderPayment(
+    id: string,
+    payload: { paymentStatus: string; paymentMethod?: string },
+    role = 'Admin'
+  ): Promise<{ success: boolean; message: string; data: any }> {
+    const res = await fetch(`${this.baseUrl}/orders/${encodeURIComponent(id)}/payment`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(role),
+      body: JSON.stringify(payload)
     });
     return await res.json();
   }
 
   async getInventory(lowStockOnly = false, role = 'Operations'): Promise<any> {
     const res = await fetch(`${this.baseUrl}/inventory?lowStockOnly=${lowStockOnly}`, {
-      headers: {
-        'Authorization': 'Bearer dev-token',
-        'x-mock-role': role
-      }
+      headers: this.getAuthHeaders(role)
     });
     return await res.json();
   }
 
   async getSalesReport(role = 'Admin'): Promise<any> {
     const res = await fetch(`${this.baseUrl}/reports/sales-revenue`, {
-      headers: {
-        'Authorization': 'Bearer dev-token',
-        'x-mock-role': role
-      }
+      headers: this.getAuthHeaders(role)
     });
     return await res.json();
   }

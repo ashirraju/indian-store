@@ -14,6 +14,10 @@ import { Order } from '../../models/order.model';
 export class OrdersModalComponent {
   readonly store = inject(StoreStateService);
 
+  constructor() {
+    this.store.syncOrdersFromBackend();
+  }
+
   readonly statusFilter = signal<'ALL' | 'ACTIVE' | 'DELIVERED'>('ALL');
 
   readonly activeOrdersCount = computed(() =>

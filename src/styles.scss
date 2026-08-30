@@ -1,85 +1,68 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
 
-html {
-  height: 100%;
-}
+:root {
+  /* Brand & Theme Colors */
+  --primary-color: #0296e0;
+  --primary-hover: #0285c7;
+  --primary-glow: rgba(2, 150, 224, 0.15);
 
-:root,
-body.dark-theme {
-  /* Color Palette - Dark Premium Theme */
-  --select-color: #0296e0;
-  --select-color-hover: #02a6f8;
-  --select-color-glow: rgba(2, 150, 224, 0.25);
+  --primary-bg-color: #f0f4f8;
+  --secondary-bg-color: #f8fafc;
+  --surface-bg-color: #ffffff;
+  --card-bg-color: #ffffff;
 
-  --sell-color: #ff5722;
-  --sell-color-hover: #e64a19;
-  --sell-color-glow: rgba(255, 87, 34, 0.35);
-
-  --primary-bg-color: #080b11;
-  --secondary-bg-color: #10141a;
-  --surface-bg-color: #161b22;
-  --card-bg-color: #1c232e;
-
-  --font-white: #94a3b8;
+  /* Typography Colors */
+  --font-primary: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-brand: 'Manrope', var(--font-primary);
+  --font-heading: #0f172a;
+  --font-body: #334155;
   --font-muted: #64748b;
-  --font-green: #25c293;
+  --font-green: #10b981;
   --font-red: #ef4444;
   --font-orange: #f97316;
-  --background-grey: #272b30;
-  --brite-white: #f8fafc;
 
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-color-hover: rgba(255, 255, 255, 0.16);
-  --font-primary:
-    'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Borders & Shadows */
+  --border-color: #e2e8f0;
+  --border-color-hover: #cbd5e1;
 
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
-  --shadow-glow: 0 0 15px rgba(2, 150, 224, 0.15);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.12);
 
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
 }
 
-body.light-theme {
-  /* Color Palette - Light Theme */
-  --select-color: #0296e0;
-  --select-color-hover: #0285c7;
-  --select-color-glow: rgba(2, 150, 224, 0.15);
-
-  --primary-bg-color: #f0f4f8;
-  --secondary-bg-color: #ebedf1;
-  --surface-bg-color: #ebedf1;
-  --card-bg-color: #ebedf1;
-
-  --font-white: #475569;
-  --font-muted: #64748b;
-  --font-green: #10b981;
-  --font-red: #ef4444;
-  --font-orange: #f97316;
-  --background-grey: #e2e8f0;
-  --brite-white: #0f172a;
-
-  --border-color: rgba(0, 0, 0, 0.08);
-  --border-color-hover: rgba(0, 0, 0, 0.16);
-
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-glow: 0 0 15px rgba(2, 150, 224, 0.1);
-}
-
-* {
+/* Reset & Box Sizing */
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  outline: none;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: var(--font-primary);
+  background-color: var(--primary-bg-color);
+  color: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  font-size: 14px;
+}
+
+/* Scrollbar Customization */
+* {
   scrollbar-width: thin;
-  scrollbar-color: #272b30 transparent;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
 *::-webkit-scrollbar {
@@ -92,39 +75,39 @@ body.light-theme {
 }
 
 *::-webkit-scrollbar-thumb {
-  background-color: #272b30;
+  background-color: #cbd5e1;
   border-radius: 4px;
+
   &:hover {
-    background-color: #3b424a;
+    background-color: #94a3b8;
   }
 }
 
-html,
-body {
-  height: 100%;
-  font-family: var(--font-primary);
-  background-color: var(--primary-bg-color);
-  color: var(--font-white);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  line-height: 1.5;
-  font-size: 14px;
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
+/* Typography Base */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.25;
 }
 
-/* Background Utility Classes */
-.background-color-primary,
-.bg-primary {
-  background-color: var(--primary-bg-color);
+button {
+  font-family: inherit;
+  outline: none;
 }
 
-.background-color-secondary,
-.bg-secondary {
-  background-color: var(--secondary-bg-color);
+input,
+textarea,
+select {
+  font-family: inherit;
+  outline: none;
 }
 
+/* Surface & Card Utility */
 .card-surface {
   background-color: var(--surface-bg-color);
   border: 1px solid var(--border-color);
@@ -139,61 +122,32 @@ body {
   }
 }
 
-/* Text Color Utility Classes */
-.font-white {
-  color: var(--font-white);
-}
-
-.font-brite-white,
-.text-white {
-  color: var(--brite-white);
-}
-
-.font-muted,
-.text-muted {
-  color: var(--font-muted);
-}
-
-.green,
-.text-green {
-  color: var(--font-green) !important;
-}
-
-.red,
-.text-red {
-  color: var(--font-red) !important;
-}
-
-.orange,
-.text-orange {
-  color: var(--font-orange) !important;
-}
-
-.text-select {
-  color: var(--select-color);
+/* Text Utilities */
+.text-center {
+  text-align: center;
 }
 
 .text-right {
   text-align: right;
 }
 
-.text-center {
-  text-align: center;
+.text-muted {
+  color: var(--font-muted);
 }
 
-/* Base Typography & Helper Classes */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  color: var(--brite-white);
-  font-weight: 600;
+.text-green,
+.green {
+  color: var(--font-green) !important;
 }
 
-button {
-  font-family: var(--font-primary);
+.text-red,
+.red {
+  color: var(--font-red) !important;
+}
+
+.text-orange,
+.orange {
+  color: var(--font-orange) !important;
 }
 
 /* Badge & Pill Helpers */
@@ -207,18 +161,17 @@ button {
   font-weight: 600;
 
   &.badge-green {
-    background-color: rgba(37, 194, 147, 0.15);
+    background-color: #ecfdf5;
     color: var(--font-green);
   }
 
   &.badge-red {
-    background-color: rgba(239, 68, 68, 0.15);
+    background-color: #fef2f2;
     color: var(--font-red);
   }
 }
 
-/* Angular Material Overrides & Icon Font Consistency */
-.mat-icon,
+/* Material Icons Alignment & Font Consistency */
 .material-symbols-outlined,
 .material-icons {
   font-family: 'Material Symbols Outlined', 'Material Icons', sans-serif !important;
@@ -227,32 +180,14 @@ button {
   line-height: 1;
   letter-spacing: normal;
   text-transform: none;
-  display: inline-flex !important;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   vertical-align: middle;
   user-select: none;
-
-  span,
-  .material-symbols-outlined,
-  .material-icons {
-    font-family: 'Material Symbols Outlined', 'Material Icons', sans-serif !important;
-    font-style: normal;
-    font-weight: normal;
-    line-height: 1;
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    vertical-align: middle;
-  }
 }
 
-.mat-mdc-slide-toggle {
-  --mdc-switch-selected-track-color: var(--select-color);
-  --mdc-switch-selected-handle-color: #ffffff;
-}
-
-/* Prevent iOS Mobile WebKit auto-zooming when focusing inputs */
+/* Mobile Input Auto-Zoom Prevention (iOS Safari) */
 @media screen and (max-width: 768px) {
   input,
   select,

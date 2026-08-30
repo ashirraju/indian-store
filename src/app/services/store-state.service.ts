@@ -86,6 +86,7 @@ export class StoreStateService {
       });
 
       this.syncCatalogFromBackend();
+      this.syncOrdersFromBackend();
     }
   }
 
@@ -115,6 +116,58 @@ export class StoreStateService {
       }
     } catch {
       // Offline fallback
+    }
+  }
+
+  async syncOrdersFromBackend() {
+    try {
+      const res = await this.api.getOrders({ limit: 100 }, this.activeRole() || 'Admin');
+      if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+        const mappedOrders: Order[] = res.data.map((o: any) => ({
+          id: o.id || `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+          customerName: o.customer_name || o.customerName || 'Customer',
+          customerEmail: o.customer_email || o.customerEmail || '',
+          customerPhone: o.customer_phone || o.customerPhone || '',
+          deliveryAddress: o.shipping_address?.addressLine || o.deliveryAddress || 'Delivery Address',
+          city: o.shipping_address?.city || o.city || 'Sydney',
+          state: o.shipping_address?.state || o.state || 'NSW',
+          pincode: o.shipping_address?.pincode || o.pincode || '2000',
+          postcode: o.shipping_address?.pincode || o.postcode || '2000',
+          items: Array.isArray(o.items) ? o.items.map((i: any) => ({
+            product: {
+              id: i.productId || i.id || 'p-1',
+              name: i.name || 'Authentic Grocery Item',
+              category: i.category || 'Groceries',
+              price: parseFloat(i.unitPrice || i.price || '0'),
+              rating: 4.8,
+              reviewsCount: 50,
+              imageUrl: i.image || i.imageUrl || 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=600&auto=format&fit=crop&q=80',
+              description: '',
+              weight: i.weight || '1 unit',
+              stock: 50,
+              originRegion: 'India',
+              tags: []
+            },
+            quantity: i.quantity || 1
+          })) : [],
+          totalAmount: parseFloat(o.total_amount || o.totalAmount || '0'),
+          paymentMethod: o.payment_method || o.paymentMethod || 'Card',
+          status: (o.status as OrderStatus) || 'Placed',
+          placedAt: o.placed_at ? new Date(o.placed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', Today' : 'Today',
+          assignedDeliveryAgent: o.assigned_delivery_agent || o.assignedDeliveryAgent || 'Unassigned',
+          deliveryNotes: o.delivery_notes || o.deliveryNotes || '',
+          timeline: Array.isArray(o.timeline) && o.timeline.length > 0 ? o.timeline : [
+            { status: 'Placed', timestamp: 'Just now', completed: true, notes: 'Order confirmed' },
+            { status: 'In Packing', timestamp: 'Pending', completed: o.status === 'In Packing' || o.status === 'Ready for Dispatch' || o.status === 'Out for Delivery' || o.status === 'Delivered' },
+            { status: 'Ready for Dispatch', timestamp: 'Pending', completed: o.status === 'Ready for Dispatch' || o.status === 'Out for Delivery' || o.status === 'Delivered' },
+            { status: 'Out for Delivery', timestamp: 'Pending', completed: o.status === 'Out for Delivery' || o.status === 'Delivered' },
+            { status: 'Delivered', timestamp: 'Pending', completed: o.status === 'Delivered' }
+          ]
+        }));
+        this.orders.set(mappedOrders);
+      }
+    } catch (err) {
+      console.warn('Backend orders sync:', err);
     }
   }
 
@@ -1005,11 +1058,13 @@ export class StoreStateService {
     this.cart.set([]);
   }
 
-  // Checkout operation (AU Currency & Postcode)
-  placeOrder(deliveryDetails: { name: string; email: string; phone: string; address: string; city: string; state?: string; pincode: string; postcode?: string; paymentMethod: string }): Order {
+  // Checkout operation (AU Currency & Postcode with Backend Integration)
+  async placeOrder(deliveryDetails: { name: string; email: string; phone: string; address: string; city: string; state?: string; pincode: string; postcode?: string; paymentMethod: string }): Promise<Order> {
     const isFreeShipping = this.cartSubtotal() >= STORE_CONFIG.FREE_SHIPPING_THRESHOLD;
     const shippingFee = isFreeShipping ? 0 : STORE_CONFIG.STANDARD_SHIPPING_FEE;
-    const newOrder: Order = {
+    const cartItems = [...this.cart()];
+
+    const localOrder: Order = {
       id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
       customerName: deliveryDetails.name,
       customerEmail: deliveryDetails.email,
@@ -1019,7 +1074,7 @@ export class StoreStateService {
       state: deliveryDetails.state || STORE_CONFIG.DEFAULT_STATE,
       pincode: deliveryDetails.pincode || deliveryDetails.postcode || STORE_CONFIG.DEFAULT_POSTCODE,
       postcode: deliveryDetails.postcode || deliveryDetails.pincode || STORE_CONFIG.DEFAULT_POSTCODE,
-      items: [...this.cart()],
+      items: cartItems,
       totalAmount: Math.round((this.cartSubtotal() + shippingFee) * 100) / 100,
       paymentMethod: deliveryDetails.paymentMethod,
       status: 'Placed',
@@ -1033,11 +1088,47 @@ export class StoreStateService {
       ]
     };
 
-    this.orders.set([newOrder, ...this.orders()]);
+    // Optimistic UI updates
+    this.orders.set([localOrder, ...this.orders()]);
     this.clearCart();
     this.isCartOpen.set(false);
-    this.showToast('success', 'Order Placed!', `Order ID #${newOrder.id} confirmed.`);
-    return newOrder;
+    this.showToast('success', 'Order Placed!', `Order ID #${localOrder.id} confirmed.`);
+
+    // Backend Checkout API integration
+    try {
+      const apiPayload = {
+        items: cartItems.map(i => ({
+          productId: i.product.id,
+          quantity: i.quantity
+        })),
+        shippingAddress: {
+          fullName: deliveryDetails.name,
+          phone: deliveryDetails.phone,
+          email: deliveryDetails.email,
+          addressLine: deliveryDetails.address,
+          city: deliveryDetails.city,
+          state: deliveryDetails.state || STORE_CONFIG.DEFAULT_STATE,
+          pincode: deliveryDetails.pincode || deliveryDetails.postcode || STORE_CONFIG.DEFAULT_POSTCODE
+        },
+        paymentMethod: deliveryDetails.paymentMethod.includes('Card') ? 'Card' : deliveryDetails.paymentMethod.includes('COD') ? 'COD' : 'UPI'
+      };
+
+      const res = await this.api.checkoutOrder(apiPayload, 'Customer');
+      if (res.success && res.data) {
+        const backendOrder: Order = {
+          ...localOrder,
+          id: res.data.orderId || res.data.id || localOrder.id,
+          totalAmount: res.data.totalAmount || localOrder.totalAmount
+        };
+        this.orders.set([backendOrder, ...this.orders().filter(o => o.id !== localOrder.id)]);
+        this.syncCatalogFromBackend();
+        return backendOrder;
+      }
+    } catch (err) {
+      console.warn('Backend order checkout fallback:', err);
+    }
+
+    return localOrder;
   }
 
   setRole(role: AppRole) {
@@ -1153,10 +1244,10 @@ export class StoreStateService {
   }
 
   // Operations & Delivery Order Status Updates
-  updateOrderStatus(orderId: string, newStatus: OrderStatus, notes?: string, deliveryAgent?: string) {
+  async updateOrderStatus(orderId: string, newStatus: OrderStatus, notes?: string, deliveryAgent?: string) {
+    const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const updatedOrders = this.orders().map(order => {
       if (order.id === orderId) {
-        const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const updatedTimeline = order.timeline.map(step => {
           if (step.status === newStatus) {
             return { ...step, completed: true, timestamp: timeNow, notes: notes || step.notes };
@@ -1177,6 +1268,20 @@ export class StoreStateService {
 
     this.orders.set(updatedOrders);
     this.showToast('success', 'Order Updated', `Order ${orderId} moved to ${newStatus}`);
+
+    try {
+      await this.api.updateOrderStatus(
+        orderId,
+        {
+          status: newStatus.toString(),
+          notes,
+          assignedDeliveryAgent: deliveryAgent
+        },
+        this.activeRole() || 'Operations'
+      );
+    } catch (err) {
+      console.warn('Backend order status update fallback:', err);
+    }
   }
 
   // Admin CMS - Menu CRUD
