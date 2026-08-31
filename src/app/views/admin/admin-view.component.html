@@ -29,6 +29,10 @@
       <span class="material-symbols-outlined">inventory_2</span>
       Product Catalog ({{ totalProductCount() }})
     </button>
+    <button class="tab-btn" [class.active]="activeTab() === 'orders'" (click)="activeTab.set('orders')">
+      <span class="material-symbols-outlined">receipt_long</span>
+      Orders & Approvals ({{ store.orders().length }})
+    </button>
     <button class="tab-btn" [class.active]="activeTab() === 'banners'" (click)="activeTab.set('banners')">
       <span class="material-symbols-outlined">tune</span>
       Storefront & Banners
@@ -535,6 +539,124 @@
           </table>
         </div>
       }
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- TAB: ORDERS & APPROVALS PIPELINE -->
+  <!-- ========================================================================= -->
+  @else if (activeTab() === 'orders') {
+    <div class="tab-content card-surface">
+      <div class="tab-title-row">
+        <div>
+          <h3>Store Orders & Lifecycle Approvals</h3>
+          <p>Review customer orders in real time, monitor packaging status, and advance fulfillment stages.</p>
+        </div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="orders-filter-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+        <div class="status-pills" style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="pill-btn" [class.active]="orderStatusFilter() === 'ALL'" (click)="orderStatusFilter.set('ALL')" style="padding: 6px 14px; border-radius: 20px; border: 1px solid #cbd5e1; background: #f8fafc; font-size: 12px; font-weight: 600; cursor: pointer;">
+            All Orders ({{ store.orders().length }})
+          </button>
+          <button class="pill-btn" [class.active]="orderStatusFilter() === 'In Packing'" (click)="orderStatusFilter.set('In Packing')" style="padding: 6px 14px; border-radius: 20px; border: 1px solid #fed7aa; background: #fff7ed; color: #ea580c; font-size: 12px; font-weight: 600; cursor: pointer;">
+            In Packing ({{ inPackingCount() }})
+          </button>
+          <button class="pill-btn" [class.active]="orderStatusFilter() === 'Packed'" (click)="orderStatusFilter.set('Packed')" style="padding: 6px 14px; border-radius: 20px; border: 1px solid #bfdbfe; background: #eff6ff; color: #2563eb; font-size: 12px; font-weight: 600; cursor: pointer;">
+            Packed ({{ packedCount() }})
+          </button>
+          <button class="pill-btn" [class.active]="orderStatusFilter() === 'Out for Delivery'" (click)="orderStatusFilter.set('Out for Delivery')" style="padding: 6px 14px; border-radius: 20px; border: 1px solid #e9d5ff; background: #faf5ff; color: #7c3aed; font-size: 12px; font-weight: 600; cursor: pointer;">
+            Out for Delivery ({{ outForDeliveryCount() }})
+          </button>
+          <button class="pill-btn" [class.active]="orderStatusFilter() === 'Delivered'" (click)="orderStatusFilter.set('Delivered')" style="padding: 6px 14px; border-radius: 20px; border: 1px solid #bbf7d0; background: #f0fdf4; color: #16a34a; font-size: 12px; font-weight: 600; cursor: pointer;">
+            Delivered ({{ deliveredCount() }})
+          </button>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 20px; padding: 6px 14px;">
+          <span class="material-symbols-outlined" style="font-size: 18px; color: #94a3b8;">search</span>
+          <input type="text" placeholder="Search order ID / customer..." [(ngModel)]="orderSearchQuery" style="border: none; background: transparent; outline: none; font-size: 13px; width: 200px;" />
+        </div>
+      </div>
+
+      <!-- Orders List -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        @for (order of filteredOrders(); track order.id) {
+          <div style="border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; background: #ffffff; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="material-symbols-outlined" style="font-size: 22px; color: #0296e0; background: #e0f2fe; padding: 6px; border-radius: 6px;">receipt_long</span>
+                <div>
+                  <strong style="font-size: 15px; color: #0f172a;">Order #{{ order.id }}</strong>
+                  <span style="font-size: 12px; color: #64748b; margin-left: 8px;">Placed: {{ order.placedAt }}</span>
+                </div>
+              </div>
+              <span style="font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 12px; background: #f1f5f9; color: #334155;">
+                {{ order.status }}
+              </span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; background: #f8fafc; padding: 12px 14px; border-radius: 8px; font-size: 13px;">
+              <div>
+                <span style="font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Customer Info</span>
+                <div style="font-weight: 700; color: #0f172a; margin-top: 2px;">{{ order.customerName }}</div>
+                <div style="color: #475569; font-size: 12px;">📞 {{ order.customerPhone }} • ✉️ {{ order.customerEmail }}</div>
+              </div>
+              <div>
+                <span style="font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase;">AU Delivery Address</span>
+                <div style="color: #334155; margin-top: 2px;">📍 {{ order.deliveryAddress }}, {{ order.city }} {{ order.state || 'NSW' }} {{ order.postcode || order.pincode }}</div>
+              </div>
+            </div>
+
+            <div style="background: #ffffff;">
+              <span style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; display: block; margin-bottom: 6px;">Items ({{ order.items.length }}):</span>
+              <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                @for (item of order.items; track item.product.id) {
+                  <span style="background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size: 12px; color: #334155;">
+                    {{ item.product.name }} (x{{ item.quantity }}) • ${{ item.product.price }} AUD
+                  </span>
+                }
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 10px;">
+              <span style="font-size: 13px; color: #64748b;">Total: <strong style="color: #0f172a; font-size: 16px;">${{ order.totalAmount }} AUD</strong> ({{ order.paymentMethod }})</span>
+
+              <div style="display: flex; gap: 8px;">
+                @if (order.status === 'In Packing') {
+                  <button (click)="markAsPacked(order)" style="display: flex; align-items: center; gap: 6px; background: #f97316; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">check_circle</span>
+                    Approve & Mark as PACKED →
+                  </button>
+                } @else if (order.status === 'Packed' || order.status === 'Ready for Dispatch') {
+                  <button (click)="markAsOutForDelivery(order)" style="display: flex; align-items: center; gap: 6px; background: #3b82f6; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">local_shipping</span>
+                    Dispatch / OUT FOR DELIVERY →
+                  </button>
+                } @else if (order.status === 'Out for Delivery') {
+                  <button (click)="markAsDelivered(order)" style="display: flex; align-items: center; gap: 6px; background: #10b981; color: #fff; border: none; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer;">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">task_alt</span>
+                    Mark as DELIVERED ✓
+                  </button>
+                } @else if (order.status === 'Delivered') {
+                  <span style="color: #16a34a; font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 4px;">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">verified</span>
+                    Delivered
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (filteredOrders().length === 0) {
+          <div style="text-align: center; padding: 40px 20px; color: #94a3b8;">
+            <h4>No Orders Found</h4>
+            <p>No customer orders match the selected filter.</p>
+          </div>
+        }
+      </div>
     </div>
   }
 

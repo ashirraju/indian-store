@@ -472,4 +472,57 @@
   .quick-info-chips {
     display: none;
   }
+  .search-box {
+    width: 35%;
+    min-width: 220px;
+  }
 }
+
+@media (max-width: 768px) {
+  .header-container {
+    padding: 10px 12px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .logo-area {
+    gap: 8px;
+    .logo-icon-box {
+      width: 34px;
+      height: 34px;
+      .logo-icon { font-size: 20px; }
+    }
+    .brand-name { font-size: 15px; }
+    .brand-tagline { display: none; }
+  }
+
+  .search-box {
+    order: 3;
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    margin-top: 4px;
+  }
+
+  .header-actions {
+    gap: 6px;
+
+    .btn-label, .cart-label {
+      display: none;
+    }
+
+    .action-btn, .cart-trigger-btn {
+      padding: 7px 10px;
+      border-radius: 8px;
+      min-width: 36px;
+      height: 36px;
+      justify-content: center;
+    }
+  }
+
+  .user-badge-container {
+    padding: 4px 8px;
+    .user-info-text { display: none; }
+  }
+}
+

@@ -78,7 +78,7 @@
 
         <!-- Delivery Stepper Actions -->
         <div class="card-footer">
-          @if (order.status === 'Ready for Dispatch') {
+          @if (order.status === 'Packed' || order.status === 'Ready for Dispatch') {
             <button class="step-btn blue" (click)="updateStatus(order, 'Out for Delivery', 'Picked up by Vikram, en route to customer')">
               <span class="material-symbols-outlined">directions_bike</span>
               Pick Up & Start Delivery Route
