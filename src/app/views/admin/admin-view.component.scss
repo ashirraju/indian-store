@@ -2144,3 +2144,88 @@
     }
   }
 }
+
+/* ========================================================================= */
+/* ADMIN COMPREHENSIVE RESPONSIVENESS (TABLETS & MOBILE PHONES) */
+/* ========================================================================= */
+@media (max-width: 1024px) {
+  .admin-container {
+    padding: 16px 14px;
+  }
+  .admin-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-container {
+    padding: 12px 10px;
+  }
+
+  .admin-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+
+    h2 { font-size: 20px; }
+  }
+
+  .header-right-actions {
+    width: 100%;
+    justify-content: space-between;
+
+    .admin-logout-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .admin-tabs {
+    gap: 6px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    .tab-btn {
+      padding: 10px 14px;
+      font-size: 13px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+  }
+
+  .tab-content {
+    padding: 14px;
+  }
+
+  .tab-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .action-buttons-group {
+    width: 100%;
+    flex-wrap: wrap;
+
+    button {
+      flex: 1;
+      justify-content: center;
+    }
+  }
+
+  .modal-card {
+    width: 95%;
+    max-height: 90vh;
+    padding: 16px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+

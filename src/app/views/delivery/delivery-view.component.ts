@@ -19,7 +19,7 @@ export class DeliveryViewComponent {
   }
 
   readonly activeDeliveryOrders = computed(() =>
-    this.store.orders().filter(o => o.status === 'Ready for Dispatch' || o.status === 'Out for Delivery' || o.status === 'Delivered')
+    this.store.orders().filter(o => o.status === 'Packed' || o.status === 'Ready for Dispatch' || o.status === 'Out for Delivery' || o.status === 'Delivered')
   );
 
   updateStatus(order: Order, newStatus: OrderStatus, notes: string) {

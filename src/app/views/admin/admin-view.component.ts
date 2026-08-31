@@ -8,6 +8,7 @@ import { DynamicFormSchema, FormFieldSchema } from '../../models/dynamic-form.mo
 import { AppRole } from '../../models/user.model';
 import { Category, SubCategory, CreateCategoryInput, CreateSubCategoryInput } from '../../models/category.model';
 import { Product, ProductsSummary } from '../../models/product.model';
+import { Order, OrderStatus } from '../../models/order.model';
 
 export interface ProductFormRow {
   id?: string;
@@ -40,11 +41,56 @@ export class AdminViewComponent implements OnInit {
   readonly store = inject(StoreStateService);
   readonly api = inject(ApiService);
 
-  readonly activeTab = signal<'categories' | 'products' | 'banners'>('categories');
+  readonly activeTab = signal<'categories' | 'products' | 'orders' | 'banners'>('categories');
   readonly allRoles: AppRole[] = ['Customer', 'Manager', 'Operations', 'Delivery', 'Admin'];
 
   onLogout() {
     this.store.keycloak.logout();
+  }
+
+  // ==========================================
+  // ORDERS MANAGEMENT STATE
+  // ==========================================
+  readonly orderStatusFilter = signal<'ALL' | 'In Packing' | 'Packed' | 'Out for Delivery' | 'Delivered'>('ALL');
+  orderSearchQuery = '';
+
+  readonly filteredOrders = computed(() => {
+    let list = this.store.orders();
+    const filter = this.orderStatusFilter();
+    if (filter !== 'ALL') {
+      list = list.filter(o => o.status === filter);
+    }
+    const q = this.orderSearchQuery.toLowerCase().trim();
+    if (q) {
+      list = list.filter(o =>
+        o.id.toLowerCase().includes(q) ||
+        o.customerName.toLowerCase().includes(q) ||
+        o.city.toLowerCase().includes(q) ||
+        o.customerPhone.includes(q)
+      );
+    }
+    return list;
+  });
+
+  readonly inPackingCount = computed(() => this.store.orders().filter(o => o.status === 'In Packing').length);
+  readonly packedCount = computed(() => this.store.orders().filter(o => o.status === 'Packed' || o.status === 'Ready for Dispatch').length);
+  readonly outForDeliveryCount = computed(() => this.store.orders().filter(o => o.status === 'Out for Delivery').length);
+  readonly deliveredCount = computed(() => this.store.orders().filter(o => o.status === 'Delivered').length);
+
+  advanceOrderStatus(order: Order, newStatus: OrderStatus, notes?: string, deliveryAgent?: string) {
+    this.store.updateOrderStatus(order.id, newStatus, notes, deliveryAgent);
+  }
+
+  markAsPacked(order: Order) {
+    this.advanceOrderStatus(order, 'Packed', 'Order packed and approved by Admin');
+  }
+
+  markAsOutForDelivery(order: Order) {
+    this.advanceOrderStatus(order, 'Out for Delivery', 'Dispatched with Express Logistics', 'Vikram Singh (Express Logistics)');
+  }
+
+  markAsDelivered(order: Order) {
+    this.advanceOrderStatus(order, 'Delivered', 'Delivered safely to customer');
   }
 
   // ==========================================

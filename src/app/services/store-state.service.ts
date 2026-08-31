@@ -152,14 +152,13 @@ export class StoreStateService {
           })) : [],
           totalAmount: parseFloat(o.total_amount || o.totalAmount || '0'),
           paymentMethod: o.payment_method || o.paymentMethod || 'Card',
-          status: (o.status as OrderStatus) || 'Placed',
+          status: (o.status as OrderStatus) || 'In Packing',
           placedAt: o.placed_at ? new Date(o.placed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', Today' : 'Today',
           assignedDeliveryAgent: o.assigned_delivery_agent || o.assignedDeliveryAgent || 'Unassigned',
           deliveryNotes: o.delivery_notes || o.deliveryNotes || '',
           timeline: Array.isArray(o.timeline) && o.timeline.length > 0 ? o.timeline : [
-            { status: 'Placed', timestamp: 'Just now', completed: true, notes: 'Order confirmed' },
-            { status: 'In Packing', timestamp: 'Pending', completed: o.status === 'In Packing' || o.status === 'Ready for Dispatch' || o.status === 'Out for Delivery' || o.status === 'Delivered' },
-            { status: 'Ready for Dispatch', timestamp: 'Pending', completed: o.status === 'Ready for Dispatch' || o.status === 'Out for Delivery' || o.status === 'Delivered' },
+            { status: 'In Packing', timestamp: 'Just now', completed: true, notes: 'Order confirmed & in packing queue' },
+            { status: 'Packed', timestamp: 'Pending', completed: o.status === 'Packed' || o.status === 'Ready for Dispatch' || o.status === 'Out for Delivery' || o.status === 'Delivered' },
             { status: 'Out for Delivery', timestamp: 'Pending', completed: o.status === 'Out for Delivery' || o.status === 'Delivered' },
             { status: 'Delivered', timestamp: 'Pending', completed: o.status === 'Delivered' }
           ]
@@ -947,9 +946,8 @@ export class StoreStateService {
       assignedDeliveryAgent: 'David Miller (Express AU Logistics)',
       deliveryNotes: 'Leave at front porch if unattended',
       timeline: [
-        { status: 'Placed', timestamp: '10:15 AM', completed: true, notes: 'Order placed by customer' },
-        { status: 'In Packing', timestamp: '10:45 AM', completed: true, notes: 'Packed at Sydney Distribution Centre' },
-        { status: 'Ready for Dispatch', timestamp: '11:30 AM', completed: true, notes: 'Handed over to AU express courier' },
+        { status: 'In Packing', timestamp: '10:15 AM', completed: true, notes: 'Order confirmed & items packed' },
+        { status: 'Packed', timestamp: '10:45 AM', completed: true, notes: 'Packed & sealed at Sydney Distribution Centre' },
         { status: 'Out for Delivery', timestamp: '01:20 PM', completed: true, notes: 'Courier driver David on delivery route' },
         { status: 'Delivered', timestamp: 'Expected 3:30 PM', completed: false }
       ]
@@ -989,11 +987,10 @@ export class StoreStateService {
       placedAt: '2026-08-28 12:40 PM',
       assignedDeliveryAgent: 'Unassigned',
       timeline: [
-        { status: 'Placed', timestamp: '12:40 PM', completed: true },
-        { status: 'In Packing', timestamp: '01:10 PM', completed: true, notes: 'Packing with temperature-safe wrap' },
-        { status: 'Ready for Dispatch', timestamp: '--', completed: false },
-        { status: 'Out for Delivery', timestamp: '--', completed: false },
-        { status: 'Delivered', timestamp: '--', completed: false }
+        { status: 'In Packing', timestamp: '12:40 PM', completed: true, notes: 'Packing with temperature-safe wrap' },
+        { status: 'Packed', timestamp: 'Pending', completed: false },
+        { status: 'Out for Delivery', timestamp: 'Pending', completed: false },
+        { status: 'Delivered', timestamp: 'Pending', completed: false }
       ]
     }
   ]);
@@ -1077,12 +1074,11 @@ export class StoreStateService {
       items: cartItems,
       totalAmount: Math.round((this.cartSubtotal() + shippingFee) * 100) / 100,
       paymentMethod: deliveryDetails.paymentMethod,
-      status: 'Placed',
+      status: 'In Packing',
       placedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', Today',
       timeline: [
-        { status: 'Placed', timestamp: 'Just now', completed: true, notes: 'Order placed by customer' },
-        { status: 'In Packing', timestamp: 'Pending', completed: false },
-        { status: 'Ready for Dispatch', timestamp: 'Pending', completed: false },
+        { status: 'In Packing', timestamp: 'Just now', completed: true, notes: 'Order placed & sent to packing station' },
+        { status: 'Packed', timestamp: 'Pending', completed: false },
         { status: 'Out for Delivery', timestamp: 'Pending', completed: false },
         { status: 'Delivered', timestamp: 'Pending', completed: false }
       ]
@@ -1243,14 +1239,20 @@ export class StoreStateService {
     }
   }
 
-  // Operations & Delivery Order Status Updates
+  // Operations, Manager & Delivery Order Status Updates
   async updateOrderStatus(orderId: string, newStatus: OrderStatus, notes?: string, deliveryAgent?: string) {
     const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const stages: OrderStatus[] = ['In Packing', 'Packed', 'Ready for Dispatch', 'Out for Delivery', 'Delivered'];
+    const targetIdx = stages.indexOf(newStatus);
+
     const updatedOrders = this.orders().map(order => {
       if (order.id === orderId) {
         const updatedTimeline = order.timeline.map(step => {
-          if (step.status === newStatus) {
-            return { ...step, completed: true, timestamp: timeNow, notes: notes || step.notes };
+          const stepIdx = stages.indexOf(step.status);
+          if (step.status === newStatus || (newStatus === 'Packed' && step.status === 'Ready for Dispatch')) {
+            return { ...step, completed: true, timestamp: timeNow, notes: notes || step.notes || `Order ${newStatus}` };
+          } else if (stepIdx !== -1 && targetIdx !== -1 && stepIdx < targetIdx) {
+            return { ...step, completed: true, timestamp: step.timestamp === 'Pending' || step.timestamp === '--' ? timeNow : step.timestamp };
           }
           return step;
         });

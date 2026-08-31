@@ -34,14 +34,22 @@ export const AppRoutes = AppRoutesEnum;
 // ORDER STATUS ENUM
 // ==========================================
 export enum OrderStatusEnum {
-  PLACED = 'Placed',
   IN_PACKING = 'In Packing',
-  READY_FOR_DISPATCH = 'Ready for Dispatch',
+  PACKED = 'Packed',
   OUT_FOR_DELIVERY = 'Out for Delivery',
-  DELIVERED = 'Delivered'
+  DELIVERED = 'Delivered',
+  PLACED = 'Placed',
+  READY_FOR_DISPATCH = 'Ready for Dispatch'
 }
 
-export type OrderStatus = 'Placed' | 'In Packing' | 'Ready for Dispatch' | 'Out for Delivery' | 'Delivered' | OrderStatusEnum;
+export type OrderStatus =
+  | 'In Packing'
+  | 'Packed'
+  | 'Out for Delivery'
+  | 'Delivered'
+  | 'Placed'
+  | 'Ready for Dispatch'
+  | OrderStatusEnum;
 export const OrderStatus = OrderStatusEnum;
 
 // ==========================================

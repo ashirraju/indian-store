@@ -1433,8 +1433,185 @@
   }
 }
 
-@media (max-width: 768px) {
-  .hero-banner { grid-template-columns: 1fr; }
-  .modal-grid { grid-template-columns: 1fr; }
-  .footer-grid { grid-template-columns: 1fr; }
+/* ========================================================================= */
+/* CUSTOMER VIEW COMPREHENSIVE RESPONSIVENESS (TABLETS & MOBILE PHONES) */
+/* ========================================================================= */
+@media (max-width: 1024px) {
+  .customer-container {
+    padding: 16px 14px;
+  }
+
+  .offers-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dept-hero-banner {
+    padding: 24px;
+  }
 }
+
+@media (max-width: 768px) {
+  .customer-container {
+    padding: 12px 10px;
+  }
+
+  /* Hero & Offers */
+  .hero-banner {
+    grid-template-columns: 1fr;
+    padding: 20px 16px;
+    gap: 20px;
+    border-radius: 14px;
+
+    .hero-title { font-size: 22px; }
+    .hero-desc { font-size: 13px; }
+    .hero-img { height: 180px; }
+    .hero-actions {
+      flex-direction: column;
+      width: 100%;
+      button { width: 100%; text-align: center; }
+    }
+  }
+
+  .offers-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+
+    .offer-card { padding: 14px; }
+    .offer-img { width: 80px; height: 80px; }
+  }
+
+  /* Department Explorer View */
+  .dept-nav-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .dept-hero-banner {
+    padding: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+
+    .dept-hero-content {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .dept-hero-title { font-size: 20px; }
+    .dept-hero-desc { font-size: 12px; }
+
+    .dept-sort-box {
+      width: 100%;
+      justify-content: space-between;
+      .dept-sort-select { flex: 1; max-width: 180px; }
+    }
+  }
+
+  .dept-submenus-wrapper {
+    padding: 10px 12px;
+
+    .submenus-label { font-size: 11px; }
+    .dept-submenus-bar {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      &::-webkit-scrollbar { display: none; }
+    }
+
+    .submenu-pill-btn {
+      padding: 6px 12px;
+      font-size: 12px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+  }
+
+  /* Product Carousel & Cards */
+  .product-single-line-carousel {
+    gap: 10px;
+    padding: 4px 2px 12px 2px;
+  }
+
+  .product-card {
+    flex: 0 0 170px;
+    width: 170px;
+    border-radius: 10px;
+
+    .card-media {
+      height: 120px;
+    }
+
+    .card-body {
+      padding: 10px 8px;
+    }
+
+    .prod-name {
+      font-size: 12px;
+      line-height: 1.3;
+      max-height: 32px;
+    }
+
+    .prod-weight {
+      font-size: 10px;
+    }
+
+    .price-block {
+      margin: 6px 0;
+      .current-price { font-size: 14px; }
+    }
+
+    .add-to-cart-btn {
+      padding: 7px 10px;
+      font-size: 12px;
+    }
+
+    .qty-controls {
+      button { width: 26px; height: 26px; font-size: 14px; }
+      span { font-size: 12px; }
+    }
+  }
+
+  .carousel-nav-btn {
+    display: none; /* Swipe gesture is standard on mobile */
+  }
+
+  .category-jump-pills {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+    padding-bottom: 6px;
+
+    .jump-pill {
+      padding: 5px 12px;
+      font-size: 11px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+  }
+
+  /* Modals */
+  .modal-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .modal-card {
+    padding: 16px;
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .store-footer {
+    padding: 24px 16px;
+    margin-top: 30px;
+  }
+}
+
