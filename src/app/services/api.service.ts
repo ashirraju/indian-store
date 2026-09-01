@@ -350,4 +350,50 @@ export class ApiService {
     });
     return await res.json();
   }
+
+  // ==========================================
+  // NOTIFICATIONS API
+  // ==========================================
+
+  async getNotifications(
+    page = 1,
+    limit = 30,
+    role = 'Operations'
+  ): Promise<{
+    success: boolean;
+    data: any[];
+    pagination?: { page: number; limit: number; totalCount: number; totalPages: number; unreadCount: number };
+  }> {
+    const res = await fetch(`${this.baseUrl}/notifications?page=${page}&limit=${limit}`, {
+      headers: this.getAuthHeaders(role)
+    });
+    return await res.json();
+  }
+
+  async getUnreadNotificationsCount(role = 'Operations'): Promise<{ success: boolean; unreadCount: number }> {
+    const res = await fetch(`${this.baseUrl}/notifications/unread-count`, {
+      headers: this.getAuthHeaders(role)
+    });
+    return await res.json();
+  }
+
+  async markNotificationAsRead(id: string, role = 'Operations'): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${this.baseUrl}/notifications/${encodeURIComponent(id)}/read`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(role)
+    });
+    return await res.json();
+  }
+
+  async markAllNotificationsAsRead(role = 'Operations'): Promise<{ success: boolean; message: string; updatedCount: number }> {
+    const res = await fetch(`${this.baseUrl}/notifications/mark-all-read`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(role)
+    });
+    return await res.json();
+  }
+
+  getNotificationStreamUrl(role = 'Operations'): string {
+    return `${this.baseUrl}/notifications/stream?role=${encodeURIComponent(role)}`;
+  }
 }

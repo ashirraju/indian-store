@@ -4,6 +4,7 @@ import { Product, CartItem } from '../models/product.model';
 import { Order, OrderStatus } from '../models/order.model';
 import { MenuItem, BannerConfig, OfferItem } from '../models/cms.model';
 import { Category } from '../models/category.model';
+import { AppNotification } from '../models/notification.model';
 import { ApiService } from './api.service';
 import { AppKeycloakService } from './app-keycloak.service';
 import { STORE_CONFIG, APP_ROUTES } from '../constants';
@@ -48,6 +49,11 @@ export class StoreStateService {
   readonly selectedOrderForTracking = signal<Order | null>(null);
   readonly apiCategories = signal<Category[]>([]);
 
+  // Notifications State & Real-time Stream
+  readonly notifications = signal<AppNotification[]>([]);
+  readonly unreadNotificationsCount = computed(() => this.notifications().filter(n => !n.isRead).length);
+  readonly isNotificationsDrawerOpen = signal<boolean>(false);
+
   readonly wishlist = signal<Product[]>([
     {
       id: 'p-102',
@@ -87,6 +93,8 @@ export class StoreStateService {
 
       this.syncCatalogFromBackend();
       this.syncOrdersFromBackend();
+      this.syncNotifications();
+      this.initNotificationStream();
     }
   }
 
@@ -123,47 +131,92 @@ export class StoreStateService {
     try {
       const res = await this.api.getOrders({ limit: 100 }, this.activeRole() || 'Admin');
       if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-        const mappedOrders: Order[] = res.data.map((o: any) => ({
-          id: o.id || `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-          customerName: o.customer_name || o.customerName || 'Customer',
-          customerEmail: o.customer_email || o.customerEmail || '',
-          customerPhone: o.customer_phone || o.customerPhone || '',
-          deliveryAddress: o.shipping_address?.addressLine || o.deliveryAddress || 'Delivery Address',
-          city: o.shipping_address?.city || o.city || 'Sydney',
-          state: o.shipping_address?.state || o.state || 'NSW',
-          pincode: o.shipping_address?.pincode || o.pincode || '2000',
-          postcode: o.shipping_address?.pincode || o.postcode || '2000',
-          items: Array.isArray(o.items) ? o.items.map((i: any) => ({
-            product: {
-              id: i.productId || i.id || 'p-1',
-              name: i.name || 'Authentic Grocery Item',
-              category: i.category || 'Groceries',
-              price: parseFloat(i.unitPrice || i.price || '0'),
-              rating: 4.8,
-              reviewsCount: 50,
-              imageUrl: i.image || i.imageUrl || 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=600&auto=format&fit=crop&q=80',
-              description: '',
-              weight: i.weight || '1 unit',
-              stock: 50,
-              originRegion: 'India',
-              tags: []
-            },
-            quantity: i.quantity || 1
-          })) : [],
-          totalAmount: parseFloat(o.total_amount || o.totalAmount || '0'),
-          paymentMethod: o.payment_method || o.paymentMethod || 'Card',
-          status: (o.status as OrderStatus) || 'In Packing',
-          placedAt: o.placed_at ? new Date(o.placed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', Today' : 'Today',
-          assignedDeliveryAgent: o.assigned_delivery_agent || o.assignedDeliveryAgent || 'Unassigned',
-          deliveryNotes: o.delivery_notes || o.deliveryNotes || '',
-          timeline: Array.isArray(o.timeline) && o.timeline.length > 0 ? o.timeline : [
-            { status: 'In Packing', timestamp: 'Just now', completed: true, notes: 'Order confirmed & in packing queue' },
-            { status: 'Packed', timestamp: 'Pending', completed: o.status === 'Packed' || o.status === 'Ready for Dispatch' || o.status === 'Out for Delivery' || o.status === 'Delivered' },
-            { status: 'Out for Delivery', timestamp: 'Pending', completed: o.status === 'Out for Delivery' || o.status === 'Delivered' },
-            { status: 'Delivered', timestamp: 'Pending', completed: o.status === 'Delivered' }
-          ]
-        }));
-        this.orders.set(mappedOrders);
+        const existingMap = new Map(this.orders().map(o => [o.id, o]));
+
+        const mappedOrders: Order[] = res.data.map((o: any) => {
+          const rawStatus = (o.status || '').toLowerCase().trim();
+          let mappedStatus: OrderStatus = 'In Packing';
+          if (rawStatus.includes('packed') || rawStatus.includes('dispatch') || rawStatus.includes('ready')) {
+            mappedStatus = 'Packed';
+          } else if (rawStatus.includes('delivery') || rawStatus.includes('transit') || rawStatus.includes('out')) {
+            mappedStatus = 'Out for Delivery';
+          } else if (rawStatus.includes('deliver') || rawStatus.includes('complete')) {
+            mappedStatus = 'Delivered';
+          } else if (rawStatus === 'cancelled') {
+            mappedStatus = 'Cancelled' as OrderStatus;
+          } else {
+            mappedStatus = 'In Packing';
+          }
+
+          const existing = existingMap.get(o.id);
+          let items = Array.isArray(o.items) && o.items.length > 0
+            ? o.items.map((i: any) => ({
+                product: {
+                  id: i.productId || i.id || 'p-1',
+                  name: i.name || 'Authentic Grocery Item',
+                  category: i.category || 'Groceries',
+                  price: parseFloat(i.unitPrice || i.price || '0'),
+                  rating: 4.8,
+                  reviewsCount: 50,
+                  imageUrl: i.image || i.imageUrl || 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=600&auto=format&fit=crop&q=80',
+                  description: '',
+                  weight: i.weight || '1 unit',
+                  stock: 50,
+                  originRegion: 'India',
+                  tags: []
+                },
+                quantity: i.quantity || 1
+              }))
+            : (existing?.items?.length ? existing.items : [
+                {
+                  product: {
+                    id: 'p-item',
+                    name: 'Assorted Indian Grocery Items',
+                    category: 'Groceries',
+                    price: parseFloat(o.total_amount || o.totalAmount || '0'),
+                    rating: 4.9,
+                    reviewsCount: 20,
+                    imageUrl: 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=600&auto=format&fit=crop&q=80',
+                    description: '',
+                    weight: 'Standard Order',
+                    stock: 100,
+                    originRegion: 'Australia',
+                    tags: []
+                  },
+                  quantity: 1
+                }
+              ]);
+
+          return {
+            id: o.id || `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+            customerName: o.customer_name || o.customerName || existing?.customerName || 'Customer',
+            customerEmail: o.customer_email || o.customerEmail || existing?.customerEmail || '',
+            customerPhone: o.customer_phone || o.customerPhone || existing?.customerPhone || '',
+            deliveryAddress: o.shipping_address?.addressLine || o.deliveryAddress || existing?.deliveryAddress || 'Delivery Address',
+            city: o.shipping_address?.city || o.city || existing?.city || 'Sydney',
+            state: o.shipping_address?.state || o.state || existing?.state || 'NSW',
+            pincode: o.shipping_address?.pincode || o.pincode || existing?.pincode || '2000',
+            postcode: o.shipping_address?.pincode || o.postcode || existing?.postcode || '2000',
+            items,
+            totalAmount: parseFloat(o.total_amount || o.totalAmount || existing?.totalAmount || '0'),
+            paymentMethod: o.payment_method || o.paymentMethod || existing?.paymentMethod || 'Card',
+            status: mappedStatus,
+            placedAt: o.placed_at ? new Date(o.placed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', Today' : (existing?.placedAt || 'Today'),
+            assignedDeliveryAgent: o.assigned_delivery_agent || o.assignedDeliveryAgent || existing?.assignedDeliveryAgent || 'Unassigned',
+            deliveryNotes: o.delivery_notes || o.deliveryNotes || existing?.deliveryNotes || '',
+            timeline: Array.isArray(o.timeline) && o.timeline.length > 0 ? o.timeline : [
+              { status: 'In Packing', timestamp: 'Just now', completed: true, notes: 'Order confirmed & in packing queue' },
+              { status: 'Packed', timestamp: 'Pending', completed: mappedStatus === 'Packed' || mappedStatus === 'Out for Delivery' || mappedStatus === 'Delivered' },
+              { status: 'Out for Delivery', timestamp: 'Pending', completed: mappedStatus === 'Out for Delivery' || mappedStatus === 'Delivered' },
+              { status: 'Delivered', timestamp: 'Pending', completed: mappedStatus === 'Delivered' }
+            ]
+          };
+        });
+
+        // Merge with any recent locally created orders not yet indexed
+        const currentOrders = this.orders();
+        const nonDuplicateLocals = currentOrders.filter(co => !mappedOrders.some(mo => mo.id === co.id));
+        this.orders.set([...nonDuplicateLocals, ...mappedOrders]);
       }
     } catch (err) {
       console.warn('Backend orders sync:', err);
@@ -1090,6 +1143,26 @@ export class StoreStateService {
     this.isCartOpen.set(false);
     this.showToast('success', 'Order Placed!', `Order ID #${localOrder.id} confirmed.`);
 
+    // Instant local notification dispatch for Operations & Manager
+    const localNotif: AppNotification = {
+      id: `notif_${Date.now()}`,
+      recipientRole: 'Operations',
+      title: `🚨 New Order: #${localOrder.id}`,
+      message: `Order #${localOrder.id} for $${localOrder.totalAmount} AUD (${localOrder.items.length} items) placed by ${localOrder.customerName}. Ready for fulfillment & packing.`,
+      type: 'NEW_ORDER',
+      referenceId: localOrder.id,
+      metadata: {
+        orderId: localOrder.id,
+        customerName: localOrder.customerName,
+        customerPhone: localOrder.customerPhone,
+        totalAmount: localOrder.totalAmount,
+        itemsCount: localOrder.items.length
+      },
+      isRead: false,
+      createdAt: new Date().toISOString()
+    };
+    this.notifications.set([localNotif, ...this.notifications()]);
+
     // Backend Checkout API integration
     try {
       const apiPayload = {
@@ -1118,6 +1191,7 @@ export class StoreStateService {
         };
         this.orders.set([backendOrder, ...this.orders().filter(o => o.id !== localOrder.id)]);
         this.syncCatalogFromBackend();
+        this.syncNotifications();
         return backendOrder;
       }
     } catch (err) {
@@ -1136,6 +1210,8 @@ export class StoreStateService {
     }
     this.activeRole.set(role);
     this.showToast('info', `Switched Role to ${role}`, `You are now interacting as ${role}`);
+    this.syncNotifications(role);
+    this.initNotificationStream(role);
   }
 
   isInWishlist(productId: string): boolean {
@@ -1236,6 +1312,128 @@ export class StoreStateService {
       osc2.stop(now + 0.28);
     } catch {
       // Audio context fallback if audio block occurs
+    }
+  }
+
+  // High-clarity warehouse new order alert chime (C5 -> G5 -> C6)
+  playNewOrderAlertSound() {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const now = ctx.currentTime;
+
+      const playTone = (freq: number, start: number, duration: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.25, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(start);
+        osc.stop(start + duration);
+      };
+
+      playTone(523.25, now, 0.18);          // C5
+      playTone(783.99, now + 0.12, 0.18);   // G5
+      playTone(1046.50, now + 0.24, 0.35);  // C6
+    } catch {
+      // Audio block fallback
+    }
+  }
+
+  // ==========================================
+  // NOTIFICATIONS SYNC & REALTIME SSE STREAM
+  // ==========================================
+
+  async syncNotifications(role?: string) {
+    const currentRole = role || this.activeRole() || 'Operations';
+    try {
+      const res = await this.api.getNotifications(1, 30, currentRole);
+      if (res.success && Array.isArray(res.data)) {
+        this.notifications.set(res.data);
+      }
+    } catch (err) {
+      console.warn('Sync notifications fallback:', err);
+    }
+  }
+
+  private sseSource: EventSource | null = null;
+
+  initNotificationStream(role?: string) {
+    if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
+    const currentRole = role || this.activeRole() || 'Operations';
+
+    if (this.sseSource) {
+      this.sseSource.close();
+      this.sseSource = null;
+    }
+
+    try {
+      const streamUrl = this.api.getNotificationStreamUrl(currentRole);
+      this.sseSource = new EventSource(streamUrl);
+
+      this.sseSource.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.type === 'NEW_ORDER' || payload.type === 'NOTIFICATION' || payload.title) {
+            const notif: AppNotification = {
+              id: payload.id || `notif_${Date.now()}`,
+              recipientRole: payload.recipientRole || currentRole,
+              title: payload.title || '🚨 New Order Received',
+              message: payload.message || `New customer order has been placed.`,
+              type: payload.type || 'NEW_ORDER',
+              referenceId: payload.referenceId || payload.metadata?.orderId,
+              metadata: payload.metadata,
+              isRead: false,
+              createdAt: payload.createdAt || new Date().toISOString()
+            };
+
+            // Prepend new notification
+            this.notifications.set([notif, ...this.notifications().filter(n => n.id !== notif.id)]);
+
+            // Audible and visual alert on Operations & Manager side
+            this.playNewOrderAlertSound();
+            this.showToast('warning', notif.title, notif.message);
+
+            // Live refresh orders pipeline
+            this.syncOrdersFromBackend();
+          }
+        } catch {
+          // ignore non-json keep-alive messages
+        }
+      };
+
+      this.sseSource.onerror = () => {
+        // SSE reconnects automatically
+      };
+    } catch (err) {
+      console.warn('SSE connection initialization fallback:', err);
+    }
+  }
+
+  async markNotificationAsRead(id: string) {
+    this.notifications.set(
+      this.notifications().map(n => n.id === id ? { ...n, isRead: true, readAt: new Date().toISOString() } : n)
+    );
+    try {
+      await this.api.markNotificationAsRead(id, this.activeRole() || 'Operations');
+    } catch (err) {
+      console.warn('Mark notification as read fallback:', err);
+    }
+  }
+
+  async markAllNotificationsAsRead() {
+    this.notifications.set(
+      this.notifications().map(n => ({ ...n, isRead: true, readAt: new Date().toISOString() }))
+    );
+    try {
+      await this.api.markAllNotificationsAsRead(this.activeRole() || 'Operations');
+      this.showToast('info', 'All Caught Up', 'All notifications marked as read.');
+    } catch (err) {
+      console.warn('Mark all notifications read fallback:', err);
     }
   }
 

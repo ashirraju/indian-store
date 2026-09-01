@@ -19,7 +19,8 @@ export class OperationsViewComponent implements OnInit {
   readonly store = inject(StoreStateService);
   readonly api = inject(ApiService);
 
-  readonly activeTab = signal<'pipeline' | 'products' | 'categories' | 'replenishment'>('pipeline');
+  readonly activeTab = signal<'pipeline' | 'notifications' | 'products' | 'categories' | 'replenishment'>('pipeline');
+  readonly isNotificationDrawerOpen = signal<boolean>(false);
 
   onLogout() {
     this.store.keycloak.logout();
@@ -27,25 +28,58 @@ export class OperationsViewComponent implements OnInit {
 
   ngOnInit() {
     this.loadCategories();
+    this.store.syncOrdersFromBackend();
+    this.store.syncNotifications('Operations');
+    this.store.initNotificationStream('Operations');
+  }
+
+  toggleNotificationDrawer() {
+    this.isNotificationDrawerOpen.set(!this.isNotificationDrawerOpen());
+  }
+
+  markNotifRead(notif: any) {
+    this.store.markNotificationAsRead(notif.id);
+  }
+
+  markAllNotifsRead() {
+    this.store.markAllNotificationsAsRead();
+  }
+
+  jumpToOrder(orderId: string) {
+    this.activeTab.set('pipeline');
+    this.isNotificationDrawerOpen.set(false);
+    this.store.showToast('info', 'Viewing Order', `Locating Order #${orderId} in fulfillment pipeline`);
   }
 
   // ==========================================
   // FULFILLMENT PIPELINE STATE & COMPUTED
   // ==========================================
   readonly inPackingOrders = computed(() =>
-    this.store.orders().filter(o => o.status === 'In Packing' || o.status === 'Placed')
+    this.store.orders().filter(o => {
+      const s = (o.status || '').toLowerCase().trim();
+      return s.includes('pack') || s.includes('place') || s.includes('pend') || s.includes('confirm');
+    })
   );
 
   readonly packedOrders = computed(() =>
-    this.store.orders().filter(o => o.status === 'Packed' || o.status === 'Ready for Dispatch')
+    this.store.orders().filter(o => {
+      const s = (o.status || '').toLowerCase().trim();
+      return (s.includes('packed') || s.includes('dispatch') || s.includes('ready')) && !s.includes('in packing');
+    })
   );
 
   readonly outForDeliveryOrders = computed(() =>
-    this.store.orders().filter(o => o.status === 'Out for Delivery')
+    this.store.orders().filter(o => {
+      const s = (o.status || '').toLowerCase().trim();
+      return s.includes('delivery') || s.includes('transit') || s.includes('out');
+    })
   );
 
   readonly deliveredOrders = computed(() =>
-    this.store.orders().filter(o => o.status === 'Delivered')
+    this.store.orders().filter(o => {
+      const s = (o.status || '').toLowerCase().trim();
+      return s.includes('deliver') && !s.includes('out');
+    })
   );
 
   advanceStatus(order: Order, newStatus: OrderStatus, notes: string, deliveryAgent?: string) {

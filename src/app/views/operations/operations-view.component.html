@@ -9,6 +9,19 @@
     </div>
 
     <div class="header-actions">
+      <!-- Live Notifications Bell Trigger -->
+      <button
+        class="notif-bell-btn"
+        [class.has-unread]="store.unreadNotificationsCount() > 0"
+        (click)="toggleNotificationDrawer()"
+        title="Live Order Notifications"
+      >
+        <span class="material-symbols-outlined bell-icon">notifications</span>
+        @if (store.unreadNotificationsCount() > 0) {
+          <span class="notif-badge-count">{{ store.unreadNotificationsCount() }}</span>
+        }
+      </button>
+
       @if (activeTab() === 'products') {
         <button class="add-prod-btn" (click)="openAddModal()">
           <span class="material-symbols-outlined">add_box</span>
@@ -32,6 +45,13 @@
     <button class="tab-btn" [class.active]="activeTab() === 'pipeline'" (click)="activeTab.set('pipeline')">
       <span class="material-symbols-outlined">view_kanban</span>
       Fulfillment Pipeline ({{ store.orders().length }})
+    </button>
+    <button class="tab-btn notif-tab-btn" [class.active]="activeTab() === 'notifications'" (click)="activeTab.set('notifications')">
+      <span class="material-symbols-outlined">notifications_active</span>
+      Live Notifications
+      @if (store.unreadNotificationsCount() > 0) {
+        <span class="tab-unread-badge">{{ store.unreadNotificationsCount() }}</span>
+      }
     </button>
     <button class="tab-btn" [class.active]="activeTab() === 'products'" (click)="activeTab.set('products')">
       <span class="material-symbols-outlined">inventory_2</span>
@@ -233,6 +253,166 @@
 
       </div>
 
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- TAB: LIVE NOTIFICATIONS HUB -->
+  <!-- ========================================================================= -->
+  @if (activeTab() === 'notifications') {
+    <div class="tab-content-panel">
+      <div class="notifications-panel-card card-surface">
+        <div class="notif-panel-header">
+          <div class="header-title-box">
+            <span class="material-symbols-outlined header-icon">notifications_active</span>
+            <div>
+              <h3>Operations Live Alert Center</h3>
+              <p>Real-time order dispatches, packing triggers, and warehouse threshold alerts</p>
+            </div>
+          </div>
+          <div class="notif-header-actions">
+            <span class="unread-pill">{{ store.unreadNotificationsCount() }} Unread</span>
+            <button class="mark-all-btn" (click)="markAllNotifsRead()">
+              <span class="material-symbols-outlined">done_all</span>
+              Mark All as Read
+            </button>
+          </div>
+        </div>
+
+        <!-- Notifications List -->
+        <div class="notifications-list-container">
+          @for (notif of store.notifications(); track notif.id) {
+            <div
+              class="notif-card"
+              [class.unread]="!notif.isRead"
+              [class.type-order]="notif.type === 'NEW_ORDER'"
+              [class.type-sla]="notif.type === 'URGENT_SLA'"
+              [class.type-stock]="notif.type === 'LOW_STOCK'"
+            >
+              <div class="notif-icon-col">
+                <span class="material-symbols-outlined notif-type-icon">
+                  @switch (notif.type) {
+                    @case ('NEW_ORDER') { shopping_bag }
+                    @case ('URGENT_SLA') { bolt }
+                    @case ('LOW_STOCK') { warning }
+                    @default { notifications }
+                  }
+                </span>
+              </div>
+
+              <div class="notif-body-col">
+                <div class="notif-title-row">
+                  <span class="notif-title">{{ notif.title }}</span>
+                  <span class="notif-time">{{ notif.createdAt | date:'shortTime' }}</span>
+                </div>
+
+                <p class="notif-msg">{{ notif.message }}</p>
+
+                @if (notif.metadata) {
+                  <div class="notif-meta-chips">
+                    @if (notif.metadata.orderId) {
+                      <span class="meta-chip">Order: <strong>#{{ notif.metadata.orderId }}</strong></span>
+                    }
+                    @if (notif.metadata.customerName) {
+                      <span class="meta-chip">Customer: {{ notif.metadata.customerName }}</span>
+                    }
+                    @if (notif.metadata.totalAmount) {
+                      <span class="meta-chip green">Paid: ${{ notif.metadata.totalAmount }} AUD</span>
+                    }
+                    @if (notif.metadata.deliverySla) {
+                      <span class="meta-chip purple">⚡ {{ notif.metadata.deliverySla }}</span>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="notif-actions-col">
+                @if (notif.metadata?.orderId || notif.referenceId) {
+                  <button class="jump-order-btn" (click)="jumpToOrder(notif.metadata?.orderId || notif.referenceId!)">
+                    View in Pipeline →
+                  </button>
+                }
+                @if (!notif.isRead) {
+                  <button class="mark-read-btn" (click)="markNotifRead(notif)" title="Mark as read">
+                    <span class="material-symbols-outlined">check</span>
+                  </button>
+                } @else {
+                  <span class="read-status-check" title="Read">✓</span>
+                }
+              </div>
+            </div>
+          }
+
+          @if (store.notifications().length === 0) {
+            <div class="empty-notifs">
+              <span class="material-symbols-outlined empty-icon">notifications_off</span>
+              <h4>No notifications right now</h4>
+              <p>When customers place orders, live dispatch alerts will appear here in real time.</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Floating Quick-Notification Drawer -->
+  @if (isNotificationDrawerOpen()) {
+    <div class="notif-drawer-backdrop" (click)="isNotificationDrawerOpen.set(false)">
+      <div class="notif-drawer-panel" (click)="$event.stopPropagation()">
+        <div class="drawer-header">
+          <div class="drawer-title">
+            <span class="material-symbols-outlined">notifications</span>
+            <h4>Live Order Notifications</h4>
+            @if (store.unreadNotificationsCount() > 0) {
+              <span class="drawer-unread-pill">{{ store.unreadNotificationsCount() }}</span>
+            }
+          </div>
+          <div class="drawer-actions">
+            <button class="drawer-read-all" (click)="markAllNotifsRead()">Mark read</button>
+            <button class="drawer-close" (click)="isNotificationDrawerOpen.set(false)">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="drawer-list">
+          @for (notif of store.notifications().slice(0, 10); track notif.id) {
+            <div class="drawer-notif-item" [class.unread]="!notif.isRead" (click)="markNotifRead(notif)">
+              <span class="drawer-item-icon">
+                @switch (notif.type) {
+                  @case ('NEW_ORDER') { 🚨 }
+                  @case ('URGENT_SLA') { ⚡ }
+                  @case ('LOW_STOCK') { ⚠️ }
+                  @default { 🔔 }
+                }
+              </span>
+              <div class="drawer-item-content">
+                <strong>{{ notif.title }}</strong>
+                <p>{{ notif.message }}</p>
+                <span class="drawer-item-time">{{ notif.createdAt | date:'shortTime' }}</span>
+              </div>
+              @if (notif.metadata?.orderId || notif.referenceId) {
+                <button class="drawer-jump-btn" (click)="jumpToOrder(notif.metadata?.orderId || notif.referenceId!)">
+                  →
+                </button>
+              }
+            </div>
+          }
+
+          @if (store.notifications().length === 0) {
+            <div class="drawer-empty">
+              <span class="material-symbols-outlined">notifications_paused</span>
+              <p>No new notifications</p>
+            </div>
+          }
+        </div>
+
+        <div class="drawer-footer">
+          <button class="view-all-notifs-btn" (click)="activeTab.set('notifications'); isNotificationDrawerOpen.set(false)">
+            Open Notifications Center
+          </button>
+        </div>
+      </div>
     </div>
   }
 
