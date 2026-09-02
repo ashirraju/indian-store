@@ -43,7 +43,7 @@
                 <th style="min-width: 110px;">Weight *</th>
                 <th style="min-width: 90px;">Stock *</th>
                 <th style="min-width: 130px;">Origin Region</th>
-                <th style="min-width: 220px;">Image URL *</th>
+                <th style="min-width: 270px;">Image URL & Upload *</th>
                 <th style="min-width: 100px;">Highlights</th>
                 @if (!editingProductId) {
                   <th style="width: 80px; text-align: center;">Actions</th>
@@ -171,17 +171,38 @@
                     />
                   </td>
 
-                  <!-- Image URL with Preview Thumbnail -->
+                  <!-- Image URL with File Upload & Preview Thumbnail -->
                   <td>
                     <div class="row-image-input-group">
                       <input
                         type="text"
                         class="row-input image-url-input"
-                        placeholder="https://..."
+                        placeholder="https://... or upload"
                         [(ngModel)]="row.imageUrl"
                         [name]="'row_img_' + idx"
                         required
                       />
+                      <input
+                        #fileInput
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/avif"
+                        style="display: none"
+                        (change)="onImageFileSelected($event, row, idx)"
+                      />
+                      <button
+                        type="button"
+                        class="row-upload-btn"
+                        [class.uploading]="uploadingRowIndex() === idx"
+                        [disabled]="uploadingRowIndex() === idx"
+                        (click)="fileInput.click()"
+                        title="Upload image from your computer and auto-fill URL"
+                      >
+                        @if (uploadingRowIndex() === idx) {
+                          <span class="material-symbols-outlined spin">progress_activity</span>
+                        } @else {
+                          <span class="material-symbols-outlined">upload_file</span>
+                        }
+                      </button>
                       @if (row.imageUrl) {
                         <img [src]="row.imageUrl" alt="Preview" class="row-thumb-preview" />
                       }

@@ -403,4 +403,41 @@ export class ApiService {
   getNotificationStreamUrl(role = 'Operations'): string {
     return `${this.baseUrl}/notifications/stream?role=${encodeURIComponent(role)}`;
   }
+
+  // ==========================================
+  // UPLOADS & MEDIA API
+  // ==========================================
+
+  async uploadImage(file: File, role = 'Admin'): Promise<{
+    success: boolean;
+    message?: string;
+    data: {
+      url: string;
+      imageUrl?: string;
+      filename: string;
+      format: string;
+      size: number;
+      width?: number;
+      height?: number;
+    };
+  }> {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const headers: Record<string, string> = {};
+    const token = this.keycloak.getToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    if (!environment.production && !token) {
+      headers['x-mock-role'] = role;
+    }
+
+    const res = await fetch(`${this.baseUrl}/upload`, {
+      method: 'POST',
+      headers,
+      body: formData
+    });
+    return await res.json();
+  }
 }

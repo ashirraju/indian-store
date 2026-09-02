@@ -44,7 +44,39 @@ export class ProductEditorComponent implements OnInit {
   readonly categoriesList = signal<Category[]>([]);
   readonly productFormRows = signal<ProductFormRow[]>([]);
   readonly isSavingProducts = signal<boolean>(false);
+  readonly uploadingRowIndex = signal<number | null>(null);
   editingProductId: string | null = null;
+
+  async onImageFileSelected(event: Event, row: ProductFormRow, index: number) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+
+    // Validate size (< 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      this.store.showToast('warning', 'File Too Large', 'Please select an image smaller than 10MB.');
+      input.value = '';
+      return;
+    }
+
+    this.uploadingRowIndex.set(index);
+    try {
+      const res = await this.api.uploadImage(file, this.store.activeRole() || 'Admin');
+      if (res.success && res.data) {
+        const uploadedUrl = res.data.imageUrl || res.data.url;
+        row.imageUrl = uploadedUrl;
+        this.store.showToast('success', 'Image Uploaded 📸', 'Image uploaded and URL auto-filled!');
+      } else {
+        this.store.showToast('error', 'Upload Failed', res.message || 'Could not upload image.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      this.store.showToast('error', 'Upload Error', err?.message || 'Failed to upload image file.');
+    } finally {
+      this.uploadingRowIndex.set(null);
+      input.value = '';
+    }
+  }
 
   ngOnInit() {
     this.loadCategories();

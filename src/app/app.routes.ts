@@ -10,6 +10,13 @@ export const routes: Routes = [
       import('./views/customer/customer-view.component').then(m => m.CustomerViewComponent)
   },
   {
+    path: 'orders',
+    loadComponent: () =>
+      import('./views/customer/customer-orders/customer-orders.component').then(
+        m => m.CustomerOrdersComponent
+      )
+  },
+  {
     path: 'admin',
     loadComponent: () =>
       import('./views/admin/admin-view.component').then(m => m.AdminViewComponent),

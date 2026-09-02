@@ -56,31 +56,35 @@
       <!-- Right Header Actions -->
       <div class="header-actions">
         @if (store.activeRole() === 'Customer') {
-          <!-- Wishlist Trigger -->
-          <button
-            class="action-btn wishlist-btn"
-            (click)="store.isWishlistOpen.set(true)"
-            title="Wishlist"
-          >
-            <span class="material-symbols-outlined heart-icon">favorite</span>
-            <span class="btn-label">Wishlist</span>
-            @if (store.wishlistTotalCount() > 0) {
-              <span class="count-badge red">{{ store.wishlistTotalCount() }}</span>
-            }
-          </button>
+          <!-- Wishlist Trigger (Only shown when user is logged in) -->
+          @if (keycloak.isAuthenticated()) {
+            <button
+              class="action-btn wishlist-btn"
+              (click)="store.isWishlistOpen.set(true)"
+              title="Wishlist"
+            >
+              <span class="material-symbols-outlined heart-icon">favorite</span>
+              <span class="btn-label">Wishlist</span>
+              @if (store.wishlistTotalCount() > 0) {
+                <span class="count-badge red">{{ store.wishlistTotalCount() }}</span>
+              }
+            </button>
+          }
 
-          <!-- Orders History Trigger -->
-          <button
-            class="action-btn orders-btn"
-            (click)="store.isOrdersModalOpen.set(true)"
-            title="My Orders"
-          >
-            <span class="material-symbols-outlined">receipt_long</span>
-            <span class="btn-label">Orders</span>
-            @if (store.orders().length > 0) {
-              <span class="count-badge blue">{{ store.orders().length }}</span>
-            }
-          </button>
+          <!-- Orders History Link (Only shown when user is logged in) -->
+          @if (keycloak.isAuthenticated()) {
+            <button
+              class="action-btn orders-btn"
+              (click)="store.navigateTo('/orders')"
+              title="My Orders"
+            >
+              <span class="material-symbols-outlined">receipt_long</span>
+              <span class="btn-label">Orders</span>
+              @if (store.orders().length > 0) {
+                <span class="count-badge blue">{{ store.orders().length }}</span>
+              }
+            </button>
+          }
 
           <!-- Cart Trigger -->
           <button class="cart-trigger-btn" (click)="store.isCartOpen.set(true)">

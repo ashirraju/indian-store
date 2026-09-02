@@ -5,7 +5,6 @@ import { StoreStateService } from './services/store-state.service';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { CartDrawerComponent } from './components/cart-drawer/cart-drawer.component';
 import { WishlistDrawerComponent } from './components/wishlist-drawer/wishlist-drawer.component';
-import { OrdersModalComponent } from './components/orders-modal/orders-modal.component';
 import { CategoryPanelComponent } from './components/category-panel/category-panel.component';
 import { ToastComponent } from './components/toast/toast.component';
 
@@ -18,7 +17,6 @@ import { ToastComponent } from './components/toast/toast.component';
     NavbarComponent,
     CartDrawerComponent,
     WishlistDrawerComponent,
-    OrdersModalComponent,
     CategoryPanelComponent,
     ToastComponent
   ],

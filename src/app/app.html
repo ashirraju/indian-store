@@ -19,11 +19,6 @@
     <app-wishlist-drawer></app-wishlist-drawer>
   }
 
-  <!-- Customer Orders History Modal (Deferred / Lazy-Loaded on demand) -->
-  @defer (when store.isOrdersModalOpen()) {
-    <app-orders-modal></app-orders-modal>
-  }
-
   <!-- Right Side Category Slide-Out Panel (Deferred / Lazy-Loaded on demand) -->
   @defer (when store.isCategoryPanelOpen()) {
     <app-category-panel></app-category-panel>

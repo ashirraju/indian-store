@@ -87,7 +87,9 @@ export class StoreStateService {
       });
 
       this.syncCatalogFromBackend();
-      this.syncOrdersFromBackend();
+      if (this.keycloak.isAuthenticated() || this.activeRole() !== 'Customer') {
+        this.syncOrdersFromBackend();
+      }
       this.syncNotifications();
       this.initNotificationStream();
     }
@@ -126,6 +128,13 @@ export class StoreStateService {
   }
 
   async syncOrdersFromBackend() {
+    // If active role is Customer and user is not authenticated, do not call orders API
+    if (this.activeRole() === 'Customer' && !this.keycloak.isAuthenticated()) {
+      this.orders.set([]);
+      this.isLoadingOrders.set(false);
+      return;
+    }
+
     this.isLoadingOrders.set(true);
     try {
       const res = await this.api.getOrders({ limit: 100 }, this.activeRole() || 'Admin');
