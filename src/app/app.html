@@ -9,7 +9,7 @@
 </main>
 
 @if (store.activeRole() === 'Customer') {
-  <!-- Slide-Out Cart & Checkout Modal (Deferred / Lazy-Loaded on demand) -->
+  <!-- Slide-Out Cart & Checkout Modal (Deferred / Lazy-Loaded on demand)   -->
   @defer (when store.isCartOpen()) {
     <app-cart-drawer></app-cart-drawer>
   }
