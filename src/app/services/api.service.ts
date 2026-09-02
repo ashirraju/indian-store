@@ -3,6 +3,7 @@ import { Category, CreateCategoryInput, CreateSubCategoryInput, SubCategory } fr
 import { Product, ProductsSummary } from '../models/product.model';
 import { AppKeycloakService } from './app-keycloak.service';
 import { API_CONFIG } from '../constants';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -13,11 +14,17 @@ export class ApiService {
 
   private getAuthHeaders(role = 'Admin'): Record<string, string> {
     const token = this.keycloak.getToken();
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      'x-mock-role': role
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
     };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    // Only send custom mock role header during local development when unauthenticated
+    if (!environment.production && !token) {
+      headers['x-mock-role'] = role;
+    }
+    return headers;
   }
 
   async checkHealth(): Promise<any> {

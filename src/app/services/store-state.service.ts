@@ -1,4 +1,5 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { AppRole, UserProfile } from '../models/user.model';
 import { Product, CartItem } from '../models/product.model';
 import { Order, OrderStatus } from '../models/order.model';
@@ -21,6 +22,7 @@ export interface ToastMessage {
 })
 export class StoreStateService {
   private readonly api = inject(ApiService);
+  private readonly router = inject(Router);
   readonly keycloak = inject(AppKeycloakService);
 
   private getBootRoleAndPath(): { role: AppRole; path: string } {
@@ -578,9 +580,11 @@ export class StoreStateService {
     }
 
     this.syncUrlPath(path);
-    if (typeof window !== 'undefined') {
-      window.location.hash = '#' + path;
-    }
+    this.router.navigateByUrl(path).catch(() => {
+      if (typeof window !== 'undefined') {
+        window.location.hash = '#' + path;
+      }
+    });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 

@@ -1,34 +1,38 @@
 import { Routes } from '@angular/router';
-import { CustomerViewComponent } from './views/customer/customer-view.component';
-import { AdminViewComponent } from './views/admin/admin-view.component';
-import { ManagerViewComponent } from './views/manager/manager-view.component';
-import { OperationsViewComponent } from './views/operations/operations-view.component';
-import { DeliveryViewComponent } from './views/delivery/delivery-view.component';
 import { roleAuthGuard } from './guards/role-auth.guard';
 import { AppRole } from './enums';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'store', pathMatch: 'full' },
-  { path: 'store', component: CustomerViewComponent },
+  {
+    path: 'store',
+    loadComponent: () =>
+      import('./views/customer/customer-view.component').then(m => m.CustomerViewComponent)
+  },
   {
     path: 'admin',
-    component: AdminViewComponent,
+    loadComponent: () =>
+      import('./views/admin/admin-view.component').then(m => m.AdminViewComponent),
     canActivate: [roleAuthGuard(AppRole.ADMIN)]
   },
   {
     path: 'manager',
-    component: ManagerViewComponent,
+    loadComponent: () =>
+      import('./views/manager/manager-view.component').then(m => m.ManagerViewComponent),
     canActivate: [roleAuthGuard(AppRole.MANAGER)]
   },
   {
     path: 'operations',
-    component: OperationsViewComponent,
+    loadComponent: () =>
+      import('./views/operations/operations-view.component').then(m => m.OperationsViewComponent),
     canActivate: [roleAuthGuard(AppRole.OPERATIONS)]
   },
   {
     path: 'delivery',
-    component: DeliveryViewComponent,
+    loadComponent: () =>
+      import('./views/delivery/delivery-view.component').then(m => m.DeliveryViewComponent),
     canActivate: [roleAuthGuard(AppRole.DELIVERY)]
   },
   { path: '**', redirectTo: 'store' }
 ];
+
