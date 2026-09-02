@@ -92,8 +92,13 @@ export class AppKeycloakService {
           clientId: this.config.clientId
         });
 
+        const silentCheckSsoRedirectUri = typeof window !== 'undefined'
+          ? window.location.origin + '/silent-check-sso.html'
+          : undefined;
+
         const authenticated = await this.keycloakInstance.init({
           onLoad: 'check-sso',
+          silentCheckSsoRedirectUri,
           checkLoginIframe: false,
           pkceMethod: 'S256'
         });

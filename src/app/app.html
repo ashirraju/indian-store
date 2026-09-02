@@ -1,44 +1,36 @@
-<!-- Main Navigation Header -->
-<app-navbar></app-navbar>
+<!-- Main Navigation Header (Only displayed for Customer Storefront) -->
+@if (store.activeRole() === 'Customer') {
+  <app-navbar></app-navbar>
+}
 
-<!-- Main Application Views (Role-Based Dynamic Switch) -->
-<main class="app-main-content">
-  @switch (store.activeRole()) {
-    @case ('Customer') {
-      <app-customer-view></app-customer-view>
-    }
-    @case ('Manager') {
-      <app-manager-view></app-manager-view>
-    }
-    @case ('Operations') {
-      <app-operations-view></app-operations-view>
-    }
-    @case ('Delivery') {
-      <app-delivery-view></app-delivery-view>
-    }
-    @case ('Admin') {
-      <app-admin-view></app-admin-view>
-    }
-  }
+<!-- Main Application Views (Lazy-Loaded via Angular Router) -->
+<main class="app-main-content" [class.staff-portal]="store.activeRole() !== 'Customer'">
+  <router-outlet></router-outlet>
 </main>
 
-<!-- Slide-Out Cart & Checkout Modal -->
-<app-cart-drawer></app-cart-drawer>
+@if (store.activeRole() === 'Customer') {
+  <!-- Slide-Out Cart & Checkout Modal (Deferred / Lazy-Loaded on demand) -->
+  @defer (when store.isCartOpen()) {
+    <app-cart-drawer></app-cart-drawer>
+  }
 
-<!-- Slide-Out Wishlist Drawer -->
-<app-wishlist-drawer></app-wishlist-drawer>
+  <!-- Slide-Out Wishlist Drawer (Deferred / Lazy-Loaded on demand) -->
+  @defer (when store.isWishlistOpen()) {
+    <app-wishlist-drawer></app-wishlist-drawer>
+  }
 
-<!-- Customer Orders History Modal -->
-<app-orders-modal></app-orders-modal>
-
-<!-- Right Side Category Slide-Out Panel -->
-<app-category-panel></app-category-panel>
+  <!-- Right Side Category Slide-Out Panel (Deferred / Lazy-Loaded on demand) -->
+  @defer (when store.isCategoryPanelOpen()) {
+    <app-category-panel></app-category-panel>
+  }
+}
 
 <!-- Floating Toast Notifications -->
 <app-toast></app-toast>
 
 <!-- Unified Application Footer (Australian Location, ABN, Hub Addresses & Internal Portals) -->
-<footer class="app-footer">
+@if (store.activeRole() === 'Customer') {
+  <footer class="app-footer">
   <div class="footer-container">
     <!-- Brand & Physical AU Addresses -->
     <div class="footer-brand">
@@ -140,3 +132,4 @@
     </div>
   </div>
 </footer>
+}

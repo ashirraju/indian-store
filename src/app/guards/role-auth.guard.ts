@@ -9,13 +9,18 @@ import { AppRole, AppRoutes } from '../enums';
  * Validates active session and inspects JWT access token for the required role.
  */
 export const roleAuthGuard = (requiredRole: AppRole): CanActivateFn => {
-  return (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
+  return async (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
     const keycloak = inject(AppKeycloakService);
     const store = inject(StoreStateService);
 
     // Customer storefront is public
     if (requiredRole === AppRole.CUSTOMER) {
       return true;
+    }
+
+    // Ensure Keycloak has completed initialization
+    if (!keycloak.isInitialized()) {
+      await keycloak.initKeycloak();
     }
 
     // 1. If not authenticated, redirect directly to Keycloak Login Page

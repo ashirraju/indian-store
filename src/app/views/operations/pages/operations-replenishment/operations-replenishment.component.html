@@ -1,0 +1,52 @@
+<div class="tab-content-panel">
+
+      <div class="stock-alerts-card card-surface">
+        <div class="alerts-header">
+          <div>
+            <h3>Warehouse Inventory Replenishment Monitor</h3>
+            <p class="sub-text">Products with low inventory threshold needing immediate supplier purchase orders.</p>
+          </div>
+        </div>
+
+        <table class="ops-table">
+          <thead>
+            <tr>
+              <th>SKU ID</th>
+              <th>Product Name</th>
+              <th>Category</th>
+              <th>Current Stock</th>
+              <th>Safety Threshold</th>
+              <th>Status</th>
+              <th>Quick Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (prod of store.products(); track prod.id) {
+              @if (prod.stock < 50) {
+                <tr>
+                  <td><code>{{ prod.id }}</code></td>
+                  <td><strong>{{ prod.name }}</strong></td>
+                  <td><span class="cat-badge">{{ prod.category }}</span></td>
+                  <td><span [class.red-text]="prod.stock < 20" class="stock-count">{{ prod.stock }} units</span></td>
+                  <td>50 units</td>
+                  <td>
+                    @if (prod.stock < 20) {
+                      <span class="badge badge-red">CRITICAL LOW</span>
+                    } @else {
+                      <span class="badge badge-orange">REORDER SOON</span>
+                    }
+                  </td>
+                  <td>
+                    <button class="restock-action-btn" (click)="restockItem(prod, 50)">
+                      <span class="material-symbols-outlined">add_circle</span>
+                      Restock +50 Units
+                    </button>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+    </div>

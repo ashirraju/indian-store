@@ -1,0 +1,678 @@
+<div class="tab-content card-surface">
+
+      <!-- KPI Summary Ribbon -->
+      @if (productsSummary(); as sum) {
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon blue">
+              <span class="material-symbols-outlined">inventory_2</span>
+            </div>
+            <div>
+              <span class="kpi-label">Total Catalog Products</span>
+              <h3>{{ sum.totalProducts }}</h3>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon green">
+              <span class="material-symbols-outlined">warehouse</span>
+            </div>
+            <div>
+              <span class="kpi-label">Total Warehouse Units</span>
+              <h3>{{ sum.totalUnitsInStock | number }}</h3>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon blue">
+              <span class="material-symbols-outlined">payments</span>
+            </div>
+            <div>
+              <span class="kpi-label">Catalog Inventory Value (AUD)</span>
+              <h3>${{ sum.totalCatalogValuation | number }}</h3>
+            </div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-icon purple">
+              <span class="material-symbols-outlined">percent</span>
+            </div>
+            <div>
+              <span class="kpi-label">Discounted Offers</span>
+              <h3>{{ sum.discountedProductsCount }}</h3>
+            </div>
+          </div>
+
+          <div class="kpi-card" [class.warning]="sum.lowStockCount > 0">
+            <div class="kpi-icon amber">
+              <span class="material-symbols-outlined">warning</span>
+            </div>
+            <div>
+              <span class="kpi-label">Low Stock Alerts</span>
+              <h3>{{ sum.lowStockCount }}</h3>
+            </div>
+          </div>
+
+          <div class="kpi-card" [class.danger]="sum.outOfStockCount > 0">
+            <div class="kpi-icon red">
+              <span class="material-symbols-outlined">block</span>
+            </div>
+            <div>
+              <span class="kpi-label">Out of Stock</span>
+              <h3>{{ sum.outOfStockCount }}</h3>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Catalog Header & Filter Bar -->
+      <div class="catalog-toolbar card-surface-subtle">
+        <div class="search-box">
+          <span class="material-symbols-outlined">search</span>
+          <input
+            type="text"
+            placeholder="Search by title, SKU, tags..."
+            [(ngModel)]="productSearch"
+            (ngModelChange)="onFilterChange()"
+          />
+          @if (productSearch) {
+            <button class="clear-search-btn" (click)="productSearch = ''; onFilterChange()">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          }
+        </div>
+
+        <div class="filter-controls">
+          <!-- Category Filter -->
+          <div class="filter-group">
+            <label>Category:</label>
+            <select [(ngModel)]="selectedCategoryFilter" (ngModelChange)="onCategoryFilterChange()">
+              <option value="">All Categories</option>
+              @for (c of categoriesList(); track c.id) {
+                <option [value]="c.id">{{ c.name }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Sub-Category Filter -->
+          <div class="filter-group">
+            <label>Sub-Category:</label>
+            <select [(ngModel)]="selectedSubCategoryFilter" (ngModelChange)="onFilterChange()">
+              <option value="">All Sub-Categories</option>
+              @for (sub of getAvailableSubCategoriesForFilter(); track sub.id) {
+                <option [value]="sub.name">{{ sub.name }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Stock Status Filter -->
+          <div class="filter-group">
+            <label>Stock:</label>
+            <select [(ngModel)]="selectedStockStatusFilter" (ngModelChange)="onFilterChange()">
+              <option value="">All Stock</option>
+              <option value="in_stock">In Stock (>10)</option>
+              <option value="low_stock">Low Stock (≤10)</option>
+              <option value="out_of_stock">Out of Stock (0)</option>
+            </select>
+          </div>
+
+          <!-- Discount Filter -->
+          <div class="filter-group">
+            <label>Discount:</label>
+            <select [(ngModel)]="selectedDiscountFilter" (ngModelChange)="onFilterChange()">
+              <option value="">All Pricing</option>
+              <option value="true">Discounted Only</option>
+              <option value="false">Standard Price Only</option>
+            </select>
+          </div>
+
+          <!-- Bestseller Filter -->
+          <div class="filter-group">
+            <label>Badge:</label>
+            <select [(ngModel)]="selectedBestsellerFilter" (ngModelChange)="onFilterChange()">
+              <option value="">All Items</option>
+              <option value="true">⭐ Bestsellers</option>
+            </select>
+          </div>
+
+          <!-- Sort Filter -->
+          <div class="filter-group">
+            <label>Sort:</label>
+            <select [(ngModel)]="selectedSortOption" (ngModelChange)="onFilterChange()">
+              <option value="newest">Recently Added</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="stock-low">Stock: Low to High</option>
+              <option value="stock-high">Stock: High to Low</option>
+              <option value="rating">Top Rated</option>
+              <option value="name-asc">Name A-Z</option>
+            </select>
+          </div>
+
+          <button class="secondary-admin-btn reset-btn" (click)="resetFilters()" title="Reset Filters">
+            <span class="material-symbols-outlined">filter_alt_off</span>
+          </button>
+        </div>
+
+        <div class="action-btn-group catalog-actions">
+          <button class="secondary-admin-btn" (click)="openImportModal()">
+            <span class="material-symbols-outlined">upload_file</span>
+            Bulk Import
+          </button>
+          <button class="primary-admin-btn" (click)="openProductModal()">
+            <span class="material-symbols-outlined">add_box</span>
+            Add Product
+          </button>
+          <button class="secondary-admin-btn icon-only" (click)="loadProducts(); loadProductsSummary()" [disabled]="isProductsLoading()">
+            <span class="material-symbols-outlined" [class.spin]="isProductsLoading()">refresh</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Bulk Actions Bar -->
+      @if (selectedProductIds().size > 0) {
+        <div class="bulk-bar">
+          <div class="bulk-info">
+            <span class="material-symbols-outlined">check_circle</span>
+            <strong>{{ selectedProductIds().size }}</strong> products selected
+          </div>
+          <div class="bulk-actions">
+            <button class="danger-btn" (click)="executeBulkDelete()">
+              <span class="material-symbols-outlined">delete_sweep</span>
+              Delete Selected
+            </button>
+            <button class="ghost-btn" (click)="selectedProductIds().clear()">
+              Deselect All
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Products Table -->
+      @if (isProductsLoading()) {
+        <div class="loading-container">
+          <div class="spinner"></div>
+          <p>Fetching catalog products from server...</p>
+        </div>
+      } @else if (productsList().length === 0) {
+        <div class="empty-state card-surface">
+          <span class="material-symbols-outlined">search_off</span>
+          <h4>No products found</h4>
+          <p>No catalog items match your search and filter criteria.</p>
+          <button class="primary-admin-btn" (click)="resetFilters()">Clear Filters</button>
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="admin-table products-table">
+            <thead>
+              <tr>
+                <th style="width: 40px;">
+                  <input
+                    type="checkbox"
+                    [checked]="selectedProductIds().size === productsList().length && productsList().length > 0"
+                    (change)="toggleSelectAll()"
+                  />
+                </th>
+                <th style="width: 70px;">Image</th>
+                <th>Product & SKU</th>
+                <th>Category</th>
+                <th>Price & MRP</th>
+                <th>Stock Level</th>
+                <th>Highlights</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (prod of productsList(); track prod.id) {
+                <tr [class.selected-row]="isProductSelected(prod.id)">
+                  <td>
+                    <input
+                      type="checkbox"
+                      [checked]="isProductSelected(prod.id)"
+                      (change)="toggleProductSelection(prod.id)"
+                    />
+                  </td>
+                  <td>
+                    <img [src]="prod.image_url || prod.imageUrl" [alt]="prod.name" class="product-thumb-table" />
+                  </td>
+                  <td>
+                    <div class="product-name-cell">
+                      <strong>{{ prod.name }}</strong>
+                      <div class="sku-weight-line">
+                        <code class="sku-tag">{{ prod.sku || prod.id }}</code>
+                        <span class="weight-tag">{{ prod.weight }}</span>
+                        @if (prod.origin_region || prod.originRegion) {
+                          <span class="origin-tag">📍 {{ prod.origin_region || prod.originRegion }}</span>
+                        }
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="cat-pill-badge">
+                      {{ prod.category_name || prod.category || 'General' }}
+                    </span>
+                    @if (prod.sub_category_name) {
+                      <span class="subcat-pill-badge">› {{ prod.sub_category_name }}</span>
+                    }
+                  </td>
+                  <td>
+                    <div class="price-cell">
+                      <div class="price-row">
+                        <strong class="current-price">${{ prod.price }}</strong>
+                        @if ((prod.original_price || prod.originalPrice) && (prod.original_price || prod.originalPrice)! > prod.price) {
+                          <span class="mrp-strikethrough">${{ prod.original_price || prod.originalPrice }}</span>
+                        }
+                      </div>
+                      @if (prod.has_discount || prod.discount_percent) {
+                        <span class="discount-pill">
+                          {{ prod.discount_percent || prod.discount_value }}% OFF
+                        </span>
+                      }
+                    </div>
+                  </td>
+                  <td>
+                    <div class="stock-cell">
+                      <span
+                        class="stock-badge"
+                        [class.in-stock]="prod.stock > 10"
+                        [class.low-stock]="prod.stock > 0 && prod.stock <= 10"
+                        [class.out-of-stock]="prod.stock === 0"
+                      >
+                        @if (prod.stock > 10) {
+                          ● {{ prod.stock }} in stock
+                        } @else if (prod.stock > 0) {
+                          ⚠️ Low: {{ prod.stock }} left
+                        } @else {
+                          ✕ Out of Stock
+                        }
+                      </span>
+                      <div class="quick-stock-controls">
+                        <button class="stock-btn" title="Deduct 5 units" (click)="quickAdjustDelta(prod, -5)" [disabled]="prod.stock === 0">-5</button>
+                        <button class="stock-btn" title="Add 5 units" (click)="quickAdjustDelta(prod, 5)">+5</button>
+                        <button class="stock-btn edit" title="Set exact stock" (click)="openStockModal(prod)">
+                          <span class="material-symbols-outlined">tune</span>
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="flags-cell">
+                      <button
+                        class="flag-chip"
+                        [class.active]="prod.is_bestseller || prod.isBestseller"
+                        title="Toggle Bestseller"
+                        (click)="toggleFlag(prod, 'isBestseller')"
+                      >
+                        ⭐ Bestseller
+                      </button>
+                      <button
+                        class="flag-chip green"
+                        [class.active]="prod.is_organic || prod.isOrganic"
+                        title="Toggle Organic"
+                        (click)="toggleFlag(prod, 'isOrganic')"
+                      >
+                        🌱 Organic
+                      </button>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="action-btns-row end">
+                      <button class="icon-action-btn discount" title="Set Discount Offer" (click)="openDiscountModal(prod)">
+                        <span class="material-symbols-outlined">percent</span>
+                      </button>
+                      <button class="icon-action-btn" title="Edit Product Details" (click)="openProductModal(prod)">
+                        <span class="material-symbols-outlined">edit</span>
+                      </button>
+                      <button class="icon-action-btn red" title="Delete Product" (click)="deleteProduct(prod)">
+                        <span class="material-symbols-outlined">delete</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Catalog Pagination Bar -->
+        <div class="catalog-pagination-bar">
+          <div class="pagination-info">
+            <span>
+              Showing
+              <strong>{{ (currentPage() - 1) * pageSize() + (productsList().length > 0 ? 1 : 0) }}</strong>
+              -
+              <strong>{{ (currentPage() - 1) * pageSize() + productsList().length }}</strong>
+              of
+              <strong>{{ totalProductCount() }}</strong> products
+            </span>
+
+            <div class="page-size-selector">
+              <label for="pageSizeSelect">Per page:</label>
+              <select
+                id="pageSizeSelect"
+                [ngModel]="pageSize()"
+                (ngModelChange)="onPageSizeChange($event)"
+                class="page-size-dropdown"
+              >
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="20">20</option>
+                <option [ngValue]="50">50</option>
+                <option [ngValue]="100">100</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="pagination-nav">
+            <button
+              type="button"
+              class="page-nav-btn"
+              [disabled]="currentPage() <= 1"
+              (click)="prevPage()"
+              title="Previous Page"
+            >
+              <span class="material-symbols-outlined">chevron_left</span>
+              <span>Prev</span>
+            </button>
+
+            <div class="page-numbers">
+              @for (p of getVisiblePages(); track $index) {
+                @if (p === '...') {
+                  <span class="page-ellipsis">...</span>
+                } @else {
+                  <button
+                    type="button"
+                    class="page-num-btn"
+                    [class.active]="currentPage() === p"
+                    (click)="goToPage(+p)"
+                  >
+                    {{ p }}
+                  </button>
+                }
+              }
+            </div>
+
+            <button
+              type="button"
+              class="page-nav-btn"
+              [disabled]="currentPage() >= totalPages()"
+              (click)="nextPage()"
+              title="Next Page"
+            >
+              <span>Next</span>
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+
+<!-- ========================================================================= -->
+<!-- MODAL 5: QUICK STOCK ADJUSTMENT -->
+<!-- ========================================================================= -->
+@if (isStockModalOpen() && stockTargetProduct) {
+  <div class="admin-modal-backdrop" (click)="isStockModalOpen.set(false)">
+    <div class="admin-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Adjust Warehouse Stock</h3>
+        <button class="close-btn" (click)="isStockModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="onStockAdjustSubmit($event)">
+        <div class="stock-modal-info">
+          <strong>{{ stockTargetProduct.name }}</strong>
+          <p>Current Inventory: <strong>{{ stockTargetProduct.stock }} units</strong></p>
+        </div>
+
+        <div class="form-group">
+          <label>Units to Add (+) or Deduct (-)</label>
+          <input
+            type="number"
+            [(ngModel)]="stockAdjustQty"
+            name="stockAdjustQty"
+            required
+          />
+          <small class="help-text">
+            New total stock will be: <strong>{{ stockTargetProduct.stock + stockAdjustQty }}</strong> units.
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Reason / Audit Note</label>
+          <select [(ngModel)]="stockAdjustReason" name="stockAdjustReason">
+            <option value="RESTOCK_SHIPMENT">Restock Shipment Received</option>
+            <option value="CYCLE_COUNT_CORRECTION">Cycle Count Correction</option>
+            <option value="DAMAGED_ITEMS">Damaged / Expired Inventory</option>
+            <option value="CUSTOMER_RETURN">Customer Return Restocked</option>
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="secondary-admin-btn" (click)="isStockModalOpen.set(false)">Cancel</button>
+          <button type="submit" class="primary-admin-btn">Update Stock Level</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL 6: QUICK DISCOUNT SETUP -->
+<!-- ========================================================================= -->
+@if (isDiscountModalOpen() && discountTargetProduct) {
+  <div class="admin-modal-backdrop" (click)="isDiscountModalOpen.set(false)">
+    <div class="admin-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Promotional Discount Configuration</h3>
+        <button class="close-btn" (click)="isDiscountModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="onDiscountSubmit($event)">
+        <div class="stock-modal-info">
+          <strong>{{ discountTargetProduct.name }}</strong>
+          <p>Current Price: <strong>${{ discountTargetProduct.price }} AUD</strong> (MRP: ${{ discountTargetProduct.original_price || discountTargetProduct.originalPrice || discountTargetProduct.price }})</p>
+        </div>
+
+        <div class="form-group">
+          <label>Original MRP ($ AUD)</label>
+          <input type="number" step="0.01" [(ngModel)]="discountOriginalPrice" name="discountOriginalPrice" min="0.01" required />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Discount Type</label>
+            <select [(ngModel)]="discountType" name="discountType">
+              <option value="PERCENTAGE">Percentage (%)</option>
+              <option value="FLAT">Flat Amount ($ AUD)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Discount Value</label>
+            <input type="number" step="0.01" [(ngModel)]="discountValue" name="discountValue" min="0" required />
+          </div>
+        </div>
+
+        <div class="calculated-price-box">
+          <span>Final Discounted Selling Price:</span>
+          <strong>${{ calculatedDiscountedPrice }} AUD</strong>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="secondary-admin-btn" (click)="isDiscountModalOpen.set(false)">Cancel</button>
+          <button type="submit" class="primary-admin-btn">Apply Discount</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL 7: BULK CSV / JSON IMPORT -->
+<!-- ========================================================================= -->
+@if (isImportModalOpen()) {
+  <div class="admin-modal-backdrop" (click)="isImportModalOpen.set(false)">
+    <div class="admin-modal modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Bulk Import Products</h3>
+        <button class="close-btn" (click)="isImportModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="import-mode-switch">
+        <button class="mode-tab" [class.active]="importMode === 'csv'" (click)="importMode = 'csv'">
+          CSV Upload / Paste
+        </button>
+        <button class="mode-tab" [class.active]="importMode === 'json'" (click)="importMode = 'json'; setSampleJson()">
+          JSON Array
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label>
+          {{ importMode === 'csv' ? 'Paste CSV Data (Include Header Row)' : 'Paste JSON Array of Products' }}
+        </label>
+        <textarea
+          [(ngModel)]="importDataText"
+          rows="8"
+          class="code-textarea"
+          placeholder="name,sku,price,original_price,stock,category"
+        ></textarea>
+      </div>
+
+      @if (importResult) {
+        <div class="import-report-box" [class.success]="importResult.success" [class.error]="!importResult.success">
+          <h4>{{ importResult.message }}</h4>
+          @if (importResult.summary) {
+            <div class="import-metrics-row">
+              <span>Total: <strong>{{ importResult.summary.total }}</strong></span>
+              <span class="green-text">Created: <strong>{{ importResult.summary.created }}</strong></span>
+              <span class="blue-text">Updated: <strong>{{ importResult.summary.updated }}</strong></span>
+              <span class="red-text">Failed: <strong>{{ importResult.summary.failed }}</strong></span>
+            </div>
+          }
+        </div>
+      }
+
+      <div class="modal-footer">
+        <button type="button" class="secondary-admin-btn" (click)="isImportModalOpen.set(false)">Close</button>
+        <button
+          type="button"
+          class="primary-admin-btn"
+          [disabled]="isImporting() || !importDataText.trim()"
+          (click)="onExecuteImport()"
+        >
+          <span class="material-symbols-outlined" [class.spin]="isImporting()">upload</span>
+          {{ isImporting() ? 'Processing Import...' : 'Import Catalog Data' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL 8: SINGLE PRODUCT DELETE CONFIRMATION DIALOG -->
+<!-- ========================================================================= -->
+@if (isDeleteProductModalOpen() && deletingProduct) {
+  <div class="admin-modal-backdrop" (click)="isDeleteProductModalOpen.set(false)">
+    <div class="admin-modal modal-danger" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="danger-title">Delete Product Confirmation</h3>
+        <button class="close-btn" (click)="isDeleteProductModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body-danger">
+        <div class="delete-product-preview card-surface">
+          <img
+            [src]="deletingProduct.imageUrl || deletingProduct.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80'"
+            [alt]="deletingProduct.name"
+            class="delete-prod-thumb"
+          />
+          <div class="delete-prod-info">
+            <strong class="prod-title">{{ deletingProduct.name }}</strong>
+            <div class="prod-meta-tags">
+              <span class="meta-tag">SKU: {{ deletingProduct.sku }}</span>
+              <span class="meta-tag">Category: {{ deletingProduct.category }}</span>
+              <span class="meta-tag price">${{ deletingProduct.price }} AUD</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="alert-box-warning">
+          <span class="material-symbols-outlined">warning</span>
+          <span>Are you sure you want to permanently delete this product? This action cannot be undone.</span>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="secondary-admin-btn" (click)="isDeleteProductModalOpen.set(false)">Cancel</button>
+        <button
+          type="button"
+          class="danger-btn"
+          [disabled]="isDeletingProduct()"
+          (click)="confirmDeleteProduct()"
+        >
+          <span class="material-symbols-outlined" [class.spin]="isDeletingProduct()">delete</span>
+          {{ isDeletingProduct() ? 'Deleting...' : 'Confirm Delete' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL 9: MULTIPLE / BULK PRODUCTS DELETE CONFIRMATION DIALOG -->
+<!-- ========================================================================= -->
+@if (isBulkDeleteModalOpen()) {
+  <div class="admin-modal-backdrop" (click)="isBulkDeleteModalOpen.set(false)">
+    <div class="admin-modal modal-danger modal-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="danger-title">Bulk Delete ({{ selectedProductIds().size }} Products)</h3>
+        <button class="close-btn" (click)="isBulkDeleteModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body-danger">
+        <div class="alert-box-warning">
+          <span class="material-symbols-outlined">warning</span>
+          <span>You are about to permanently delete <strong>{{ selectedProductIds().size }} selected products</strong> from the catalog. This action cannot be undone.</span>
+        </div>
+
+        <p class="bulk-list-title">Selected products to be deleted:</p>
+        <div class="bulk-delete-items-list">
+          @for (prod of getSelectedProductsForDelete(); track prod.id) {
+            <div class="bulk-item-row">
+              <span class="material-symbols-outlined delete-bullet">inventory_2</span>
+              <span class="bulk-item-name">{{ prod.name }}</span>
+              <span class="bulk-item-sku">({{ prod.sku }})</span>
+              <strong class="bulk-item-price">${{ prod.price }} AUD</strong>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="secondary-admin-btn" (click)="isBulkDeleteModalOpen.set(false)">Cancel</button>
+        <button
+          type="button"
+          class="danger-btn"
+          [disabled]="isDeletingBulk()"
+          (click)="confirmBulkDelete()"
+        >
+          <span class="material-symbols-outlined" [class.spin]="isDeletingBulk()">delete_sweep</span>
+          {{ isDeletingBulk() ? 'Deleting Products...' : 'Confirm Bulk Delete (' + selectedProductIds().size + ' Products)' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+

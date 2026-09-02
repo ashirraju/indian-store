@@ -19,7 +19,8 @@ export class ManagerViewComponent implements OnInit {
   readonly store = inject(StoreStateService);
   readonly api = inject(ApiService);
 
-  readonly activeTab = signal<'orders' | 'products' | 'categories' | 'analytics'>('orders');
+  readonly activeTab = signal<'orders' | 'notifications' | 'products' | 'categories' | 'analytics'>('orders');
+  readonly isNotificationDrawerOpen = signal<boolean>(false);
 
   onLogout() {
     this.store.keycloak.logout();
@@ -27,6 +28,27 @@ export class ManagerViewComponent implements OnInit {
 
   ngOnInit() {
     this.loadCategories();
+    this.store.syncNotifications('Manager');
+    this.store.initNotificationStream('Manager');
+  }
+
+  toggleNotificationDrawer() {
+    this.isNotificationDrawerOpen.set(!this.isNotificationDrawerOpen());
+  }
+
+  markNotifRead(notif: any) {
+    this.store.markNotificationAsRead(notif.id);
+  }
+
+  markAllNotifsRead() {
+    this.store.markAllNotificationsAsRead();
+  }
+
+  jumpToOrder(orderId: string) {
+    this.activeTab.set('orders');
+    this.isNotificationDrawerOpen.set(false);
+    this.orderSearchQuery = orderId;
+    this.store.showToast('info', 'Viewing Order', `Locating Order #${orderId}`);
   }
 
   // ==========================================

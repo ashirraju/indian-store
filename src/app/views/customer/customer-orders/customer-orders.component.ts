@@ -1,21 +1,23 @@
-import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { StoreStateService } from '../../services/store-state.service';
-import { Order } from '../../models/order.model';
+import { StoreStateService } from '../../../services/store-state.service';
+import { Order } from '../../../models/order.model';
 
 @Component({
-  selector: 'app-orders-modal',
+  selector: 'app-customer-orders',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './orders-modal.component.html',
-  styleUrl: './orders-modal.component.scss',
+  templateUrl: './customer-orders.component.html',
+  styleUrl: './customer-orders.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OrdersModalComponent {
+export class CustomerOrdersComponent implements OnInit {
   readonly store = inject(StoreStateService);
 
-  constructor() {
-    this.store.syncOrdersFromBackend();
+  ngOnInit() {
+    if (this.store.keycloak.isAuthenticated()) {
+      this.store.syncOrdersFromBackend();
+    }
   }
 
   readonly statusFilter = signal<'ALL' | 'ACTIVE' | 'DELIVERED'>('ALL');
@@ -41,7 +43,6 @@ export class OrdersModalComponent {
 
   openLiveTracking(order: Order) {
     this.store.selectedOrderForTracking.set(order);
-    this.store.isOrdersModalOpen.set(false);
   }
 
   reorderItems(order: Order) {
@@ -49,7 +50,6 @@ export class OrdersModalComponent {
       this.store.addToCart(item.product, item.quantity);
     });
     this.store.showToast('success', 'Items Added to Cart 🛒', `Readded items from order #${order.id} to your cart.`);
-    this.store.isOrdersModalOpen.set(false);
     this.store.isCartOpen.set(true);
   }
 }

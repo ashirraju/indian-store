@@ -3,6 +3,7 @@ import { Category, CreateCategoryInput, CreateSubCategoryInput, SubCategory } fr
 import { Product, ProductsSummary } from '../models/product.model';
 import { AppKeycloakService } from './app-keycloak.service';
 import { API_CONFIG } from '../constants';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -13,11 +14,17 @@ export class ApiService {
 
   private getAuthHeaders(role = 'Admin'): Record<string, string> {
     const token = this.keycloak.getToken();
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      'x-mock-role': role
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
     };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    // Only send custom mock role header during local development when unauthenticated
+    if (!environment.production && !token) {
+      headers['x-mock-role'] = role;
+    }
+    return headers;
   }
 
   async checkHealth(): Promise<any> {
@@ -236,6 +243,74 @@ export class ApiService {
   }
 
   // ==========================================
+  // SEARCH & AUTOCOMPLETE APIs
+  // ==========================================
+
+  async searchProducts(params: {
+    q: string;
+    category?: string;
+    subCategory?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    inStock?: boolean;
+    sort?: 'relevance' | 'price-asc' | 'price-desc' | 'rating' | 'newest';
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    success: boolean;
+    query: string;
+    totalCount: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    data: Product[];
+  }> {
+    const url = new URL(`${this.baseUrl}/products/search`);
+    url.searchParams.set('q', params.q);
+    if (params.category) url.searchParams.set('category', params.category);
+    if (params.subCategory) url.searchParams.set('subCategory', params.subCategory);
+    if (params.minPrice !== undefined) url.searchParams.set('minPrice', params.minPrice.toString());
+    if (params.maxPrice !== undefined) url.searchParams.set('maxPrice', params.maxPrice.toString());
+    if (params.inStock !== undefined) url.searchParams.set('inStock', params.inStock ? 'true' : 'false');
+    if (params.sort) url.searchParams.set('sort', params.sort);
+    if (params.page) url.searchParams.set('page', params.page.toString());
+    if (params.limit) url.searchParams.set('limit', params.limit.toString());
+
+    const res = await fetch(url.toString());
+    return await res.json();
+  }
+
+  async getSearchSuggestions(q: string): Promise<{
+    success: boolean;
+    query: string;
+    totalSuggestions: number;
+    suggestions: Array<{
+      id: string;
+      name: string;
+      slug?: string;
+      price: number;
+      originalPrice?: number;
+      discountPercent?: number;
+      hasDiscount?: boolean;
+      imageUrl: string;
+      weight?: string;
+      isOutOfStock?: boolean;
+      categoryName?: string;
+      categorySlug?: string;
+    }>;
+    categories?: Array<{
+      id: string;
+      name: string;
+      slug: string;
+    }>;
+  }> {
+    const url = new URL(`${this.baseUrl}/products/search/suggestions`);
+    url.searchParams.set('q', q);
+    const res = await fetch(url.toString());
+    return await res.json();
+  }
+
+  // ==========================================
   // COUPONS, ORDERS & INVENTORY APIs
   // ==========================================
 
@@ -347,6 +422,89 @@ export class ApiService {
   async getSalesReport(role = 'Admin'): Promise<any> {
     const res = await fetch(`${this.baseUrl}/reports/sales-revenue`, {
       headers: this.getAuthHeaders(role)
+    });
+    return await res.json();
+  }
+
+  // ==========================================
+  // NOTIFICATIONS API
+  // ==========================================
+
+  async getNotifications(
+    page = 1,
+    limit = 30,
+    role = 'Operations'
+  ): Promise<{
+    success: boolean;
+    data: any[];
+    pagination?: { page: number; limit: number; totalCount: number; totalPages: number; unreadCount: number };
+  }> {
+    const res = await fetch(`${this.baseUrl}/notifications?page=${page}&limit=${limit}`, {
+      headers: this.getAuthHeaders(role)
+    });
+    return await res.json();
+  }
+
+  async getUnreadNotificationsCount(role = 'Operations'): Promise<{ success: boolean; unreadCount: number }> {
+    const res = await fetch(`${this.baseUrl}/notifications/unread-count`, {
+      headers: this.getAuthHeaders(role)
+    });
+    return await res.json();
+  }
+
+  async markNotificationAsRead(id: string, role = 'Operations'): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${this.baseUrl}/notifications/${encodeURIComponent(id)}/read`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(role)
+    });
+    return await res.json();
+  }
+
+  async markAllNotificationsAsRead(role = 'Operations'): Promise<{ success: boolean; message: string; updatedCount: number }> {
+    const res = await fetch(`${this.baseUrl}/notifications/mark-all-read`, {
+      method: 'PATCH',
+      headers: this.getAuthHeaders(role)
+    });
+    return await res.json();
+  }
+
+  getNotificationStreamUrl(role = 'Operations'): string {
+    return `${this.baseUrl}/notifications/stream?role=${encodeURIComponent(role)}`;
+  }
+
+  // ==========================================
+  // UPLOADS & MEDIA API
+  // ==========================================
+
+  async uploadImage(file: File, role = 'Admin'): Promise<{
+    success: boolean;
+    message?: string;
+    data: {
+      url: string;
+      imageUrl?: string;
+      filename: string;
+      format: string;
+      size: number;
+      width?: number;
+      height?: number;
+    };
+  }> {
+    const formData = new FormData();
+    formData.append('image', file);
+
+    const headers: Record<string, string> = {};
+    const token = this.keycloak.getToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    if (!environment.production && !token) {
+      headers['x-mock-role'] = role;
+    }
+
+    const res = await fetch(`${this.baseUrl}/upload`, {
+      method: 'POST',
+      headers,
+      body: formData
     });
     return await res.json();
   }

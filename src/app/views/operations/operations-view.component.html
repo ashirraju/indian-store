@@ -1,725 +1,86 @@
-<div class="ops-container">
-
-  <!-- Header -->
-  <div class="page-header">
-    <div>
-      <span class="role-chip">OPERATIONS & LOGISTICS CONSOLE</span>
-      <h2>Warehouse Fulfillment Pipeline & Catalog Management</h2>
-      <p>Process order packaging, assign express couriers, manage catalog inventory, and replenish low stock.</p>
-    </div>
-
-    <div class="header-actions">
-      @if (activeTab() === 'products') {
-        <button class="add-prod-btn" (click)="openAddModal()">
-          <span class="material-symbols-outlined">add_box</span>
-          Add New Product
-        </button>
-      } @else if (activeTab() === 'categories') {
-        <button class="add-prod-btn" (click)="openCreateCategoryModal()">
-          <span class="material-symbols-outlined">add_box</span>
-          Add New Category
-        </button>
-      }
-      <button class="logout-action-btn" (click)="onLogout()">
-        <span class="material-symbols-outlined">logout</span>
-        Logout
-      </button>
+<!-- Full Width Staff Top Bar (Pinned to Top of Screen) -->
+<header class="staff-screen-topbar">
+  <div class="topbar-left">
+    <div class="portal-brand" (click)="store.navigateTo('/store')">
+      <span class="material-symbols-outlined brand-icon">synagogue</span>
+      <strong class="brand-title">INDIAN STORE</strong>
+      <span class="role-badge ops">OPERATIONS HUB</span>
     </div>
   </div>
 
-  <!-- Navigation Tabs -->
-  <div class="ops-tabs">
-    <button class="tab-btn" [class.active]="activeTab() === 'pipeline'" (click)="activeTab.set('pipeline')">
-      <span class="material-symbols-outlined">view_kanban</span>
-      Fulfillment Pipeline ({{ store.orders().length }})
-    </button>
-    <button class="tab-btn" [class.active]="activeTab() === 'products'" (click)="activeTab.set('products')">
-      <span class="material-symbols-outlined">inventory_2</span>
-      Products & Stock ({{ store.products().length }})
-    </button>
-    <button class="tab-btn" [class.active]="activeTab() === 'categories'" (click)="activeTab.set('categories')">
-      <span class="material-symbols-outlined">category</span>
-      Categories & Subcategories ({{ categoriesList().length }})
-    </button>
-    <button class="tab-btn" [class.active]="activeTab() === 'replenishment'" (click)="activeTab.set('replenishment')">
-      <span class="material-symbols-outlined">warning</span>
-      Warehouse Stock Alerts
-    </button>
-  </div>
-
-  <!-- ========================================================================= -->
-  <!-- TAB 1: FULFILLMENT PIPELINE (KANBAN) -->
-  <!-- ========================================================================= -->
-  @if (activeTab() === 'pipeline') {
-    <div class="tab-content-panel">
-
-      <div class="pipeline-grid">
-
-        <!-- Column 1: In Packing -->
-        <div class="pipeline-col card-surface">
-          <div class="col-header orange">
-            <div class="header-left">
-              <span class="material-symbols-outlined">pending_actions</span>
-              <div>
-                <h3>1. In Packing</h3>
-                <span class="sub-col">Orders ready for packing</span>
-              </div>
-            </div>
-            <span class="count-pill">{{ inPackingOrders().length }}</span>
-          </div>
-
-          <div class="cards-stack">
-            @for (order of inPackingOrders(); track order.id) {
-              <div class="order-card-ops">
-                <div class="card-top">
-                  <span class="order-id">#{{ order.id }}</span>
-                  <span class="order-time">{{ order.placedAt }}</span>
-                </div>
-
-                <div class="customer-info">
-                  <strong>{{ order.customerName }}</strong>
-                  <p>📍 {{ order.deliveryAddress }}, {{ order.city }} ({{ order.postcode || order.pincode }})</p>
-                  <span class="contact">📞 {{ order.customerPhone }}</span>
-                </div>
-
-                <div class="items-summary">
-                  <span class="sec-label">Items to pack ({{ order.items.length }}):</span>
-                  @for (item of order.items; track item.product.id) {
-                    <div class="item-row-ops">
-                      <span class="p-name">{{ item.product.name }}</span>
-                      <strong class="p-qty">x{{ item.quantity }}</strong>
-                    </div>
-                  }
-                </div>
-
-                <div class="card-actions">
-                  <button class="action-btn orange" (click)="markAsPacked(order)">
-                    <span class="material-symbols-outlined">check_circle</span>
-                    Mark as PACKED →
-                  </button>
-                </div>
-              </div>
-            }
-            @if (inPackingOrders().length === 0) {
-              <div class="empty-state">No orders in packing queue.</div>
-            }
-          </div>
-        </div>
-
-        <!-- Column 2: Packed & Ready for Dispatch -->
-        <div class="pipeline-col card-surface">
-          <div class="col-header blue">
-            <div class="header-left">
-              <span class="material-symbols-outlined">inventory</span>
-              <div>
-                <h3>2. Packed</h3>
-                <span class="sub-col">Ready for courier dispatch</span>
-              </div>
-            </div>
-            <span class="count-pill">{{ packedOrders().length }}</span>
-          </div>
-
-          <div class="cards-stack">
-            @for (order of packedOrders(); track order.id) {
-              <div class="order-card-ops">
-                <div class="card-top">
-                  <span class="order-id">#{{ order.id }}</span>
-                  <span class="badge-packed">PACKED ✓</span>
-                </div>
-
-                <div class="customer-info">
-                  <strong>{{ order.customerName }}</strong>
-                  <p>📍 {{ order.city }} {{ order.state || 'NSW' }}</p>
-                  <span class="total-tag">Total: ${{ order.totalAmount }} AUD</span>
-                </div>
-
-                <div class="items-summary">
-                  <span class="sec-label">Packed Items:</span>
-                  @for (item of order.items; track item.product.id) {
-                    <div class="item-row-ops">
-                      <span class="p-name">{{ item.product.name }}</span>
-                      <strong class="p-qty">x{{ item.quantity }}</strong>
-                    </div>
-                  }
-                </div>
-
-                <div class="card-actions">
-                  <button class="action-btn blue" (click)="markOutForDelivery(order)">
-                    <span class="material-symbols-outlined">local_shipping</span>
-                    Dispatch / OUT FOR DELIVERY →
-                  </button>
-                </div>
-              </div>
-            }
-            @if (packedOrders().length === 0) {
-              <div class="empty-state">No packed orders awaiting dispatch.</div>
-            }
-          </div>
-        </div>
-
-        <!-- Column 3: Out for Delivery -->
-        <div class="pipeline-col card-surface">
-          <div class="col-header purple">
-            <div class="header-left">
-              <span class="material-symbols-outlined">local_shipping</span>
-              <div>
-                <h3>3. Out for Delivery</h3>
-                <span class="sub-col">On road with driver</span>
-              </div>
-            </div>
-            <span class="count-pill">{{ outForDeliveryOrders().length }}</span>
-          </div>
-
-          <div class="cards-stack">
-            @for (order of outForDeliveryOrders(); track order.id) {
-              <div class="order-card-ops">
-                <div class="card-top">
-                  <span class="order-id">#{{ order.id }}</span>
-                  <span class="badge-transit">IN TRANSIT</span>
-                </div>
-
-                <div class="customer-info">
-                  <strong>{{ order.customerName }}</strong>
-                  <p>📍 {{ order.deliveryAddress }}, {{ order.city }}</p>
-                  <span class="agent-tag">Driver: {{ order.assignedDeliveryAgent || 'Vikram Singh (Express)' }}</span>
-                </div>
-
-                <div class="card-actions">
-                  <button class="action-btn green" (click)="markDelivered(order)">
-                    <span class="material-symbols-outlined">task_alt</span>
-                    Mark as DELIVERED ✓
-                  </button>
-                </div>
-              </div>
-            }
-            @if (outForDeliveryOrders().length === 0) {
-              <div class="empty-state">No active deliveries on road.</div>
-            }
-          </div>
-        </div>
-
-        <!-- Column 4: Delivered -->
-        <div class="pipeline-col card-surface">
-          <div class="col-header green">
-            <div class="header-left">
-              <span class="material-symbols-outlined">check_circle</span>
-              <div>
-                <h3>4. Delivered</h3>
-                <span class="sub-col">Fulfilled orders</span>
-              </div>
-            </div>
-            <span class="count-pill">{{ deliveredOrders().length }}</span>
-          </div>
-
-          <div class="cards-stack">
-            @for (order of deliveredOrders(); track order.id) {
-              <div class="order-card-ops delivered-card">
-                <div class="card-top">
-                  <span class="order-id">#{{ order.id }}</span>
-                  <span class="badge-done">DELIVERED</span>
-                </div>
-                <div class="customer-info">
-                  <strong>{{ order.customerName }}</strong>
-                  <p>Delivered to {{ order.city }}</p>
-                  <span class="total-tag">Paid: ${{ order.totalAmount }} AUD</span>
-                </div>
-              </div>
-            }
-            @if (deliveredOrders().length === 0) {
-              <div class="empty-state">No completed deliveries yet today.</div>
-            }
-          </div>
-        </div>
-
+  <div class="topbar-right">
+    <!-- User Profile & Sign Out at Top Right of Screen -->
+    <div class="portal-user-profile-card">
+      <div class="profile-avatar ops">
+        <span class="material-symbols-outlined">precision_manufacturing</span>
       </div>
-
-    </div>
-  }
-
-  <!-- ========================================================================= -->
-  <!-- TAB 2: PRODUCTS & INVENTORY -->
-  <!-- ========================================================================= -->
-  @if (activeTab() === 'products') {
-    <div class="tab-content-panel">
-
-      <div class="table-card card-surface">
-        <div class="table-header">
-          <div>
-            <h3>Warehouse Inventory Catalog</h3>
-            <p class="table-sub">Manage product records, stock quantities, and pack weights.</p>
-          </div>
-
-          <div class="table-controls">
-            <select [(ngModel)]="selectedProductCategory" class="filter-select">
-              <option value="">All Categories</option>
-              @for (cat of store.categories(); track cat) {
-                @if (cat !== 'All Categories') {
-                  <option [value]="cat">{{ cat }}</option>
-                }
-              }
-            </select>
-
-            <div class="table-search">
-              <input type="text" placeholder="Search product / SKU..." [(ngModel)]="productSearch" />
-            </div>
-
-            <button class="add-sm-btn" (click)="openAddModal()">
-              <span class="material-symbols-outlined">add</span>
-              Add Product
-            </button>
-          </div>
-        </div>
-
-        <div class="table-responsive">
-          <table class="inventory-table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Category</th>
-                <th>Price ($ AUD)</th>
-                <th>Stock Units</th>
-                <th>Quick Restock</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (prod of filteredProducts(); track prod.id) {
-                <tr>
-                  <td>
-                    <div class="prod-cell">
-                      <img [src]="prod.imageUrl || prod.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80'" [alt]="prod.name" class="thumb-img" />
-                      <div>
-                        <strong>{{ prod.name }}</strong>
-                        <span class="weight-label">{{ prod.weight }} • 📍 {{ prod.originRegion || 'India' }}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span class="cat-badge">{{ prod.category }}</span>
-                  </td>
-                  <td>
-                    <strong>${{ prod.price }} AUD</strong>
-                  </td>
-                  <td>
-                    <div class="stock-cell">
-                      <button (click)="adjustStock(prod, -5)">-</button>
-                      <strong [class.low-stock]="prod.stock < 20">{{ prod.stock }}</strong>
-                      <button (click)="adjustStock(prod, 5)">+</button>
-                    </div>
-                  </td>
-                  <td>
-                    <div class="quick-restock-btns">
-                      <button class="restock-chip" (click)="restockItem(prod, 10)">+10</button>
-                      <button class="restock-chip" (click)="restockItem(prod, 50)">+50</button>
-                    </div>
-                  </td>
-                  <td>
-                    @if (prod.stock === 0) {
-                      <span class="badge badge-red">Out of Stock</span>
-                    } @else if (prod.stock < 20) {
-                      <span class="badge badge-orange">Low Stock</span>
-                    } @else {
-                      <span class="badge badge-green">In Stock</span>
-                    }
-                  </td>
-                  <td>
-                    <div class="action-btns">
-                      <button class="action-icon-btn edit" (click)="openEditProduct(prod)" title="Edit Product">
-                        <span class="material-symbols-outlined">edit</span>
-                      </button>
-                      <button class="action-icon-btn delete" (click)="openDeleteModal(prod)" title="Delete Product">
-                        <span class="material-symbols-outlined">delete</span>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </div>
-  }
-
-  <!-- ========================================================================= -->
-  <!-- TAB 3: CATEGORIES & SUB-CATEGORIES -->
-  <!-- ========================================================================= -->
-  @if (activeTab() === 'categories') {
-    <div class="tab-content-panel">
-
-      <div class="categories-panel card-surface">
-        <div class="panel-header">
-          <div>
-            <h3>Warehouse Category Taxonomy</h3>
-            <p class="sub-text">Configure categories and sub-categories mapped across retail distribution.</p>
-          </div>
-          <button class="add-sm-btn" (click)="openCreateCategoryModal()">
-            <span class="material-symbols-outlined">add</span>
-            Create Category
-          </button>
-        </div>
-
-        <div class="categories-grid">
-          @for (cat of categoriesList(); track cat.id) {
-            <div class="cat-admin-card card-surface">
-              <div class="cat-card-top">
-                <div class="cat-title-group">
-                  <span class="material-symbols-outlined cat-icon">{{ cat.icon || 'category' }}</span>
-                  <div>
-                    <strong>{{ cat.name }}</strong>
-                    <span class="slug">/{{ cat.slug }} • Order #{{ cat.display_order }}</span>
-                  </div>
-                </div>
-
-                <div class="cat-actions">
-                  <button class="icon-btn" (click)="openAddSubCategoryModal(cat)" title="Add Sub-Category">
-                    <span class="material-symbols-outlined">add_circle</span>
-                  </button>
-                  <button class="icon-btn" (click)="openEditCategoryModal(cat)" title="Edit Category">
-                    <span class="material-symbols-outlined">edit</span>
-                  </button>
-                  <button class="icon-btn delete" (click)="openDeleteCategoryModal(cat)" title="Delete Category">
-                    <span class="material-symbols-outlined">delete</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Sub-categories List -->
-              <div class="sub-cats-box">
-                <span class="sub-label">Sub-Categories ({{ cat.sub_categories?.length || 0 }}):</span>
-                <div class="sub-tags-wrap">
-                  @for (sub of cat.sub_categories; track sub.id) {
-                    <div class="sub-tag-chip">
-                      <span>{{ sub.name }}</span>
-                      <button (click)="deleteSubCategory(sub)" title="Delete Sub-category">×</button>
-                    </div>
-                  }
-                  @if (!cat.sub_categories || cat.sub_categories.length === 0) {
-                    <span class="no-subs">No sub-categories yet.</span>
-                  }
-                </div>
-              </div>
-            </div>
+      <div class="profile-details">
+        <strong class="profile-name">
+          {{ keycloak.currentUser()?.firstName || store.currentUser().name }}
+          @if (keycloak.currentUser()?.lastName) {
+            {{ keycloak.currentUser()?.lastName }}
           }
-        </div>
+        </strong>
+        <span class="profile-role">
+          <span class="role-pill ops">Operations</span>
+          <span class="username-text">&#64;{{ keycloak.currentUser()?.username || 'ops' }}</span>
+        </span>
       </div>
-
-    </div>
-  }
-
-  <!-- ========================================================================= -->
-  <!-- TAB 4: REPLENISHMENT MONITOR -->
-  <!-- ========================================================================= -->
-  @if (activeTab() === 'replenishment') {
-    <div class="tab-content-panel">
-
-      <div class="stock-alerts-card card-surface">
-        <div class="alerts-header">
-          <div>
-            <h3>Warehouse Inventory Replenishment Monitor</h3>
-            <p class="sub-text">Products with low inventory threshold needing immediate supplier purchase orders.</p>
-          </div>
-        </div>
-
-        <table class="ops-table">
-          <thead>
-            <tr>
-              <th>SKU ID</th>
-              <th>Product Name</th>
-              <th>Category</th>
-              <th>Current Stock</th>
-              <th>Safety Threshold</th>
-              <th>Status</th>
-              <th>Quick Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (prod of store.products(); track prod.id) {
-              @if (prod.stock < 50) {
-                <tr>
-                  <td><code>{{ prod.id }}</code></td>
-                  <td><strong>{{ prod.name }}</strong></td>
-                  <td><span class="cat-badge">{{ prod.category }}</span></td>
-                  <td><span [class.red-text]="prod.stock < 20" class="stock-count">{{ prod.stock }} units</span></td>
-                  <td>50 units</td>
-                  <td>
-                    @if (prod.stock < 20) {
-                      <span class="badge badge-red">CRITICAL LOW</span>
-                    } @else {
-                      <span class="badge badge-orange">REORDER SOON</span>
-                    }
-                  </td>
-                  <td>
-                    <button class="restock-action-btn" (click)="restockItem(prod, 50)">
-                      <span class="material-symbols-outlined">add_circle</span>
-                      Restock +50 Units
-                    </button>
-                  </td>
-                </tr>
-              }
-            }
-          </tbody>
-        </table>
-      </div>
-
-    </div>
-  }
-
-  <!-- ========================================================================= -->
-  <!-- MODALS -->
-  <!-- ========================================================================= -->
-
-  <!-- Add Product Modal -->
-  @if (isAddModalOpen()) {
-    <div class="modal-backdrop" (click)="isAddModalOpen.set(false)">
-      <div class="modal-card" (click)="$event.stopPropagation()">
-        <button class="modal-close" (click)="isAddModalOpen.set(false)">
-          <span class="material-symbols-outlined">close</span>
+      <div class="profile-actions">
+        <button class="storefront-link-btn" (click)="store.navigateTo('/store')" title="Preview Customer Storefront">
+          <span class="material-symbols-outlined">storefront</span>
         </button>
-
-        <h3>Add New Product to Warehouse Catalog</h3>
-
-        <form (submit)="onAddProductSubmit($event)" class="prod-form">
-          <div class="form-group">
-            <label>Product Name *</label>
-            <input type="text" [(ngModel)]="newProdName" name="name" required placeholder="e.g. Organic Turmeric Powder" />
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>Category *</label>
-              <select [(ngModel)]="newProdCategory" name="category" required>
-                @for (cat of store.categories(); track cat) {
-                  @if (cat !== 'All Categories') {
-                    <option [value]="cat">{{ cat }}</option>
-                  }
-                }
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Price ($ AUD) *</label>
-              <input type="number" step="0.01" [(ngModel)]="newProdPrice" name="price" required placeholder="9.99" />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>Weight / Pack Size *</label>
-              <input type="text" [(ngModel)]="newProdWeight" name="weight" required placeholder="250g Pack" />
-            </div>
-            <div class="form-group">
-              <label>Initial Stock Units *</label>
-              <input type="number" [(ngModel)]="newProdStock" name="stock" required placeholder="50" />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Origin Region</label>
-            <input type="text" [(ngModel)]="newProdOrigin" name="origin" placeholder="e.g. Erode, Tamil Nadu" />
-          </div>
-
-          <div class="form-group">
-            <label>Image URL</label>
-            <input type="text" [(ngModel)]="newProdImage" name="image" placeholder="https://images.unsplash.com/..." />
-          </div>
-
-          <div class="form-group">
-            <label>Description</label>
-            <textarea [(ngModel)]="newProdDesc" name="desc" rows="2" placeholder="Product details..."></textarea>
-          </div>
-
-          <button type="submit" class="submit-prod-btn">Add Product to Catalog</button>
-        </form>
-      </div>
-    </div>
-  }
-
-  <!-- Edit Product Modal -->
-  @if (isEditProductModalOpen() && editingProduct()) {
-    <div class="modal-backdrop" (click)="isEditProductModalOpen.set(false)">
-      <div class="modal-card" (click)="$event.stopPropagation()">
-        <button class="modal-close" (click)="isEditProductModalOpen.set(false)">
-          <span class="material-symbols-outlined">close</span>
+        <button class="portal-signout-btn" (click)="onLogout()" title="Sign Out from Operations Hub">
+          <span class="material-symbols-outlined">logout</span>
+          <span>Sign Out</span>
         </button>
-
-        <h3>Edit Product — {{ editingProduct()!.name }}</h3>
-
-        <form (submit)="saveEditProduct($event)" class="prod-form">
-          <div class="form-group">
-            <label>Product Name *</label>
-            <input type="text" [(ngModel)]="newProdName" name="editName" required />
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>Category *</label>
-              <select [(ngModel)]="newProdCategory" name="editCategory" required>
-                @for (cat of store.categories(); track cat) {
-                  @if (cat !== 'All Categories') {
-                    <option [value]="cat">{{ cat }}</option>
-                  }
-                }
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Price ($ AUD) *</label>
-              <input type="number" step="0.01" [(ngModel)]="newProdPrice" name="editPrice" required />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label>Weight / Pack Size *</label>
-              <input type="text" [(ngModel)]="newProdWeight" name="editWeight" required />
-            </div>
-            <div class="form-group">
-              <label>Stock Units *</label>
-              <input type="number" [(ngModel)]="newProdStock" name="editStock" required />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label>Origin Region</label>
-            <input type="text" [(ngModel)]="newProdOrigin" name="editOrigin" />
-          </div>
-
-          <div class="form-group">
-            <label>Image URL</label>
-            <input type="text" [(ngModel)]="newProdImage" name="editImage" />
-          </div>
-
-          <div class="form-group">
-            <label>Description</label>
-            <textarea [(ngModel)]="newProdDesc" name="editDesc" rows="2"></textarea>
-          </div>
-
-          <button type="submit" class="submit-prod-btn">Save Changes</button>
-        </form>
       </div>
     </div>
-  }
+  </div>
+</header>
 
-  <!-- Delete Product Confirmation Modal -->
-  @if (isDeleteModalOpen() && deletingProduct()) {
-    <div class="modal-backdrop" (click)="isDeleteModalOpen.set(false)">
-      <div class="modal-card modal-danger" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <h3>Delete Product Confirmation</h3>
-          <button class="close-btn" (click)="isDeleteModalOpen.set(false)">
-            <span class="material-symbols-outlined">close</span>
-          </button>
-        </div>
+<div class="ops-container">
+  <!-- Sub Header -->
+  <div class="ops-sub-header">
+    <h1>Fulfillment, Inventory & Dispatch</h1>
+    <p class="subtitle">Live warehouse dispatch, stock replenishment alerts, and category inventory metrics.</p>
+  </div>
 
-        <div class="modal-body" style="padding: 16px 0;">
-          <p style="margin-bottom: 12px; font-size: 14px; color: #334155;">
-            Are you sure you want to permanently delete <strong>"{{ deletingProduct()!.name }}"</strong>?
-          </p>
-          <div style="background: #fef2f2; border: 1px solid #fee2e2; padding: 10px; border-radius: 8px; font-size: 12px; color: #991b1b;">
-            ⚠️ This will remove the item from inventory catalog.
-          </div>
-        </div>
+  <!-- Navigation Tabs (Deep Linking via routerLink) -->
+  <div class="ops-tabs">
+    <a class="tab-btn" routerLink="pipeline" routerLinkActive="active">
+      <span class="material-symbols-outlined">pending_actions</span>
+      Fulfillment Pipeline
+    </a>
+    <a class="tab-btn" routerLink="products" routerLinkActive="active">
+      <span class="material-symbols-outlined">inventory_2</span>
+      Product Catalog
+    </a>
+    <a class="tab-btn" routerLink="categories" routerLinkActive="active">
+      <span class="material-symbols-outlined">category</span>
+      Categories & Hierarchy
+    </a>
+    <a class="tab-btn" routerLink="orders" routerLinkActive="active">
+      <span class="material-symbols-outlined">receipt_long</span>
+      Orders & Approvals ({{ store.orders().length }})
+    </a>
+    <a class="tab-btn" routerLink="banners" routerLinkActive="active">
+      <span class="material-symbols-outlined">tune</span>
+      Storefront Banners
+    </a>
+    <a class="tab-btn" routerLink="replenishment" routerLinkActive="active">
+      <span class="material-symbols-outlined">precision_manufacturing</span>
+      Replenishment
+    </a>
+    <a class="tab-btn notif-tab-btn" routerLink="notifications" routerLinkActive="active">
+      <span class="material-symbols-outlined">notifications</span>
+      Live Alerts
+      @if (store.unreadNotificationsCount() > 0) {
+        <span class="notif-badge">{{ store.unreadNotificationsCount() }}</span>
+      }
+    </a>
+  </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
-          <button type="button" style="padding: 8px 16px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer;" (click)="isDeleteModalOpen.set(false)">
-            Cancel
-          </button>
-          <button type="button" style="padding: 8px 16px; border-radius: 6px; border: none; background: #ef4444; color: #fff; font-weight: 600; cursor: pointer;" (click)="confirmDelete()">
-            Delete Product
-          </button>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Category Add/Edit Modal -->
-  @if (isCategoryModalOpen()) {
-    <div class="modal-backdrop" (click)="isCategoryModalOpen.set(false)">
-      <div class="modal-card" (click)="$event.stopPropagation()">
-        <button class="modal-close" (click)="isCategoryModalOpen.set(false)">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-
-        <h3>{{ editingCategoryId ? 'Edit Category' : 'Create New Category' }}</h3>
-
-        <form (submit)="saveCategory($event)" class="prod-form">
-          <div class="form-group">
-            <label>Category Name *</label>
-            <input type="text" [(ngModel)]="catName" (ngModelChange)="onCatNameChange()" name="catName" required placeholder="e.g. Rice & Flour" />
-          </div>
-
-          <div class="form-group">
-            <label>URL Slug *</label>
-            <input type="text" [(ngModel)]="catSlug" name="catSlug" required placeholder="rice-flour" />
-          </div>
-
-          <div class="form-group">
-            <label>Icon Identifier</label>
-            <select [(ngModel)]="catIcon" name="catIcon">
-              @for (icon of commonIcons; track icon) {
-                <option [value]="icon">{{ icon }}</option>
-              }
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Display Order</label>
-            <input type="number" [(ngModel)]="catDisplayOrder" name="catDisplayOrder" />
-          </div>
-
-          <button type="submit" class="submit-prod-btn">{{ editingCategoryId ? 'Update Category' : 'Create Category' }}</button>
-        </form>
-      </div>
-    </div>
-  }
-
-  <!-- Delete Category Modal -->
-  @if (isDeleteCatModalOpen() && deletingCategory) {
-    <div class="modal-backdrop" (click)="isDeleteCatModalOpen.set(false)">
-      <div class="modal-card modal-danger" (click)="$event.stopPropagation()">
-        <h3>Delete Category Confirmation</h3>
-        <p style="margin: 12px 0; color: #334155; font-size: 14px;">
-          Are you sure you want to delete category <strong>"{{ deletingCategory.name }}"</strong>?
-        </p>
-        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px;">
-          <button type="button" style="padding: 8px 16px; border-radius: 6px; border: 1px solid #cbd5e1; background: #f8fafc; cursor: pointer;" (click)="isDeleteCatModalOpen.set(false)">Cancel</button>
-          <button type="button" style="padding: 8px 16px; border-radius: 6px; border: none; background: #ef4444; color: #fff; font-weight: 600; cursor: pointer;" (click)="confirmDeleteCategory()">Delete Category</button>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Add SubCategory Modal -->
-  @if (isSubCategoryModalOpen()) {
-    <div class="modal-backdrop" (click)="isSubCategoryModalOpen.set(false)">
-      <div class="modal-card" (click)="$event.stopPropagation()">
-        <button class="modal-close" (click)="isSubCategoryModalOpen.set(false)">
-          <span class="material-symbols-outlined">close</span>
-        </button>
-
-        <h3>Add Sub-Category to "{{ parentCategoryNameForSub }}"</h3>
-
-        <form (submit)="saveSubCategory($event)" class="prod-form">
-          <div class="form-group">
-            <label>Sub-Category Name *</label>
-            <input type="text" [(ngModel)]="subCatName" (ngModelChange)="onSubCatNameChange()" name="subCatName" required placeholder="e.g. Basmati Rice" />
-          </div>
-
-          <div class="form-group">
-            <label>URL Slug *</label>
-            <input type="text" [(ngModel)]="subCatSlug" name="subCatSlug" required placeholder="basmati-rice" />
-          </div>
-
-          <div class="form-group">
-            <label>Display Order</label>
-            <input type="number" [(ngModel)]="subCatDisplayOrder" name="subCatDisplayOrder" />
-          </div>
-
-          <button type="submit" class="submit-prod-btn">Add Sub-Category</button>
-        </form>
-      </div>
-    </div>
-  }
-
+  <!-- Child View Outlet for Lazy-Loaded Sub-Pages -->
+  <router-outlet></router-outlet>
 </div>

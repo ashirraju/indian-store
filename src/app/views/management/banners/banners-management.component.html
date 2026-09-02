@@ -1,0 +1,56 @@
+<div class="tab-content card-surface">
+  <div class="tab-title-row">
+    <div>
+      <h3>Storefront Header & Hero Customization</h3>
+      <p>Update top announcement ticker, main hero banner text, image backgrounds, and CTA buttons in real time.</p>
+    </div>
+  </div>
+
+  <form class="banner-form" (submit)="onSaveBanners($event)">
+    <div class="form-group">
+      <label>Top Announcement Bar Text</label>
+      <input type="text" [(ngModel)]="announcementText" name="announcementText" />
+    </div>
+
+    <div class="form-group">
+      <label>Announcement Link (Optional)</label>
+      <input type="text" [(ngModel)]="announcementLink" name="announcementLink" placeholder="/page/festive-deal" />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Hero Promo Badge</label>
+        <input type="text" [(ngModel)]="promoBadge" name="promoBadge" />
+      </div>
+      <div class="form-group">
+        <label>Primary Button Label</label>
+        <input type="text" [(ngModel)]="primaryButtonText" name="primaryButtonText" />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Hero Main Headline</label>
+      <input type="text" [(ngModel)]="heroHeadline" name="heroHeadline" />
+    </div>
+
+    <div class="form-group">
+      <label>Hero Subheadline</label>
+      <textarea [(ngModel)]="heroSubheadline" name="heroSubheadline" rows="2"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Hero Image URL</label>
+      <input type="text" [(ngModel)]="heroBannerImage" name="heroBannerImage" />
+      @if (heroBannerImage) {
+        <div class="image-preview-box">
+          <img [src]="heroBannerImage" alt="Hero Preview" />
+        </div>
+      }
+    </div>
+
+    <button type="submit" class="primary-admin-btn save-banner-btn">
+      <span class="material-symbols-outlined">save</span>
+      Publish Banner Updates
+    </button>
+  </form>
+</div>

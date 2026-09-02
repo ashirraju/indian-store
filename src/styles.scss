@@ -185,6 +185,12 @@ select {
   justify-content: center;
   vertical-align: middle;
   user-select: none;
+  overflow: hidden;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Mobile Input Auto-Zoom Prevention (iOS Safari) */
@@ -195,3 +201,55 @@ select {
     font-size: 16px !important;
   }
 }
+
+/* ==========================================================================
+   GLOBAL SKELETON LOADERS & SHIMMER ANIMATION
+   ========================================================================== */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #f1f5f9 0%,
+    #e2e8f0 35%,
+    #f8fafc 50%,
+    #e2e8f0 65%,
+    #f1f5f9 100%
+  );
+  background-size: 250% 100%;
+  animation: skeleton-shimmer 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  border-radius: 6px;
+  pointer-events: none;
+  user-select: none;
+}
+
+.skeleton-text {
+  height: 14px;
+  margin-bottom: 6px;
+  border-radius: 4px;
+  &.w-75 { width: 75%; }
+  &.w-50 { width: 50%; }
+  &.w-25 { width: 25%; }
+  &.w-100 { width: 100%; }
+  &.sm { height: 10px; }
+  &.lg { height: 18px; }
+  &.xl { height: 24px; }
+}
+
+.skeleton-circle {
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-btn {
+  height: 36px;
+  border-radius: 20px;
+}
+

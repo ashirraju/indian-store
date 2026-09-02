@@ -1,0 +1,294 @@
+<mxfile host="app.diagrams.net" modified="2026-09-01T06:00:00.000Z" agent="Antigravity" version="21.0.0" type="device">
+  <diagram id="indian-store-flow-diagram" name="Indian Store End-to-End Flow">
+    <mxGraphModel dx="1600" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1200" background="#F8FAFC" math="0" shadow="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title Banner -->
+        <mxCell id="title-box" value="&lt;b style='font-size: 22px;'&gt;INDIAN STORE AUSTRALIA 🇦🇺 - APPLICATION ARCHITECTURE &amp;amp; FLOW DIAGRAM&lt;/b&gt;&lt;br&gt;&lt;span style='font-size: 13px; color: #475569;'&gt;Comprehensive End-to-End Workflow: Keycloak Auth, RBAC Portals, Order Lifecycle, Reactive Angular Signals &amp;amp; REST/SSE Backend&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#0F172A;fontColor=#FFFFFF;align=center;shadow=1;arcSize=10;" vertex="1" parent="1">
+          <mxGeometry x="40" y="30" width="1840" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================================== -->
+        <!-- SWIMLANE 1: AUTHENTICATION & ROLE-BASED ACCESS CONTROL (RBAC) -->
+        <!-- ============================================================== -->
+        <mxCell id="lane-auth" value="🔐 AUTHENTICATION &amp; ROLE GATEWAY (Keycloak OIDC &amp; Role-Auth Guard)" style="swimlane;startSize=30;rounded=1;arcSize=8;fillColor=#EFF6FF;strokeColor=#3B82F6;fontStyle=1;fontColor=#1E3A8A;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="120" width="1840" height="180" as="geometry" />
+        </mxCell>
+
+        <mxCell id="user-entry" value="&lt;b&gt;User / Staff Access&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;color:#64748B;'&gt;Browser URL / Route Nav&lt;/font&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#DBEAFE;strokeColor=#2563EB;fontColor=#1E40AF;fontStyle=1;" vertex="1" parent="lane-auth">
+          <mxGeometry x="30" y="55" width="150" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="role-guard" value="&lt;b&gt;Role Auth Guard&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Check Role in Token / URL&lt;br&gt;(roleAuthGuard.ts)&lt;/font&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FEF08A;strokeColor=#CA8A04;fontColor=#854D0E;fontStyle=1;" vertex="1" parent="lane-auth">
+          <mxGeometry x="230" y="45" width="180" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="keycloak-sso" value="&lt;b&gt;Keycloak SSO Provider&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;PKCE Auth Flow (OpenID Connect)&lt;br&gt;Clients: &lt;i&gt;staff-client / customer-client&lt;/i&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#DC2626;fontColor=#991B1B;" vertex="1" parent="lane-auth">
+          <mxGeometry x="470" y="55" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="session-storage" value="&lt;b&gt;Session &amp; Token Store&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;JWT Access Token &amp; Roles&lt;br&gt;localStorage / sessionStorage&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE9FE;strokeColor=#7C3AED;fontColor=#5B21B6;" vertex="1" parent="lane-auth">
+          <mxGeometry x="740" y="55" width="180" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="role-router" value="&lt;b&gt;Role-Based View Dispatcher&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;StoreStateService.activeRole() Signal&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;fontColor=#166534;fontStyle=1;" vertex="1" parent="lane-auth">
+          <mxGeometry x="970" y="55" width="220" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="portal-customer" value="&lt;b&gt;🛒 Customer View&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Route: /store&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#0284C7;fontColor=#075985;fontStyle=1;" vertex="1" parent="lane-auth">
+          <mxGeometry x="1240" y="55" width="130" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="portal-manager" value="&lt;b&gt;📊 Manager View&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Route: /manager&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;fontColor=#92400E;fontStyle=1;" vertex="1" parent="lane-auth">
+          <mxGeometry x="1390" y="55" width="130" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="portal-ops" value="&lt;b&gt;📦 Operations View&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Route: /operations&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEDD5;strokeColor=#EA580C;fontColor=#9A3412;fontStyle=1;" vertex="1" parent="lane-auth">
+          <mxGeometry x="1540" y="55" width="130" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="portal-delivery" value="&lt;b&gt;🚚 Delivery View&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Route: /delivery&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E8FF;strokeColor=#9333EA;fontColor=#6B21A8;fontStyle=1;" vertex="1" parent="lane-auth">
+          <mxGeometry x="1690" y="55" width="130" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Auth Edges -->
+        <mxCell id="edge-a1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#2563EB;strokeWidth=2;" edge="1" parent="lane-auth" source="user-entry" target="role-guard">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-a2" value="Unauthenticated /&lt;br&gt;Protected Role" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#DC2626;strokeWidth=2;fontColor=#DC2626;fontSize=10;" edge="1" parent="lane-auth" source="role-guard" target="keycloak-sso">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-a3" value="Auth Token / Roles" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#7C3AED;strokeWidth=2;fontSize=10;" edge="1" parent="lane-auth" source="keycloak-sso" target="session-storage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-a4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#16A34A;strokeWidth=2;" edge="1" parent="lane-auth" source="session-storage" target="role-router">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-a5" value="Public / Validated" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#16A34A;strokeWidth=2;fontSize=10;" edge="1" parent="lane-auth" source="role-guard" target="role-router">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="320" y="160" />
+              <mxPoint x="1080" y="160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-r1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#0284C7;strokeWidth=2;" edge="1" parent="lane-auth" source="role-router" target="portal-customer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-r2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#D97706;strokeWidth=2;" edge="1" parent="lane-auth" source="role-router" target="portal-manager">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-r3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#EA580C;strokeWidth=2;" edge="1" parent="lane-auth" source="role-router" target="portal-ops">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-r4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#9333EA;strokeWidth=2;" edge="1" parent="lane-auth" source="role-router" target="portal-delivery">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ============================================================== -->
+        <!-- SWIMLANE 2: CUSTOMER JOURNEY (STOREFRONT TO CHECKOUT)          -->
+        <!-- ============================================================== -->
+        <mxCell id="lane-customer" value="🛒 CUSTOMER EXPERIENCE &amp; SHOPPING FLOW (/store)" style="swimlane;startSize=30;rounded=1;arcSize=8;fillColor=#F0FDF4;strokeColor=#22C55E;fontStyle=1;fontColor=#15803D;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="320" width="880" height="480" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cust-browse" value="&lt;b&gt;1. Browse Catalog &amp; Hero Banners&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Search, GI-Tagged Filters, Regional Spices, Deals&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontColor=#1E293B;" vertex="1" parent="lane-customer">
+          <mxGeometry x="30" y="50" width="240" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cust-filter" value="&lt;b&gt;Category Slide-Out Panel&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Sweets, Rice &amp; Atta, Ghee, Spices, Snacks&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontColor=#1E293B;" vertex="1" parent="lane-customer">
+          <mxGeometry x="30" y="140" width="240" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cust-product-modal" value="&lt;b&gt;Product Quick View &amp; Origin&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Nutrition, Origin Badge (Kashmir, Gujarat, etc.)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontColor=#1E293B;" vertex="1" parent="lane-customer">
+          <mxGeometry x="30" y="225" width="240" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cust-cart-action" value="&lt;b&gt;2. Cart &amp; Wishlist Management&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Add to Cart Drawer / Save to Wishlist Drawer&lt;br&gt;Quantity, Unit Weights &amp; GST calculation&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF08A;strokeColor=#CA8A04;fontColor=#854D0E;fontStyle=1;" vertex="1" parent="lane-customer">
+          <mxGeometry x="330" y="50" width="260" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cust-checkout-form" value="&lt;b&gt;3. Australian Checkout Modal&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;• AU Address &amp; State Selection (NSW, VIC, QLD, WA...)&lt;br&gt;• Free Shipping over $75 AUD threshold&lt;br&gt;• Payment Gateway (Card, Apple Pay, PayPal, Afterpay, COD)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;fontColor=#92400E;align=left;spacingLeft=10;" vertex="1" parent="lane-customer">
+          <mxGeometry x="330" y="150" width="260" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cust-place-order" value="&lt;b&gt;4. Place Order Submission&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;POST /api/orders&lt;br&gt;Status: &lt;b style='color:#2563EB;'&gt;Placed&lt;/b&gt; 🏷️&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;fontColor=#166534;fontStyle=1;" vertex="1" parent="lane-customer">
+          <mxGeometry x="330" y="270" width="260" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cust-order-tracking" value="&lt;b&gt;5. Customer Live Order Tracking&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Orders Modal with Step Tracker &amp; Real-time SSE Notifications&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#0284C7;fontColor=#075985;fontStyle=1;" vertex="1" parent="lane-customer">
+          <mxGeometry x="640" y="270" width="220" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cust-toasts" value="&lt;b&gt;Instant UI Feedback (Toasts)&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Success / Info / Warning Alerts&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1F5F9;strokeColor=#94A3B8;fontColor=#475569;" vertex="1" parent="lane-customer">
+          <mxGeometry x="640" y="150" width="220" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- Customer Connections -->
+        <mxCell id="edge-c1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#16A34A;strokeWidth=2;" edge="1" parent="lane-customer" source="cust-browse" target="cust-filter">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-c2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#16A34A;strokeWidth=2;" edge="1" parent="lane-customer" source="cust-filter" target="cust-product-modal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-c3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#16A34A;strokeWidth=2;" edge="1" parent="lane-customer" source="cust-browse" target="cust-cart-action">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-c4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#16A34A;strokeWidth=2;" edge="1" parent="lane-customer" source="cust-product-modal" target="cust-cart-action">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="300" y="252" />
+              <mxPoint x="300" y="85" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge-c5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#D97706;strokeWidth=2;" edge="1" parent="lane-customer" source="cust-cart-action" target="cust-checkout-form">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-c6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#16A34A;strokeWidth=2;" edge="1" parent="lane-customer" source="cust-checkout-form" target="cust-place-order">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-c7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#0284C7;strokeWidth=2;" edge="1" parent="lane-customer" source="cust-place-order" target="cust-order-tracking">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-c8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#94A3B8;strokeWidth=1;dashed=1;" edge="1" parent="lane-customer" source="cust-place-order" target="cust-toasts">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="610" y="300" />
+              <mxPoint x="610" y="175" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ============================================================== -->
+        <!-- SWIMLANE 3: FULFILLMENT LIFECYCLE (OPERATIONS & DELIVERY)       -->
+        <!-- ============================================================== -->
+        <mxCell id="lane-fulfillment" value="🏭 ORDER FULFILLMENT PIPELINE (Operations, Packing &amp; Last-Mile Delivery)" style="swimlane;startSize=30;rounded=1;arcSize=8;fillColor=#FFF7ED;strokeColor=#F97316;fontStyle=1;fontColor=#C2410C;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="940" y="320" width="940" height="480" as="geometry" />
+        </mxCell>
+
+        <!-- Operations Group -->
+        <mxCell id="ops-queue" value="&lt;b&gt;1. Warehouse Packing Queue&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Incoming Orders filtered by State (NSW/VIC)&lt;br&gt;Current Status: &lt;b style='color:#2563EB;'&gt;Placed&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#EA580C;fontColor=#1E293B;" vertex="1" parent="lane-fulfillment">
+          <mxGeometry x="30" y="50" width="240" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ops-packing" value="&lt;b&gt;2. Item Picking &amp; Packaging&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Check off inventory, verify batch &amp; seal box&lt;br&gt;Action: &lt;i&gt;&quot;Start Packing&quot;&lt;/i&gt; ➔ &lt;b style='color:#D97706;'&gt;In Packing&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;fontColor=#92400E;" vertex="1" parent="lane-fulfillment">
+          <mxGeometry x="30" y="155" width="240" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ops-ready" value="&lt;b&gt;3. Dispatch Staging &amp; Manifest&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Generate Courier Label (AusPost / StarTrack)&lt;br&gt;Status: &lt;b style='color:#16A34A;'&gt;Packed&lt;/b&gt; ➔ &lt;b style='color:#7C3AED;'&gt;Ready for Dispatch&lt;/b&gt;&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE9FE;strokeColor=#7C3AED;fontColor=#5B21B6;" vertex="1" parent="lane-fulfillment">
+          <mxGeometry x="30" y="260" width="240" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Delivery Group -->
+        <mxCell id="del-assign" value="&lt;b&gt;4. Driver Pickup &amp; Route Assignment&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Delivery Driver accepts run from Hub (Sydney/Melb)&lt;br&gt;Status: &lt;b style='color:#9333EA;'&gt;Out for Delivery&lt;/b&gt; 🚚&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F3E8FF;strokeColor=#9333EA;fontColor=#6B21A8;" vertex="1" parent="lane-fulfillment">
+          <mxGeometry x="330" y="260" width="260" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="del-proof" value="&lt;b&gt;5. Last-Mile Handover &amp; Proof of Delivery&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Capture OTP / Signature / Safe Drop photo&lt;br&gt;Status: &lt;b style='color:#16A34A;'&gt;Delivered&lt;/b&gt; ✅&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;fontColor=#166534;fontStyle=1;" vertex="1" parent="lane-fulfillment">
+          <mxGeometry x="640" y="260" width="260" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="del-driver-console" value="&lt;b&gt;Delivery Partner Console (/delivery)&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Active route map, customer contact chip, delivery notes&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9333EA;fontColor=#1E293B;" vertex="1" parent="lane-fulfillment">
+          <mxGeometry x="480" y="155" width="280" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="stock-decrement" value="&lt;b&gt;Automatic Stock Decrement&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Catalog inventory deducted &amp; low stock flagged&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEE2E2;strokeColor=#DC2626;fontColor=#991B1B;" vertex="1" parent="lane-fulfillment">
+          <mxGeometry x="330" y="50" width="260" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Fulfillment Edges -->
+        <mxCell id="edge-f1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#EA580C;strokeWidth=2;" edge="1" parent="lane-fulfillment" source="ops-queue" target="ops-packing">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-f2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#7C3AED;strokeWidth=2;" edge="1" parent="lane-fulfillment" source="ops-packing" target="ops-ready">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-f3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#9333EA;strokeWidth=2;" edge="1" parent="lane-fulfillment" source="ops-ready" target="del-assign">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-f4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#16A34A;strokeWidth=2;" edge="1" parent="lane-fulfillment" source="del-assign" target="del-proof">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-f5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#9333EA;strokeWidth=1;dashed=1;" edge="1" parent="lane-fulfillment" source="del-driver-console" target="del-assign">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-f6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#DC2626;strokeWidth=2;" edge="1" parent="lane-fulfillment" source="ops-queue" target="stock-decrement">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Cross Lane: Order Placed -> Fulfillment Queue -->
+        <mxCell id="edge-cross-order" value="New Order Placed Event" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#2563EB;strokeWidth=2;fontColor=#1E40AF;fontSize=11;" edge="1" parent="1" source="cust-place-order" target="ops-queue">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="500" y="680" />
+              <mxPoint x="950" y="680" />
+              <mxPoint x="950" y="405" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ============================================================== -->
+        <!-- SWIMLANE 4: STORE MANAGEMENT, INVENTORY & ADMIN GOVERNANCE     -->
+        <!-- ============================================================== -->
+        <mxCell id="lane-admin" value="📊 STORE MANAGEMENT &amp; SUPER ADMIN DASHBOARD (/manager &amp; /admin)" style="swimlane;startSize=30;rounded=1;arcSize=8;fillColor=#FAF5FF;strokeColor=#A855F7;fontStyle=1;fontColor=#7E22CE;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="820" width="1840" height="340" as="geometry" />
+        </mxCell>
+
+        <!-- Manager Views -->
+        <mxCell id="mgr-inventory" value="&lt;b&gt;Inventory &amp; Stock Matrix&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Real-time stock counters, low-stock alerts, auto reorder triggers&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;fontColor=#1E293B;" vertex="1" parent="lane-admin">
+          <mxGeometry x="30" y="50" width="240" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="mgr-catalog" value="&lt;b&gt;Catalog &amp; Pricing Editor&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Add / Edit Products, GI Regions, Weight variations, AUD pricing&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;fontColor=#1E293B;" vertex="1" parent="lane-admin">
+          <mxGeometry x="300" y="50" width="240" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="mgr-analytics" value="&lt;b&gt;Revenue &amp; Analytics KPI&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Total Sales, Average Order Value (AOV), top Indian regions&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;fontColor=#1E293B;" vertex="1" parent="lane-admin">
+          <mxGeometry x="570" y="50" width="240" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Admin Views -->
+        <mxCell id="adm-users" value="&lt;b&gt;User &amp; Role Administration&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Keycloak realm user mapping, role assignment (Admin, Manager, Ops, Delivery)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7C3AED;fontColor=#1E293B;" vertex="1" parent="lane-admin">
+          <mxGeometry x="870" y="50" width="270" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="adm-cms" value="&lt;b&gt;CMS &amp; Promotional Banners&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Hero festival banners (Diwali, Holi, Pongal), promotional coupons, offers&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7C3AED;fontColor=#1E293B;" vertex="1" parent="lane-admin">
+          <mxGeometry x="1170" y="50" width="280" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="adm-audit" value="&lt;b&gt;System Audit &amp; Activity Logs&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Security logs, API response telemetry, stock override history&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#7C3AED;fontColor=#1E293B;" vertex="1" parent="lane-admin">
+          <mxGeometry x="1480" y="50" width="260" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Unified State Service Foundation -->
+        <mxCell id="unified-state" value="&lt;b style='font-size:14px;'&gt;🧠 Angular Reactive Store Engine (StoreStateService)&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:11px;'&gt;Signals: &lt;i&gt;activeRole, activePath, isCartOpen, isWishlistOpen, isOrdersModalOpen, notifications, wishlist, apiCategories&lt;/i&gt;&lt;br&gt;Computed Values: &lt;i&gt;cartTotal, gstAmount, freeShippingProgress, unreadNotificationsCount&lt;/i&gt;&lt;br&gt;Sync: LocalStorage Cache ↔ REST API (ApiService) ↔ Server-Sent Events (SSE Realtime Stream)&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E293B;strokeColor=#0F172A;fontColor=#F8FAFC;align=center;" vertex="1" parent="lane-admin">
+          <mxGeometry x="30" y="160" width="1710" height="140" as="geometry" />
+        </mxCell>
+
+        <!-- Connections from Admin & Manager to State -->
+        <mxCell id="edge-m1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#D97706;strokeWidth=2;" edge="1" parent="lane-admin" source="mgr-inventory" target="unified-state">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-m2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#D97706;strokeWidth=2;" edge="1" parent="lane-admin" source="mgr-catalog" target="unified-state">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-m3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#D97706;strokeWidth=2;" edge="1" parent="lane-admin" source="mgr-analytics" target="unified-state">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-u1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#7C3AED;strokeWidth=2;" edge="1" parent="lane-admin" source="adm-users" target="unified-state">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-u2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#7C3AED;strokeWidth=2;" edge="1" parent="lane-admin" source="adm-cms" target="unified-state">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge-u3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#7C3AED;strokeWidth=2;" edge="1" parent="lane-admin" source="adm-audit" target="unified-state">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
