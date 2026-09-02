@@ -241,6 +241,12 @@
 
     .nav-icon { color: #ffffff; }
   }
+
+  &.skeleton-nav-link {
+    pointer-events: none;
+    background: #f8fafc;
+    border-color: #f1f5f9;
+  }
 }
 .nav-icon {
   font-size: 17px;
@@ -273,6 +279,21 @@
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  .material-symbols-outlined {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    line-height: 18px;
+    overflow: hidden;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
 
   &:hover {
     background: #f1f5f9;
@@ -318,6 +339,21 @@
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(2, 150, 224, 0.25);
   transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  .material-symbols-outlined {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+    line-height: 18px;
+    overflow: hidden;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
 
   &:hover {
     background: #0285c7;

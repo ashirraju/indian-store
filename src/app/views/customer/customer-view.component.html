@@ -294,6 +294,42 @@
         </div>
 
         <div class="main-products-column">
+          <!-- Skeleton Loaders for Product Carousels -->
+          @if ((store.isLoadingCatalog() || isLoadingProducts()) && store.products().length === 0) {
+            @for (sk of [1, 2]; track sk) {
+              <div class="category-block card-surface">
+                <div class="cat-block-header">
+                  <div class="cat-title-box">
+                    <div class="skeleton skeleton-circle" style="width: 38px; height: 38px;"></div>
+                    <div style="width: 220px; display: flex; flex-direction: column; justify-content: center;">
+                      <div class="skeleton skeleton-text w-75 lg" style="margin-bottom: 6px;"></div>
+                      <div class="skeleton skeleton-text w-50 sm"></div>
+                    </div>
+                  </div>
+                  <div class="skeleton skeleton-btn" style="width: 130px; height: 32px; border-radius: 16px;"></div>
+                </div>
+                <div class="carousel-relative-container">
+                  <div class="product-single-line-carousel">
+                    @for (s of [1, 2, 3, 4, 5, 6]; track s) {
+                      <div class="product-card skeleton-card">
+                        <div class="card-media skeleton"></div>
+                        <div class="card-body">
+                          <div class="skeleton skeleton-text w-50 sm"></div>
+                          <div class="skeleton skeleton-text w-100 lg"></div>
+                          <div class="skeleton skeleton-text w-75 sm"></div>
+                          <div class="card-footer" style="margin-top: 12px;">
+                            <div class="skeleton skeleton-text w-25 lg" style="margin-bottom: 0;"></div>
+                            <div class="skeleton skeleton-btn" style="width: 68px; height: 32px; border-radius: 16px;"></div>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          }
+
           @for (catName of categoryListWithoutAll(); track catName) {
             @if (getProductsByCategory(catName).length > 0) {
               <div [id]="'cat-section-' + slugify(catName)" class="category-block card-surface">

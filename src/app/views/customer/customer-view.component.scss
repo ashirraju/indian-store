@@ -751,6 +751,19 @@
     transform: translateY(-4px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.08);
   }
+
+  &.skeleton-card {
+    pointer-events: none;
+    transform: none !important;
+    box-shadow: none !important;
+    border-color: #f1f5f9;
+
+    .card-media.skeleton {
+      height: 170px;
+      width: 100%;
+      border-radius: 0;
+    }
+  }
 }
 
 .card-media {

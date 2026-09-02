@@ -138,18 +138,27 @@
   <div class="header-sub-nav">
     <div class="sub-nav-container">
       <nav class="dynamic-nav">
-        @for (item of filteredMenus(); track item.id) {
-          <button
-            class="nav-link"
-            [class.active]="store.activePath() === item.path"
-            (click)="onMenuClick(item)"
-          >
-            <span class="material-symbols-outlined nav-icon">{{ item.icon }}</span>
-            <span>{{ item.label }}</span>
-            @if (item.badge) {
-              <span class="nav-badge">{{ item.badge }}</span>
-            }
-          </button>
+        @if (store.isLoadingCatalog() && filteredMenus().length === 0) {
+          @for (s of [1, 2, 3, 4, 5, 6, 7]; track s) {
+            <div class="nav-link skeleton-nav-link">
+              <div class="skeleton skeleton-circle" style="width: 14px; height: 14px;"></div>
+              <div class="skeleton skeleton-text" style="width: 75px; height: 12px; margin-bottom: 0;"></div>
+            </div>
+          }
+        } @else {
+          @for (item of filteredMenus(); track item.id) {
+            <button
+              class="nav-link"
+              [class.active]="store.activePath() === item.path"
+              (click)="onMenuClick(item)"
+            >
+              <span class="material-symbols-outlined nav-icon">{{ item.icon }}</span>
+              <span>{{ item.label }}</span>
+              @if (item.badge) {
+                <span class="nav-badge">{{ item.badge }}</span>
+              }
+            </button>
+          }
         }
       </nav>
     </div>
