@@ -316,7 +316,7 @@ export class StoreStateService {
     else if (path === '/delivery' || path.startsWith('/delivery')) targetRole = AppRole.DELIVERY;
 
     if (targetRole) {
-      if (this.keycloak.isInitialized() && !this.keycloak.isAuthenticated()) {
+      if (!this.keycloak.isAuthenticated()) {
         const allowed = this.keycloak.requireAuthForRole(targetRole, path);
         if (!allowed) {
           return;

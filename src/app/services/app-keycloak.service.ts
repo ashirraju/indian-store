@@ -38,7 +38,25 @@ export class AppKeycloakService {
 
   constructor() {
     this.restoreSessionFromStorage();
-    this.initKeycloak();
+    // Skip connecting to Keycloak initially for guests.
+    // Only auto-initialize on startup if returning from a Keycloak auth redirect callback.
+    if (this.hasAuthCallback()) {
+      this.initKeycloak();
+    }
+  }
+
+  /**
+   * Check if current URL contains OAuth/OIDC callback parameters (e.g. returning from Keycloak login redirect)
+   */
+  hasAuthCallback(): boolean {
+    if (typeof window === 'undefined') return false;
+    const url = window.location.href;
+    return (
+      url.includes('code=') ||
+      url.includes('state=') ||
+      url.includes('session_state=') ||
+      url.includes('error=')
+    );
   }
 
   private restoreSessionFromStorage() {

@@ -9,7 +9,12 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withHashLocation()),
     provideAppInitializer(() => {
       const keycloak = inject(AppKeycloakService);
-      return keycloak.initKeycloak();
+      // Skip Keycloak for guests on initial load.
+      // Only initialize on startup if returning from a Keycloak auth redirect callback.
+      if (keycloak.hasAuthCallback()) {
+        return keycloak.initKeycloak();
+      }
+      return Promise.resolve(false);
     })
   ]
 };
