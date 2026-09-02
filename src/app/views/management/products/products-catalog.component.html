@@ -333,6 +333,76 @@
             </tbody>
           </table>
         </div>
+
+        <!-- Catalog Pagination Bar -->
+        <div class="catalog-pagination-bar">
+          <div class="pagination-info">
+            <span>
+              Showing
+              <strong>{{ (currentPage() - 1) * pageSize() + (productsList().length > 0 ? 1 : 0) }}</strong>
+              -
+              <strong>{{ (currentPage() - 1) * pageSize() + productsList().length }}</strong>
+              of
+              <strong>{{ totalProductCount() }}</strong> products
+            </span>
+
+            <div class="page-size-selector">
+              <label for="pageSizeSelect">Per page:</label>
+              <select
+                id="pageSizeSelect"
+                [ngModel]="pageSize()"
+                (ngModelChange)="onPageSizeChange($event)"
+                class="page-size-dropdown"
+              >
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="20">20</option>
+                <option [ngValue]="50">50</option>
+                <option [ngValue]="100">100</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="pagination-nav">
+            <button
+              type="button"
+              class="page-nav-btn"
+              [disabled]="currentPage() <= 1"
+              (click)="prevPage()"
+              title="Previous Page"
+            >
+              <span class="material-symbols-outlined">chevron_left</span>
+              <span>Prev</span>
+            </button>
+
+            <div class="page-numbers">
+              @for (p of getVisiblePages(); track $index) {
+                @if (p === '...') {
+                  <span class="page-ellipsis">...</span>
+                } @else {
+                  <button
+                    type="button"
+                    class="page-num-btn"
+                    [class.active]="currentPage() === p"
+                    (click)="goToPage(+p)"
+                  >
+                    {{ p }}
+                  </button>
+                }
+              }
+            </div>
+
+            <button
+              type="button"
+              class="page-nav-btn"
+              [disabled]="currentPage() >= totalPages()"
+              (click)="nextPage()"
+              title="Next Page"
+            >
+              <span>Next</span>
+              <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+          </div>
+        </div>
       }
     </div>
 

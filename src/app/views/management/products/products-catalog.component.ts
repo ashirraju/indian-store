@@ -47,6 +47,9 @@ export class ProductsCatalogComponent implements OnInit {
   readonly productsSummary = signal<ProductsSummary | null>(null);
   readonly isProductsLoading = signal<boolean>(false);
   readonly totalProductCount = signal<number>(0);
+  readonly currentPage = signal<number>(1);
+  readonly pageSize = signal<number>(20);
+  readonly totalPages = signal<number>(1);
 
   // Filter & Search State
   productSearch = '';
@@ -131,7 +134,8 @@ export class ProductsCatalogComponent implements OnInit {
     this.isProductsLoading.set(true);
     try {
       const params: any = {
-        limit: 100
+        page: this.currentPage(),
+        limit: this.pageSize()
       };
       if (this.productSearch.trim()) params.search = this.productSearch.trim();
       if (this.selectedCategoryFilter) params.category = this.selectedCategoryFilter;
@@ -145,7 +149,10 @@ export class ProductsCatalogComponent implements OnInit {
       const res = await this.api.getProducts(params);
       if (res.success) {
         this.productsList.set(res.data || []);
-        this.totalProductCount.set(res.totalCount || res.data.length);
+        const total = res.totalCount ?? res.data?.length ?? 0;
+        this.totalProductCount.set(total);
+        const calcPages = res.totalPages ?? Math.max(1, Math.ceil(total / this.pageSize()));
+        this.totalPages.set(calcPages);
       }
     } catch (err) {
       console.error('Error fetching products:', err);
@@ -155,12 +162,55 @@ export class ProductsCatalogComponent implements OnInit {
     }
   }
 
+  goToPage(page: number) {
+    if (page < 1 || page > this.totalPages() || page === this.currentPage()) return;
+    this.currentPage.set(page);
+    this.loadProducts();
+  }
+
+  nextPage() {
+    if (this.currentPage() < this.totalPages()) {
+      this.goToPage(this.currentPage() + 1);
+    }
+  }
+
+  prevPage() {
+    if (this.currentPage() > 1) {
+      this.goToPage(this.currentPage() - 1);
+    }
+  }
+
+  onPageSizeChange(newSize: number) {
+    this.pageSize.set(Number(newSize));
+    this.currentPage.set(1);
+    this.loadProducts();
+  }
+
+  getVisiblePages(): (number | string)[] {
+    const total = this.totalPages();
+    const current = this.currentPage();
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    const pages: (number | string)[] = [];
+    if (current <= 4) {
+      pages.push(1, 2, 3, 4, 5, '...', total);
+    } else if (current >= total - 3) {
+      pages.push(1, '...', total - 4, total - 3, total - 2, total - 1, total);
+    } else {
+      pages.push(1, '...', current - 1, current, current + 1, '...', total);
+    }
+    return pages;
+  }
+
   onCategoryFilterChange() {
     this.selectedSubCategoryFilter = '';
+    this.currentPage.set(1);
     this.loadProducts();
   }
 
   onFilterChange() {
+    this.currentPage.set(1);
     this.loadProducts();
   }
 
@@ -180,6 +230,7 @@ export class ProductsCatalogComponent implements OnInit {
     this.selectedOrganicFilter = '';
     this.selectedBestsellerFilter = '';
     this.selectedSortOption = 'newest';
+    this.currentPage.set(1);
     this.loadProducts();
   }
 
