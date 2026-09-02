@@ -243,6 +243,74 @@ export class ApiService {
   }
 
   // ==========================================
+  // SEARCH & AUTOCOMPLETE APIs
+  // ==========================================
+
+  async searchProducts(params: {
+    q: string;
+    category?: string;
+    subCategory?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    inStock?: boolean;
+    sort?: 'relevance' | 'price-asc' | 'price-desc' | 'rating' | 'newest';
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    success: boolean;
+    query: string;
+    totalCount: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    data: Product[];
+  }> {
+    const url = new URL(`${this.baseUrl}/products/search`);
+    url.searchParams.set('q', params.q);
+    if (params.category) url.searchParams.set('category', params.category);
+    if (params.subCategory) url.searchParams.set('subCategory', params.subCategory);
+    if (params.minPrice !== undefined) url.searchParams.set('minPrice', params.minPrice.toString());
+    if (params.maxPrice !== undefined) url.searchParams.set('maxPrice', params.maxPrice.toString());
+    if (params.inStock !== undefined) url.searchParams.set('inStock', params.inStock ? 'true' : 'false');
+    if (params.sort) url.searchParams.set('sort', params.sort);
+    if (params.page) url.searchParams.set('page', params.page.toString());
+    if (params.limit) url.searchParams.set('limit', params.limit.toString());
+
+    const res = await fetch(url.toString());
+    return await res.json();
+  }
+
+  async getSearchSuggestions(q: string): Promise<{
+    success: boolean;
+    query: string;
+    totalSuggestions: number;
+    suggestions: Array<{
+      id: string;
+      name: string;
+      slug?: string;
+      price: number;
+      originalPrice?: number;
+      discountPercent?: number;
+      hasDiscount?: boolean;
+      imageUrl: string;
+      weight?: string;
+      isOutOfStock?: boolean;
+      categoryName?: string;
+      categorySlug?: string;
+    }>;
+    categories?: Array<{
+      id: string;
+      name: string;
+      slug: string;
+    }>;
+  }> {
+    const url = new URL(`${this.baseUrl}/products/search/suggestions`);
+    url.searchParams.set('q', q);
+    const res = await fetch(url.toString());
+    return await res.json();
+  }
+
+  // ==========================================
   // COUPONS, ORDERS & INVENTORY APIs
   // ==========================================
 

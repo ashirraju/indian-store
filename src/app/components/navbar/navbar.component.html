@@ -37,19 +37,111 @@
         </div>
       </div>
 
-      <!-- Search Input (Center - 25% Width) -->
-      <div class="search-box">
-        <span class="material-symbols-outlined search-icon">search</span>
-        <input
-          type="text"
-          placeholder="Search spices, sweets, tea..."
-          [ngModel]="searchQuery()"
-          (ngModelChange)="onSearchChange($event)"
-        />
-        @if (searchQuery()) {
-          <button class="clear-btn" (click)="onSearchChange('')">
-            <span class="material-symbols-outlined">close</span>
-          </button>
+      <!-- Search Input (Center - Autocomplete & Full-Text Search) -->
+      <div class="search-box-wrapper">
+        <div class="search-box" [class.focused]="isSuggestionsOpen()">
+          <span class="material-symbols-outlined search-icon" (click)="submitSearch()">search</span>
+          <input
+            type="text"
+            placeholder="Search spices, sweets, tea, basmati..."
+            [ngModel]="searchInput()"
+            (ngModelChange)="onSearchInput($event)"
+            (keydown.enter)="submitSearch()"
+            (keydown.escape)="isSuggestionsOpen.set(false)"
+            (focus)="onSearchInput(searchInput())"
+          />
+          @if (isLoadingSuggestions()) {
+            <span class="material-symbols-outlined spin-search-icon">progress_activity</span>
+          }
+          @if (searchInput()) {
+            <button class="clear-btn" (click)="clearSearch()">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          }
+        </div>
+
+        <!-- Instant Suggestions Dropdown -->
+        @if (isSuggestionsOpen()) {
+          <div class="search-suggestions-dropdown">
+            @if (isLoadingSuggestions()) {
+              <!-- Suggestions Skeleton Loader -->
+              <div class="suggestions-skeleton-box">
+                @for (s of [1, 2, 3, 4]; track s) {
+                  <div class="suggestion-skeleton-row">
+                    <div class="skeleton-thumb-shim"></div>
+                    <div class="skeleton-text-group">
+                      <div class="skeleton-line title"></div>
+                      <div class="skeleton-line sub"></div>
+                    </div>
+                    <div class="skeleton-price-shim"></div>
+                  </div>
+                }
+              </div>
+            } @else if (suggestions().length > 0 || suggestedCategories().length > 0) {
+              <!-- Category matches -->
+              @if (suggestedCategories().length > 0) {
+                <div class="suggestion-section">
+                  <div class="suggestion-section-title">Matching Categories</div>
+                  <div class="category-chips-row">
+                    @for (cat of suggestedCategories(); track cat.id) {
+                      <button type="button" class="category-chip-btn" (click)="selectCategorySuggestion(cat)">
+                        <span class="material-symbols-outlined">category</span>
+                        <span>{{ cat.name }}</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Product matches -->
+              @if (suggestions().length > 0) {
+                <div class="suggestion-section">
+                  <div class="suggestion-section-title">Products</div>
+                  <div class="suggestions-list">
+                    @for (item of suggestions(); track item.id) {
+                      <div class="suggestion-item" (click)="selectProductSuggestion(item)">
+                        <img [src]="item.imageUrl || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80'" [alt]="item.name" class="suggestion-thumb" />
+                        <div class="suggestion-info">
+                          <div class="suggestion-name">{{ item.name }}</div>
+                          <div class="suggestion-meta">
+                            <span class="suggestion-category">{{ item.categoryName }}</span>
+                            @if (item.weight) {
+                              <span class="suggestion-weight">• {{ item.weight }}</span>
+                            }
+                          </div>
+                        </div>
+                        <div class="suggestion-price">
+                          <strong>${{ item.price }}</strong>
+                          @if (item.hasDiscount && item.originalPrice) {
+                            <span class="suggestion-mrp">${{ item.originalPrice }}</span>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- View All Results Footer -->
+              <div class="suggestion-footer" (click)="submitSearch()">
+                <span>View all matching results for "<strong>{{ searchInput() }}</strong>"</span>
+                <span class="material-symbols-outlined">arrow_forward</span>
+              </div>
+            } @else {
+              <!-- No Data Found in Suggestions -->
+              <div class="suggestion-no-data">
+                <span class="material-symbols-outlined no-data-icon">search_off</span>
+                <div class="no-data-text">
+                  <strong>No matching products found</strong>
+                  <p>No results found for "{{ searchInput() }}"</p>
+                </div>
+                <button type="button" class="btn-press-search" (click)="submitSearch()">
+                  <span>Search across full catalog</span>
+                  <span class="material-symbols-outlined">arrow_forward</span>
+                </button>
+              </div>
+            }
+          </div>
         }
       </div>
 
@@ -138,10 +230,10 @@
     </div>
   </header>
 
-  <!-- 3. SECOND ROW HEADER: Dynamic Category Menus -->
+  <!-- 3. SECOND ROW HEADER: Dynamic Category Menus with Dynamic Overflow Splitting -->
   <div class="header-sub-nav">
     <div class="sub-nav-container">
-      <nav class="dynamic-nav">
+      <nav class="dynamic-nav" #dynamicNav>
         @if (store.isLoadingCatalog() && filteredMenus().length === 0) {
           @for (s of [1, 2, 3, 4, 5, 6, 7]; track s) {
             <div class="nav-link skeleton-nav-link">
@@ -150,7 +242,8 @@
             </div>
           }
         } @else {
-          @for (item of filteredMenus(); track item.id) {
+          <!-- Directly visible menu items (dynamically split) -->
+          @for (item of visibleMenus(); track item.id) {
             <button
               class="nav-link"
               [class.active]="store.activePath() === item.path"
@@ -162,6 +255,54 @@
                 <span class="nav-badge">{{ item.badge }}</span>
               }
             </button>
+          }
+
+          <!-- Overflow menu trigger: shows ">" / More and dropdown on hover or click -->
+          @if (overflowMenus().length > 0) {
+            <div 
+              class="more-menu-wrapper"
+              (mouseenter)="onMoreMouseEnter()"
+              (mouseleave)="onMoreMouseLeave()"
+            >
+              <button
+                class="nav-link more-nav-btn"
+                [class.active]="isMoreMenuOpen()"
+                (click)="toggleMoreMenu($event)"
+                type="button"
+                title="More categories"
+              >
+                <span>More</span>
+                <span class="material-symbols-outlined more-chevron" [class.rotated]="isMoreMenuOpen()">chevron_right</span>
+                <span class="more-count-badge">{{ overflowMenus().length }}</span>
+              </button>
+
+              @if (isMoreMenuOpen()) {
+                <div class="more-dropdown-panel" (click)="$event.stopPropagation()">
+                  <div class="more-dropdown-header">
+                    <span>Remaining Categories</span>
+                    <span class="more-counter-pill">{{ overflowMenus().length }}</span>
+                  </div>
+                  <div class="more-dropdown-list">
+                    @for (item of overflowMenus(); track item.id) {
+                      <button
+                        class="dropdown-menu-item"
+                        [class.active]="store.activePath() === item.path"
+                        (click)="onOverflowMenuClick(item)"
+                        type="button"
+                      >
+                        <div class="item-info">
+                          <span class="material-symbols-outlined item-icon">{{ item.icon }}</span>
+                          <span class="item-name">{{ item.label }}</span>
+                        </div>
+                        @if (item.badge) {
+                          <span class="nav-badge">{{ item.badge }}</span>
+                        }
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
           }
         }
       </nav>

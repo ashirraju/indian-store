@@ -62,6 +62,12 @@ export class StoreStateService {
 
   readonly wishlist = signal<Product[]>([]);
 
+  // Full-Text Search State
+  readonly searchQuery = signal<string>('');
+  readonly searchResults = signal<Product[]>([]);
+  readonly isSearching = signal<boolean>(false);
+  readonly totalSearchResults = signal<number>(0);
+
   constructor() {
     if (typeof window !== 'undefined') {
       const getInitialPath = () => {
@@ -231,6 +237,54 @@ export class StoreStateService {
     } finally {
       this.isLoadingOrders.set(false);
     }
+  }
+
+  // ==========================================
+  // SEARCH & AUTOCOMPLETE OPERATIONS
+  // ==========================================
+
+  async executeSearch(query: string, sort = 'relevance') {
+    const trimmed = query.trim();
+    this.searchQuery.set(trimmed);
+    if (!trimmed) {
+      this.searchResults.set([]);
+      this.totalSearchResults.set(0);
+      return;
+    }
+
+    this.isSearching.set(true);
+    try {
+      const res = await this.api.searchProducts({ q: trimmed, limit: 50, sort: sort as any });
+      if (res.success && Array.isArray(res.data)) {
+        const normalized = res.data.map(p => ({
+          ...p,
+          imageUrl: p.imageUrl || p.image_url || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80',
+          image_url: p.image_url || p.imageUrl || 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&auto=format&fit=crop&q=80',
+          originalPrice: p.originalPrice || p.original_price,
+          reviewsCount: p.reviewsCount || p.reviews_count || 0,
+          isOrganic: p.isOrganic !== undefined ? p.isOrganic : p.is_organic,
+          isBestseller: p.isBestseller !== undefined ? p.isBestseller : p.is_bestseller,
+          originRegion: p.originRegion || p.origin_region || 'India'
+        }));
+        this.searchResults.set(normalized);
+        this.totalSearchResults.set(res.totalCount || normalized.length);
+      } else {
+        this.searchResults.set([]);
+        this.totalSearchResults.set(0);
+      }
+    } catch (err) {
+      console.error('Search error:', err);
+      this.searchResults.set([]);
+      this.totalSearchResults.set(0);
+    } finally {
+      this.isSearching.set(false);
+    }
+  }
+
+  clearSearch() {
+    this.searchQuery.set('');
+    this.searchResults.set([]);
+    this.totalSearchResults.set(0);
   }
 
   syncCategoriesToMenus(categories: Category[]) {

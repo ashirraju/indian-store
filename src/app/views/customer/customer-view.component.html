@@ -49,8 +49,139 @@
 
    
 
-    <!-- DEDICATED DEPARTMENT EXPLORER VIEW (WHEN EXPLORE MORE IS CLICKED) -->
-    @if (store.activeDepartment(); as dept) {
+    <!-- DEDICATED SEARCH RESULTS VIEW (FULL-TEXT RELEVANCE SEARCH) -->
+    @if (store.searchQuery()) {
+      <section class="search-results-section">
+        <div class="search-header-card card-surface">
+          <div class="search-header-info">
+            <button class="back-to-store-btn" (click)="store.clearSearch()">
+              <span class="material-symbols-outlined">arrow_back</span>
+              Back to Store
+            </button>
+            <div class="search-title-row">
+              <span class="material-symbols-outlined search-title-icon">search</span>
+              <div>
+                <h2>Search Results for <span class="search-term-highlight">"{{ store.searchQuery() }}"</span></h2>
+                <p class="search-count-desc">
+                  Found <strong>{{ store.totalSearchResults() }}</strong> matching products
+                </p>
+              </div>
+            </div>
+          </div>
+          <button class="clear-search-action-btn" (click)="store.clearSearch()">
+            <span class="material-symbols-outlined">close</span>
+            Clear Search
+          </button>
+        </div>
+
+        @if (store.isSearching()) {
+          <!-- Skeleton Loading Grid -->
+          <div class="product-grid">
+            @for (s of [1,2,3,4,5,6,7,8]; track s) {
+              <div class="product-card skeleton-card">
+                <div class="card-media skeleton"></div>
+                <div class="card-content">
+                  <div class="skeleton skeleton-text w-50 sm"></div>
+                  <div class="skeleton skeleton-text w-100 lg"></div>
+                  <div class="skeleton skeleton-text w-75 sm"></div>
+                  <div class="card-footer-row" style="margin-top: 12px;">
+                    <div class="skeleton skeleton-text w-25 lg" style="margin-bottom: 0;"></div>
+                    <div class="skeleton skeleton-btn" style="width: 68px; height: 32px; border-radius: 16px;"></div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else if (store.searchResults().length > 0) {
+          <div class="product-grid">
+            @for (prod of store.searchResults(); track prod.id) {
+              <div class="product-card card-surface">
+                <!-- Badges -->
+                @if (prod.isBestseller) {
+                  <span class="prod-badge bestseller">Bestseller</span>
+                } @else if (prod.isOrganic) {
+                  <span class="prod-badge organic">Organic</span>
+                }
+
+                <!-- Product Image -->
+                <div class="product-image-box" (click)="openProductDetail(prod)">
+                  <img
+                    [src]="prod.imageUrl || prod.image_url || fallbackImage"
+                    [alt]="prod.name"
+                    (error)="onImageError($event)"
+                    loading="lazy"
+                  />
+                  <button
+                    class="quick-wishlist-btn"
+                    [class.active]="store.isInWishlist(prod.id)"
+                    (click)="store.toggleWishlist(prod); $event.stopPropagation()"
+                    title="Add to Wishlist"
+                  >
+                    <span class="material-symbols-outlined">favorite</span>
+                  </button>
+                </div>
+
+                <!-- Product Details -->
+                <div class="product-details">
+                  <div class="prod-weight-tag">{{ prod.weight || '500g' }}</div>
+                  <h4 class="prod-title" (click)="openProductDetail(prod)">{{ prod.name }}</h4>
+
+                  <div class="prod-price-row">
+                    <div class="price-group">
+                      <span class="current-price">${{ prod.price }} AUD</span>
+                      @if (prod.originalPrice && prod.originalPrice > prod.price) {
+                        <span class="orig-price">${{ prod.originalPrice }}</span>
+                      }
+                    </div>
+
+                    <div class="card-actions-group" (click)="$event.stopPropagation()">
+                      @if (store.getCartQuantity(prod.id) === 0) {
+                        <button class="add-cart-btn" (click)="store.addToCart(prod, 1)">
+                          <span class="material-symbols-outlined">add_shopping_cart</span>
+                          Add
+                        </button>
+                      } @else {
+                        <div class="qty-counter-pill">
+                          <button class="qty-btn-minus" (click)="store.updateCartQuantity(prod.id, -1)" title="Decrease">
+                            <span class="material-symbols-outlined">remove</span>
+                          </button>
+                          <span class="qty-val">{{ store.getCartQuantity(prod.id) }}</span>
+                          <button class="qty-btn-plus" (click)="store.updateCartQuantity(prod.id, 1)" title="Increase">
+                            <span class="material-symbols-outlined">add</span>
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <!-- No Data Found Empty Search State -->
+          <div class="search-empty-state card-surface">
+            <span class="material-symbols-outlined empty-icon">search_off</span>
+            <div class="no-data-tag">NO DATA FOUND</div>
+            <h3>No data found for "{{ store.searchQuery() }}"</h3>
+            <p>We couldn't find any products matching your search. Please check the spelling or explore our popular categories below:</p>
+            <div class="popular-searches-box">
+              <span>Popular searches:</span>
+              <div class="popular-tags">
+                <button type="button" class="search-tag-btn" (click)="store.executeSearch('rice')">Basmati Rice</button>
+                <button type="button" class="search-tag-btn" (click)="store.executeSearch('atta')">Aashirvaad Atta</button>
+                <button type="button" class="search-tag-btn" (click)="store.executeSearch('ghee')">Pure Desi Ghee</button>
+                <button type="button" class="search-tag-btn" (click)="store.executeSearch('tea')">Tata Tea</button>
+                <button type="button" class="search-tag-btn" (click)="store.executeSearch('dal')">Toor Dal</button>
+              </div>
+            </div>
+            <button class="back-to-store-btn" (click)="store.clearSearch()">
+              <span class="material-symbols-outlined">storefront</span>
+              Explore All Categories
+            </button>
+          </div>
+        }
+      </section>
+    } @else if (store.activeDepartment(); as dept) {
       <section class="department-explorer-section">
         <!-- Breadcrumb & Back Navigation -->
         <div class="dept-nav-header">
