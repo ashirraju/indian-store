@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StoreStateService } from '../../services/store-state.service';
 import { ApiService } from '../../services/api.service';
+import { AppKeycloakService } from '../../services/app-keycloak.service';
 import { Product } from '../../models/product.model';
 import { Order } from '../../models/order.model';
 
@@ -18,6 +19,7 @@ export class CustomerViewComponent implements OnInit {
   readonly Math = Math;
   readonly store = inject(StoreStateService);
   readonly api = inject(ApiService);
+  readonly keycloak = inject(AppKeycloakService);
 
   readonly selectedProduct = signal<Product | null>(null);
   readonly selectedOrder = signal<Order | null>(null);

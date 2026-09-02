@@ -111,14 +111,16 @@
                     (error)="onImageError($event)"
                     loading="lazy"
                   />
-                  <button
-                    class="quick-wishlist-btn"
-                    [class.active]="store.isInWishlist(prod.id)"
-                    (click)="store.toggleWishlist(prod); $event.stopPropagation()"
-                    title="Add to Wishlist"
-                  >
-                    <span class="material-symbols-outlined">favorite</span>
-                  </button>
+                  @if (keycloak.isAuthenticated()) {
+                    <button
+                      class="quick-wishlist-btn"
+                      [class.active]="store.isInWishlist(prod.id)"
+                      (click)="store.toggleWishlist(prod); $event.stopPropagation()"
+                      title="Add to Wishlist"
+                    >
+                      <span class="material-symbols-outlined">favorite</span>
+                    </button>
+                  }
                 </div>
 
                 <!-- Product Details -->
@@ -332,16 +334,18 @@
                             }
                           </div>
 
-                          <button
-                            class="wishlist-heart-btn"
-                            [class.active]="store.isInWishlist(prod.id)"
-                            (click)="store.toggleWishlist(prod); $event.stopPropagation()"
-                            [title]="store.isInWishlist(prod.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
-                          >
-                            <span class="material-symbols-outlined">
-                              {{ store.isInWishlist(prod.id) ? 'favorite' : 'favorite_border' }}
-                            </span>
-                          </button>
+                          @if (keycloak.isAuthenticated()) {
+                            <button
+                              class="wishlist-heart-btn"
+                              [class.active]="store.isInWishlist(prod.id)"
+                              (click)="store.toggleWishlist(prod); $event.stopPropagation()"
+                              [title]="store.isInWishlist(prod.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
+                            >
+                              <span class="material-symbols-outlined">
+                                {{ store.isInWishlist(prod.id) ? 'favorite' : 'favorite_border' }}
+                              </span>
+                            </button>
+                          }
 
                           <span class="origin-tag">📍 {{ prod.originRegion || prod.origin_region }}</span>
                         </div>
@@ -522,16 +526,18 @@
                             }
                           </div>
 
-                          <button
-                            class="wishlist-heart-btn"
-                            [class.active]="store.isInWishlist(prod.id)"
-                            (click)="store.toggleWishlist(prod); $event.stopPropagation()"
-                            [title]="store.isInWishlist(prod.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
-                          >
-                            <span class="material-symbols-outlined">
-                              {{ store.isInWishlist(prod.id) ? 'favorite' : 'favorite_border' }}
-                            </span>
-                          </button>
+                          @if (keycloak.isAuthenticated()) {
+                            <button
+                              class="wishlist-heart-btn"
+                              [class.active]="store.isInWishlist(prod.id)"
+                              (click)="store.toggleWishlist(prod); $event.stopPropagation()"
+                              [title]="store.isInWishlist(prod.id) ? 'Remove from Wishlist' : 'Add to Wishlist'"
+                            >
+                              <span class="material-symbols-outlined">
+                                {{ store.isInWishlist(prod.id) ? 'favorite' : 'favorite_border' }}
+                              </span>
+                            </button>
+                          }
 
                           <span class="origin-tag">📍 {{ prod.originRegion || prod.origin_region }}</span>
                         </div>
