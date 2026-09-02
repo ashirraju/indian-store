@@ -1,1 +1,8 @@
 @use '../management-shared.scss' as *;
+
+.sub-category-pill {
+  .sub-name {
+    font-weight: 600;
+    color: #0f172a;
+  }
+}
