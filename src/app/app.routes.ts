@@ -13,7 +13,50 @@ export const routes: Routes = [
     path: 'admin',
     loadComponent: () =>
       import('./views/admin/admin-view.component').then(m => m.AdminViewComponent),
-    canActivate: [roleAuthGuard(AppRole.ADMIN)]
+    canActivate: [roleAuthGuard(AppRole.ADMIN)],
+    children: [
+      { path: '', redirectTo: 'products', pathMatch: 'full' },
+      {
+        path: 'products',
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./views/management/products/products-catalog.component').then(
+                m => m.ProductsCatalogComponent
+              )
+          },
+          {
+            path: 'add',
+            loadComponent: () =>
+              import('./views/management/products/product-editor/product-editor.component').then(
+                m => m.ProductEditorComponent
+              )
+          }
+        ]
+      },
+      {
+        path: 'categories',
+        loadComponent: () =>
+          import('./views/management/categories/categories-management.component').then(
+            m => m.CategoriesManagementComponent
+          )
+      },
+      {
+        path: 'orders',
+        loadComponent: () =>
+          import('./views/management/orders/orders-management.component').then(
+            m => m.OrdersManagementComponent
+          )
+      },
+      {
+        path: 'banners',
+        loadComponent: () =>
+          import('./views/management/banners/banners-management.component').then(
+            m => m.BannersManagementComponent
+          )
+      }
+    ]
   },
   {
     path: 'manager',
@@ -25,7 +68,71 @@ export const routes: Routes = [
     path: 'operations',
     loadComponent: () =>
       import('./views/operations/operations-view.component').then(m => m.OperationsViewComponent),
-    canActivate: [roleAuthGuard(AppRole.OPERATIONS)]
+    canActivate: [roleAuthGuard(AppRole.OPERATIONS)],
+    children: [
+      { path: '', redirectTo: 'pipeline', pathMatch: 'full' },
+      {
+        path: 'pipeline',
+        loadComponent: () =>
+          import('./views/operations/pages/operations-pipeline/operations-pipeline.component').then(
+            m => m.OperationsPipelineComponent
+          )
+      },
+      {
+        path: 'products',
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./views/management/products/products-catalog.component').then(
+                m => m.ProductsCatalogComponent
+              )
+          },
+          {
+            path: 'add',
+            loadComponent: () =>
+              import('./views/management/products/product-editor/product-editor.component').then(
+                m => m.ProductEditorComponent
+              )
+          }
+        ]
+      },
+      {
+        path: 'categories',
+        loadComponent: () =>
+          import('./views/management/categories/categories-management.component').then(
+            m => m.CategoriesManagementComponent
+          )
+      },
+      {
+        path: 'orders',
+        loadComponent: () =>
+          import('./views/management/orders/orders-management.component').then(
+            m => m.OrdersManagementComponent
+          )
+      },
+      {
+        path: 'banners',
+        loadComponent: () =>
+          import('./views/management/banners/banners-management.component').then(
+            m => m.BannersManagementComponent
+          )
+      },
+      {
+        path: 'replenishment',
+        loadComponent: () =>
+          import('./views/operations/pages/operations-replenishment/operations-replenishment.component').then(
+            m => m.OperationsReplenishmentComponent
+          )
+      },
+      {
+        path: 'notifications',
+        loadComponent: () =>
+          import('./views/operations/pages/operations-notifications/operations-notifications.component').then(
+            m => m.OperationsNotificationsComponent
+          )
+      }
+    ]
   },
   {
     path: 'delivery',
@@ -35,4 +142,3 @@ export const routes: Routes = [
   },
   { path: '**', redirectTo: 'store' }
 ];
-

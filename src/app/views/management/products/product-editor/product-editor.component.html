@@ -1,0 +1,265 @@
+<div class="product-editor-container card-surface">
+  <div class="editor-header">
+    <div class="header-left">
+      <button type="button" class="back-link-btn" (click)="goBack()">
+        <span class="material-symbols-outlined">arrow_back</span>
+        Back to Products Catalog
+      </button>
+      <h2>{{ editingProductId ? 'Edit Catalog Product' : 'Add Products to Catalog' }}</h2>
+      <p class="subtitle">
+        {{ editingProductId ? 'Update product pricing, stock, categories, and tags below.' : 'Add one or multiple items simultaneously with live SKU generation, category taxonomy, and pricing.' }}
+      </p>
+    </div>
+    @if (!editingProductId) {
+      <div class="quick-add-row-btns">
+        <button type="button" class="secondary-admin-btn" (click)="addProductRow()">
+          <span class="material-symbols-outlined">add</span>
+          Add Row
+        </button>
+        <button type="button" class="secondary-admin-btn" (click)="addMultipleProductRows(3)">
+          <span class="material-symbols-outlined">playlist_add</span>
+          +3 Rows
+        </button>
+        <button type="button" class="secondary-admin-btn" (click)="addMultipleProductRows(5)">
+          <span class="material-symbols-outlined">playlist_add</span>
+          +5 Rows
+        </button>
+      </div>
+    }
+  </div>
+
+        <form (submit)="onProductsMultiSubmit($event)">
+        <div class="multi-product-table-wrapper">
+          <table class="multi-product-table">
+            <thead>
+              <tr>
+                <th style="width: 36px;">#</th>
+                <th style="min-width: 200px;">Product Title *</th>
+                <th style="min-width: 120px;">SKU Code</th>
+                <th style="min-width: 170px;">Category *</th>
+                <th style="min-width: 160px;">Sub-Category</th>
+                <th style="min-width: 100px;">Price ($ AUD) *</th>
+                <th style="min-width: 100px;">MRP ($ AUD)</th>
+                <th style="min-width: 110px;">Weight *</th>
+                <th style="min-width: 90px;">Stock *</th>
+                <th style="min-width: 130px;">Origin Region</th>
+                <th style="min-width: 220px;">Image URL *</th>
+                <th style="min-width: 100px;">Highlights</th>
+                @if (!editingProductId) {
+                  <th style="width: 80px; text-align: center;">Actions</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of productFormRows(); track $index; let idx = $index) {
+                <tr class="product-row-item">
+                  <td class="row-index-cell">
+                    <span class="row-num-pill">{{ idx + 1 }}</span>
+                  </td>
+
+                  <!-- Product Name -->
+                  <td>
+                    <input
+                      type="text"
+                      class="row-input title-input"
+                      placeholder="e.g. Royal Basmati Rice 5kg"
+                      [(ngModel)]="row.name"
+                      [name]="'row_name_' + idx"
+                      required
+                    />
+                  </td>
+
+                  <!-- SKU -->
+                  <td>
+                    <input
+                      type="text"
+                      class="row-input"
+                      placeholder="SKU-RICE-01"
+                      [(ngModel)]="row.sku"
+                      [name]="'row_sku_' + idx"
+                    />
+                  </td>
+
+                  <!-- Category Dropdown (triggers sub-category reset) -->
+                  <td>
+                    <select
+                      class="row-select"
+                      [(ngModel)]="row.category"
+                      (ngModelChange)="onRowCategoryChange(row)"
+                      [name]="'row_cat_' + idx"
+                      required
+                    >
+                      <option value="" disabled>Select Category</option>
+                      @for (cat of categoriesList(); track cat.id) {
+                        <option [value]="cat.id">{{ cat.name }}</option>
+                      }
+                    </select>
+                  </td>
+
+                  <!-- Dynamic Sub-Category Dropdown based on row.category -->
+                  <td>
+                    <select
+                      class="row-select"
+                      [(ngModel)]="row.subCategory"
+                      [name]="'row_sub_' + idx"
+                    >
+                      <option value="">None (Top-Level)</option>
+                      @for (sub of getSubCategoriesForCategory(row.category); track sub.id) {
+                        <option [value]="sub.id">{{ sub.name }}</option>
+                      }
+                    </select>
+                  </td>
+
+                  <!-- Selling Price -->
+                  <td>
+                    <input
+                      type="number"
+                      class="row-input num-input"
+                      placeholder="499"
+                      [(ngModel)]="row.price"
+                      [name]="'row_price_' + idx"
+                      min="1"
+                      required
+                    />
+                  </td>
+
+                  <!-- MRP -->
+                  <td>
+                    <input
+                      type="number"
+                      class="row-input num-input"
+                      placeholder="599"
+                      [(ngModel)]="row.originalPrice"
+                      [name]="'row_mrp_' + idx"
+                      min="1"
+                    />
+                  </td>
+
+                  <!-- Weight -->
+                  <td>
+                    <input
+                      type="text"
+                      class="row-input"
+                      placeholder="5kg / 500g"
+                      [(ngModel)]="row.weight"
+                      [name]="'row_weight_' + idx"
+                      required
+                    />
+                  </td>
+
+                  <!-- Stock -->
+                  <td>
+                    <input
+                      type="number"
+                      class="row-input num-input"
+                      placeholder="50"
+                      [(ngModel)]="row.stock"
+                      [name]="'row_stock_' + idx"
+                      min="0"
+                      required
+                    />
+                  </td>
+
+                  <!-- Origin Region -->
+                  <td>
+                    <input
+                      type="text"
+                      class="row-input"
+                      placeholder="Punjab, India"
+                      [(ngModel)]="row.originRegion"
+                      [name]="'row_origin_' + idx"
+                    />
+                  </td>
+
+                  <!-- Image URL with Preview Thumbnail -->
+                  <td>
+                    <div class="row-image-input-group">
+                      <input
+                        type="text"
+                        class="row-input image-url-input"
+                        placeholder="https://..."
+                        [(ngModel)]="row.imageUrl"
+                        [name]="'row_img_' + idx"
+                        required
+                      />
+                      @if (row.imageUrl) {
+                        <img [src]="row.imageUrl" alt="Preview" class="row-thumb-preview" />
+                      }
+                    </div>
+                  </td>
+
+                  <!-- Highlights Flags -->
+                  <td>
+                    <div class="row-flags-group">
+                      <label class="flag-toggle-label" title="Toggle Bestseller">
+                        <input
+                          type="checkbox"
+                          [(ngModel)]="row.isBestseller"
+                          [name]="'row_best_' + idx"
+                        />
+                        <span>⭐</span>
+                      </label>
+                      <label class="flag-toggle-label green" title="Toggle Certified Organic">
+                        <input
+                          type="checkbox"
+                          [(ngModel)]="row.isOrganic"
+                          [name]="'row_org_' + idx"
+                        />
+                        <span>🌱</span>
+                      </label>
+                    </div>
+                  </td>
+
+                  <!-- Row Actions -->
+                  @if (!editingProductId) {
+                    <td class="row-action-cell">
+                      <div class="row-action-btns">
+                        <button
+                          type="button"
+                          class="mini-row-btn"
+                          title="Duplicate Row"
+                          (click)="duplicateProductRow(idx)"
+                        >
+                          <span class="material-symbols-outlined">content_copy</span>
+                        </button>
+                        <button
+                          type="button"
+                          class="mini-row-btn red"
+                          title="Remove Row"
+                          (click)="removeProductRow(idx)"
+                          [disabled]="productFormRows().length === 1"
+                        >
+                          <span class="material-symbols-outlined">delete</span>
+                        </button>
+                      </div>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <div class="modal-bottom-bar">
+          <div class="modal-bottom-left">
+            @if (!editingProductId) {
+              <button type="button" class="secondary-admin-btn" (click)="addProductRow()">
+                <span class="material-symbols-outlined">add</span>
+                Add Another Row
+              </button>
+              <span class="rows-count-summary">
+                Total Products: <strong>{{ productFormRows().length }}</strong>
+              </span>
+            }
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="secondary-admin-btn" (click)="goBack()">Cancel</button>
+            <button type="submit" class="primary-admin-btn" [disabled]="isSavingProducts()">
+              <span class="material-symbols-outlined" [class.spin]="isSavingProducts()">save</span>
+              {{ isSavingProducts() ? 'Saving Products...' : (editingProductId ? 'Update Product' : 'Save All ' + productFormRows().length + ' Product' + (productFormRows().length > 1 ? 's' : '')) }}
+            </button>
+          </div>
+        </div>
+      </form>
+</div>

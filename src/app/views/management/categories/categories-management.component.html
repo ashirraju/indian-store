@@ -1,0 +1,334 @@
+<div class="tab-content card-surface">
+      <div class="tab-title-row">
+        <div>
+          <h3>Category & Sub-Category Hierarchy</h3>
+          <p>Organize storefront departments, nested taxonomy, icons, display order, and view live product counts.</p>
+        </div>
+        <div class="action-btn-group">
+          <button class="secondary-admin-btn" (click)="loadCategories()" [disabled]="isCategoriesLoading()">
+            <span class="material-symbols-outlined" [class.spin]="isCategoriesLoading()">refresh</span>
+            Refresh
+          </button>
+          <button class="primary-admin-btn" (click)="openCategoryModal()">
+            <span class="material-symbols-outlined">add_circle</span>
+            Add Parent Category
+          </button>
+        </div>
+      </div>
+
+      <!-- Drag & Drop Order Notice -->
+      <div class="drag-info-banner">
+        <div class="banner-text">
+          <span class="material-symbols-outlined drag-icon-hint">drag_indicator</span>
+          <span>
+            <strong>Drag & Drop to Reorder:</strong> Drag any category card or click <strong>▲ / ▼</strong> to adjust position. Customer navbar menus and homepage sections update in this exact order in real time.
+          </span>
+        </div>
+        @if (isReorderingCategories()) {
+          <span class="syncing-badge">
+            <span class="material-symbols-outlined spin">sync</span> Syncing order to server...
+          </span>
+        }
+      </div>
+
+      @if (isCategoriesLoading()) {
+        <div class="loading-container">
+          <div class="spinner"></div>
+          <p>Loading categories and hierarchy from server...</p>
+        </div>
+      } @else {
+        <div class="categories-grid">
+          @for (cat of categoriesList(); track cat.id; let idx = $index) {
+            <div
+              class="category-card"
+              draggable="true"
+              [class.dragging]="draggedCategoryIndex === idx"
+              [class.drag-over]="dragOverCategoryIndex === idx"
+              (dragstart)="onCategoryDragStart(idx, $event)"
+              (dragover)="onCategoryDragOver(idx, $event)"
+              (dragleave)="onCategoryDragLeave(idx)"
+              (drop)="onCategoryDrop(idx, $event)"
+              (dragend)="onCategoryDragEnd()"
+            >
+              <div class="category-card-header">
+                <div class="cat-icon-title">
+                  <!-- Drag Handle -->
+                  <div class="drag-handle" title="Drag to reorder position">
+                    <span class="material-symbols-outlined">drag_indicator</span>
+                  </div>
+
+                  <div class="cat-icon-wrapper">
+                    <span class="material-symbols-outlined">{{ cat.icon }}</span>
+                  </div>
+                  <div>
+                    <div class="cat-title-line">
+                      <h4>{{ cat.name }}</h4>
+                      <span class="order-badge">#{{ cat.display_order }}</span>
+                    </div>
+                    <code class="cat-slug-tag">/category/{{ cat.slug }}</code>
+                  </div>
+                </div>
+
+                <div class="cat-header-stats">
+                  <div class="cat-order-controls">
+                    <!-- Move Up / Down Buttons -->
+                    <div class="position-stepper">
+                      <button
+                        class="step-btn"
+                        title="Move Up"
+                        (click)="moveCategoryUp(idx)"
+                        [disabled]="idx === 0"
+                      >
+                        <span class="material-symbols-outlined">arrow_upward</span>
+                      </button>
+                      <button
+                        class="step-btn"
+                        title="Move Down"
+                        (click)="moveCategoryDown(idx)"
+                        [disabled]="idx === categoriesList().length - 1"
+                      >
+                        <span class="material-symbols-outlined">arrow_downward</span>
+                      </button>
+                    </div>
+
+                    <span class="products-count-badge">
+                      <span class="material-symbols-outlined">inventory</span>
+                      {{ cat.products_count ?? 0 }}
+                    </span>
+                  </div>
+
+                  <div class="action-btns-row">
+                    <button class="icon-action-btn" title="Edit Category" (click)="openCategoryModal(cat)">
+                      <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button class="icon-action-btn red" title="Delete Category" (click)="promptDeleteCategory(cat)">
+                      <span class="material-symbols-outlined">delete</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sub-Categories Section -->
+              <div class="sub-categories-wrapper">
+                <div class="sub-header-row">
+                  <span class="sub-title">
+                    <span class="material-symbols-outlined">subdirectory_arrow_right</span>
+                    Sub-Categories ({{ cat.sub_categories?.length || 0 }})
+                  </span>
+                  <button class="sub-add-btn" (click)="openSubCategoryModal(cat)">
+                    <span class="material-symbols-outlined">add</span>
+                    Add Sub-Category
+                  </button>
+                </div>
+
+                <div class="sub-pills-list">
+                  @if (!cat.sub_categories || cat.sub_categories.length === 0) {
+                    <div class="empty-sub-text">
+                      No sub-categories defined yet. Click "Add Sub-Category" to create nested taxonomy.
+                    </div>
+                  } @else {
+                    @for (sub of cat.sub_categories; track sub.id) {
+                      <div class="sub-category-pill">
+                        <span class="sub-order">#{{ sub.display_order }}</span>
+                        <span class="sub-name">{{ sub.name }}</span>
+                        @if (sub.products_count !== undefined) {
+                          <span class="sub-prod-count">({{ sub.products_count }} items)</span>
+                        }
+                        <div class="sub-actions">
+                          <button class="mini-btn" title="Edit Sub-Category" (click)="openSubCategoryModal(cat, sub)">
+                            <span class="material-symbols-outlined">edit</span>
+                          </button>
+                          <button class="mini-btn red" title="Delete Sub-Category" (click)="deleteSubCategory(sub)">
+                            <span class="material-symbols-outlined">close</span>
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+<!-- MODAL 1: CREATE / EDIT PARENT CATEGORY -->
+<!-- ========================================================================= -->
+@if (isCategoryModalOpen()) {
+  <div class="admin-modal-backdrop" (click)="isCategoryModalOpen.set(false)">
+    <div class="admin-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingCategoryId ? 'Edit Category' : 'Create New Category' }}</h3>
+        <button class="close-btn" (click)="isCategoryModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="onCategorySubmit($event)">
+        <div class="form-group">
+          <label>Category Name *</label>
+          <input
+            type="text"
+            [(ngModel)]="catName"
+            (ngModelChange)="onCategoryNameChange()"
+            name="catName"
+            placeholder="e.g. Spices & Seasonings"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Slug</label>
+          <input
+            type="text"
+            [(ngModel)]="catSlug"
+            name="catSlug"
+            placeholder="e.g. spices-seasonings"
+          />
+          <small class="help-text">Auto-generated from name if left empty.</small>
+        </div>
+
+        <div class="form-group">
+          <label>Material Icon Name</label>
+          <div class="icon-selector-input">
+            <span class="material-symbols-outlined current-icon-preview">{{ catIcon }}</span>
+            <input
+              type="text"
+              [(ngModel)]="catIcon"
+              name="catIcon"
+              placeholder="e.g. grain, coffee, cake"
+            />
+          </div>
+          <div class="icon-quick-picker">
+            @for (ic of commonIcons; track ic) {
+              <button
+                type="button"
+                class="icon-pick-btn"
+                [class.active]="catIcon === ic"
+                (click)="catIcon = ic"
+                [title]="ic"
+              >
+                <span class="material-symbols-outlined">{{ ic }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Display Order (Priority)</label>
+          <input
+            type="number"
+            [(ngModel)]="catDisplayOrder"
+            name="catDisplayOrder"
+            min="1"
+            max="999"
+          />
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="secondary-admin-btn" (click)="isCategoryModalOpen.set(false)">Cancel</button>
+          <button type="submit" class="primary-admin-btn">
+            {{ editingCategoryId ? 'Update Category' : 'Create Category' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL 2: CREATE / EDIT SUB-CATEGORY -->
+<!-- ========================================================================= -->
+@if (isSubCategoryModalOpen()) {
+  <div class="admin-modal-backdrop" (click)="isSubCategoryModalOpen.set(false)">
+    <div class="admin-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ editingSubCategoryId ? 'Edit Sub-Category' : 'Add Sub-Category under ' + parentCategoryNameForSub }}</h3>
+        <button class="close-btn" (click)="isSubCategoryModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <form (submit)="onSubCategorySubmit($event)">
+        <div class="form-group">
+          <label>Sub-Category Name *</label>
+          <input
+            type="text"
+            [(ngModel)]="subCatName"
+            (ngModelChange)="onSubCatNameChange()"
+            name="subCatName"
+            placeholder="e.g. Whole Spices, Basmati Rice"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Slug</label>
+          <input
+            type="text"
+            [(ngModel)]="subCatSlug"
+            name="subCatSlug"
+            placeholder="e.g. whole-spices"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Display Order</label>
+          <input
+            type="number"
+            [(ngModel)]="subCatDisplayOrder"
+            name="subCatDisplayOrder"
+            min="1"
+            max="99"
+          />
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="secondary-admin-btn" (click)="isSubCategoryModalOpen.set(false)">Cancel</button>
+          <button type="submit" class="primary-admin-btn">
+            {{ editingSubCategoryId ? 'Update Sub-Category' : 'Create Sub-Category' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL 3: DELETE CATEGORY CONFIRMATION -->
+<!-- ========================================================================= -->
+@if (isDeleteCatModalOpen() && deletingCategory) {
+  <div class="admin-modal-backdrop" (click)="isDeleteCatModalOpen.set(false)">
+    <div class="admin-modal modal-danger" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="danger-title">Delete Category "{{ deletingCategory.name }}"?</h3>
+        <button class="close-btn" (click)="isDeleteCatModalOpen.set(false)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body-danger">
+        <p>This action will permanently delete this category and all its nested sub-categories.</p>
+        @if (deletingCategory.products_count && deletingCategory.products_count > 0) {
+          <div class="alert-box-warning">
+            <span class="material-symbols-outlined">warning</span>
+            <span>This category currently contains <strong>{{ deletingCategory.products_count }} products</strong>.</span>
+          </div>
+        }
+        <label class="checkbox-row">
+          <input type="checkbox" [(ngModel)]="forceDeleteCategory" />
+          <span>Force delete and unlink referenced products</span>
+        </label>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="secondary-admin-btn" (click)="isDeleteCatModalOpen.set(false)">Cancel</button>
+        <button type="button" class="danger-btn" (click)="confirmDeleteCategory()">
+          Confirm Delete
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

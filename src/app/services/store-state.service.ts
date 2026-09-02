@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { AppRole, UserProfile } from '../models/user.model';
 import { Product, CartItem } from '../models/product.model';
 import { Order, OrderStatus } from '../models/order.model';
@@ -77,6 +77,13 @@ export class StoreStateService {
 
       window.addEventListener('hashchange', () => {
         this.syncUrlPath(getInitialPath());
+      });
+
+      this.router.events.subscribe((event) => {
+        if (event instanceof NavigationEnd) {
+          const url = event.urlAfterRedirects || event.url;
+          this.syncUrlPath(url);
+        }
       });
 
       this.syncCatalogFromBackend();

@@ -2,6 +2,11 @@
   min-height: calc(100vh - 200px);
   background-color: var(--primary-bg-color, #f0f4f8);
   padding-bottom: 60px;
+
+  &.staff-portal {
+    min-height: 100vh;
+    padding-bottom: 0;
+  }
 }
 
 .app-footer {

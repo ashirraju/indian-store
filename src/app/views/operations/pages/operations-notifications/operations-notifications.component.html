@@ -1,0 +1,93 @@
+<div class="tab-content-panel">
+      <div class="notifications-panel-card card-surface">
+        <div class="notif-panel-header">
+          <div class="header-title-box">
+            <span class="material-symbols-outlined header-icon">notifications_active</span>
+            <div>
+              <h3>Operations Live Alert Center</h3>
+              <p>Real-time order dispatches, packing triggers, and warehouse threshold alerts</p>
+            </div>
+          </div>
+          <div class="notif-header-actions">
+            <span class="unread-pill">{{ store.unreadNotificationsCount() }} Unread</span>
+            <button class="mark-all-btn" (click)="markAllNotifsRead()">
+              <span class="material-symbols-outlined">done_all</span>
+              Mark All as Read
+            </button>
+          </div>
+        </div>
+
+        <!-- Notifications List -->
+        <div class="notifications-list-container">
+          @for (notif of store.notifications(); track notif.id) {
+            <div
+              class="notif-card"
+              [class.unread]="!notif.isRead"
+              [class.type-order]="notif.type === 'NEW_ORDER'"
+              [class.type-sla]="notif.type === 'URGENT_SLA'"
+              [class.type-stock]="notif.type === 'LOW_STOCK'"
+            >
+              <div class="notif-icon-col">
+                <span class="material-symbols-outlined notif-type-icon">
+                  @switch (notif.type) {
+                    @case ('NEW_ORDER') { shopping_bag }
+                    @case ('URGENT_SLA') { bolt }
+                    @case ('LOW_STOCK') { warning }
+                    @default { notifications }
+                  }
+                </span>
+              </div>
+
+              <div class="notif-body-col">
+                <div class="notif-title-row">
+                  <span class="notif-title">{{ notif.title }}</span>
+                  <span class="notif-time">{{ notif.createdAt | date:'shortTime' }}</span>
+                </div>
+
+                <p class="notif-msg">{{ notif.message }}</p>
+
+                @if (notif.metadata) {
+                  <div class="notif-meta-chips">
+                    @if (notif.metadata.orderId) {
+                      <span class="meta-chip">Order: <strong>#{{ notif.metadata.orderId }}</strong></span>
+                    }
+                    @if (notif.metadata.customerName) {
+                      <span class="meta-chip">Customer: {{ notif.metadata.customerName }}</span>
+                    }
+                    @if (notif.metadata.totalAmount) {
+                      <span class="meta-chip green">Paid: ${{ notif.metadata.totalAmount }} AUD</span>
+                    }
+                    @if (notif.metadata.deliverySla) {
+                      <span class="meta-chip purple">⚡ {{ notif.metadata.deliverySla }}</span>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="notif-actions-col">
+                @if (notif.metadata?.orderId || notif.referenceId) {
+                  <button class="jump-order-btn" (click)="jumpToOrder(notif.metadata?.orderId || notif.referenceId!)">
+                    View in Pipeline →
+                  </button>
+                }
+                @if (!notif.isRead) {
+                  <button class="mark-read-btn" (click)="markNotifRead(notif)" title="Mark as read">
+                    <span class="material-symbols-outlined">check</span>
+                  </button>
+                } @else {
+                  <span class="read-status-check" title="Read">✓</span>
+                }
+              </div>
+            </div>
+          }
+
+          @if (store.notifications().length === 0) {
+            <div class="empty-notifs">
+              <span class="material-symbols-outlined empty-icon">notifications_off</span>
+              <h4>No notifications right now</h4>
+              <p>When customers place orders, live dispatch alerts will appear here in real time.</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>

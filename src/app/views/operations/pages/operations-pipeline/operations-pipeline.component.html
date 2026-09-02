@@ -1,0 +1,183 @@
+<div class="tab-content-panel">
+
+      <div class="pipeline-grid">
+
+        <!-- Column 1: In Packing -->
+        <div class="pipeline-col card-surface">
+          <div class="col-header orange">
+            <div class="header-left">
+              <span class="material-symbols-outlined">pending_actions</span>
+              <div>
+                <h3>1. In Packing</h3>
+                <span class="sub-col">Orders ready for packing</span>
+              </div>
+            </div>
+            <span class="count-pill">{{ inPackingOrders().length }}</span>
+          </div>
+
+          <div class="cards-stack">
+            @for (order of inPackingOrders(); track order.id) {
+              <div class="order-card-ops">
+                <div class="card-top">
+                  <span class="order-id">#{{ order.id }}</span>
+                  <span class="order-time">{{ order.placedAt }}</span>
+                </div>
+
+                <div class="customer-info">
+                  <strong>{{ order.customerName }}</strong>
+                  <p>📍 {{ order.deliveryAddress }}, {{ order.city }} ({{ order.postcode || order.pincode }})</p>
+                  <span class="contact">📞 {{ order.customerPhone }}</span>
+                </div>
+
+                <div class="items-summary">
+                  <span class="sec-label">Items to pack ({{ order.items.length }}):</span>
+                  @for (item of order.items; track item.product.id) {
+                    <div class="item-row-ops">
+                      <span class="p-name">{{ item.product.name }}</span>
+                      <strong class="p-qty">x{{ item.quantity }}</strong>
+                    </div>
+                  }
+                </div>
+
+                <div class="card-actions">
+                  <button class="action-btn orange" (click)="markAsPacked(order)">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    Mark as PACKED →
+                  </button>
+                </div>
+              </div>
+            }
+            @if (inPackingOrders().length === 0) {
+              <div class="empty-state">No orders in packing queue.</div>
+            }
+          </div>
+        </div>
+
+        <!-- Column 2: Packed & Ready for Dispatch -->
+        <div class="pipeline-col card-surface">
+          <div class="col-header blue">
+            <div class="header-left">
+              <span class="material-symbols-outlined">inventory</span>
+              <div>
+                <h3>2. Packed</h3>
+                <span class="sub-col">Ready for courier dispatch</span>
+              </div>
+            </div>
+            <span class="count-pill">{{ packedOrders().length }}</span>
+          </div>
+
+          <div class="cards-stack">
+            @for (order of packedOrders(); track order.id) {
+              <div class="order-card-ops">
+                <div class="card-top">
+                  <span class="order-id">#{{ order.id }}</span>
+                  <span class="badge-packed">PACKED ✓</span>
+                </div>
+
+                <div class="customer-info">
+                  <strong>{{ order.customerName }}</strong>
+                  <p>📍 {{ order.city }} {{ order.state || 'NSW' }}</p>
+                  <span class="total-tag">Total: ${{ order.totalAmount }} AUD</span>
+                </div>
+
+                <div class="items-summary">
+                  <span class="sec-label">Packed Items:</span>
+                  @for (item of order.items; track item.product.id) {
+                    <div class="item-row-ops">
+                      <span class="p-name">{{ item.product.name }}</span>
+                      <strong class="p-qty">x{{ item.quantity }}</strong>
+                    </div>
+                  }
+                </div>
+
+                <div class="card-actions">
+                  <button class="action-btn blue" (click)="markOutForDelivery(order)">
+                    <span class="material-symbols-outlined">local_shipping</span>
+                    Dispatch / OUT FOR DELIVERY →
+                  </button>
+                </div>
+              </div>
+            }
+            @if (packedOrders().length === 0) {
+              <div class="empty-state">No packed orders awaiting dispatch.</div>
+            }
+          </div>
+        </div>
+
+        <!-- Column 3: Out for Delivery -->
+        <div class="pipeline-col card-surface">
+          <div class="col-header purple">
+            <div class="header-left">
+              <span class="material-symbols-outlined">local_shipping</span>
+              <div>
+                <h3>3. Out for Delivery</h3>
+                <span class="sub-col">On road with driver</span>
+              </div>
+            </div>
+            <span class="count-pill">{{ outForDeliveryOrders().length }}</span>
+          </div>
+
+          <div class="cards-stack">
+            @for (order of outForDeliveryOrders(); track order.id) {
+              <div class="order-card-ops">
+                <div class="card-top">
+                  <span class="order-id">#{{ order.id }}</span>
+                  <span class="badge-transit">IN TRANSIT</span>
+                </div>
+
+                <div class="customer-info">
+                  <strong>{{ order.customerName }}</strong>
+                  <p>📍 {{ order.deliveryAddress }}, {{ order.city }}</p>
+                  <span class="agent-tag">Driver: {{ order.assignedDeliveryAgent || 'Vikram Singh (Express)' }}</span>
+                </div>
+
+                <div class="card-actions">
+                  <button class="action-btn green" (click)="markDelivered(order)">
+                    <span class="material-symbols-outlined">task_alt</span>
+                    Mark as DELIVERED ✓
+                  </button>
+                </div>
+              </div>
+            }
+            @if (outForDeliveryOrders().length === 0) {
+              <div class="empty-state">No active deliveries on road.</div>
+            }
+          </div>
+        </div>
+
+        <!-- Column 4: Delivered -->
+        <div class="pipeline-col card-surface">
+          <div class="col-header green">
+            <div class="header-left">
+              <span class="material-symbols-outlined">check_circle</span>
+              <div>
+                <h3>4. Delivered</h3>
+                <span class="sub-col">Fulfilled orders</span>
+              </div>
+            </div>
+            <span class="count-pill">{{ deliveredOrders().length }}</span>
+          </div>
+
+          <div class="cards-stack">
+            @for (order of deliveredOrders(); track order.id) {
+              <div class="order-card-ops delivered-card">
+                <div class="card-top">
+                  <span class="order-id">#{{ order.id }}</span>
+                  <span class="badge-done">DELIVERED</span>
+                </div>
+                <div class="customer-info">
+                  <strong>{{ order.customerName }}</strong>
+                  <p>Delivered to {{ order.city }}</p>
+                  <span class="total-tag">Paid: ${{ order.totalAmount }} AUD</span>
+                </div>
+              </div>
+            }
+            @if (deliveredOrders().length === 0) {
+              <div class="empty-state">No completed deliveries yet today.</div>
+            }
+          </div>
+        </div>
+
+      </div>
+
+    </div>
