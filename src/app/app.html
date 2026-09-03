@@ -1,3 +1,73 @@
+@if (keycloak.isAuthenticating()) {
+  <!-- Application Skeleton Loader during Keycloak Authentication / Token Fetching -->
+  <div class="auth-skeleton-screen">
+    <!-- Top Announcement Skeleton -->
+    <div class="sk-top-banner">
+      <div class="sk-box sk-bar-pill"></div>
+    </div>
+
+    <!-- Header Skeleton -->
+    <header class="sk-navbar">
+      <div class="sk-nav-inner">
+        <div class="sk-logo-group">
+          <div class="sk-box sk-logo-icon"></div>
+          <div class="sk-box sk-logo-text"></div>
+        </div>
+        <div class="sk-box sk-search-bar"></div>
+        <div class="sk-actions-group">
+          <div class="sk-box sk-nav-btn"></div>
+          <div class="sk-box sk-nav-btn"></div>
+          <div class="sk-box sk-nav-btn sk-avatar"></div>
+        </div>
+      </div>
+      <div class="sk-nav-sub">
+        <div class="sk-box sk-sub-item"></div>
+        <div class="sk-box sk-sub-item"></div>
+        <div class="sk-box sk-sub-item"></div>
+        <div class="sk-box sk-sub-item"></div>
+        <div class="sk-box sk-sub-item"></div>
+      </div>
+    </header>
+
+    <!-- Centered Authenticating Status Card -->
+    <div class="sk-auth-status-container">
+      <div class="sk-auth-card">
+        <div class="sk-spinner-ring"></div>
+        <div class="sk-auth-info">
+          <h3 class="sk-auth-title">Authenticating with Keycloak...</h3>
+          <p class="sk-auth-subtitle">Securing access token and preparing your storefront</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Skeleton (Hero Banner + Cards) -->
+    <main class="sk-main-body">
+      <div class="sk-box sk-hero-banner"></div>
+
+      <div class="sk-section-header">
+        <div class="sk-box sk-section-title"></div>
+        <div class="sk-box sk-section-link"></div>
+      </div>
+
+      <div class="sk-product-grid">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div class="sk-card">
+            <div class="sk-box sk-card-img"></div>
+            <div class="sk-card-body">
+              <div class="sk-box sk-line w-40"></div>
+              <div class="sk-box sk-line w-85"></div>
+              <div class="sk-box sk-line w-60"></div>
+              <div class="sk-card-footer">
+                <div class="sk-box sk-price"></div>
+                <div class="sk-box sk-btn"></div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </main>
+  </div>
+} @else {
 <!-- Main Navigation Header (Only displayed for Customer Storefront) -->
 @if (store.activeRole() === 'Customer') {
   <app-navbar></app-navbar>
@@ -132,4 +202,5 @@
     </div>
   </div>
 </footer>
+}
 }

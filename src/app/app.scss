@@ -241,3 +241,260 @@
     text-align: center;
   }
 }
+
+/* ==========================================================================
+   AUTHENTICATION SKELETON LOADER SCREEN
+   ========================================================================== */
+.auth-skeleton-screen {
+  min-height: 100vh;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+
+  @keyframes sk-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  @keyframes sk-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .sk-box {
+    background: linear-gradient(
+      90deg,
+      #f1f5f9 0%,
+      #e2e8f0 35%,
+      #f8fafc 50%,
+      #e2e8f0 65%,
+      #f1f5f9 100%
+    );
+    background-size: 250% 100%;
+    animation: sk-shimmer 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    border-radius: 6px;
+  }
+
+  .sk-top-banner {
+    background: #0f172a;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+
+    .sk-bar-pill {
+      width: 240px;
+      height: 12px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .sk-navbar {
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  }
+
+  .sk-nav-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .sk-logo-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .sk-logo-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+    }
+    .sk-logo-text {
+      width: 160px;
+      height: 22px;
+      border-radius: 4px;
+    }
+  }
+
+  .sk-search-bar {
+    flex: 1;
+    max-width: 600px;
+    height: 44px;
+    border-radius: 24px;
+  }
+
+  .sk-actions-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .sk-nav-btn {
+      width: 72px;
+      height: 36px;
+      border-radius: 18px;
+
+      &.sk-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+      }
+    }
+  }
+
+  .sk-nav-sub {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 10px 24px;
+    display: flex;
+    gap: 24px;
+    border-top: 1px solid #f1f5f9;
+
+    .sk-sub-item {
+      width: 90px;
+      height: 16px;
+      border-radius: 4px;
+    }
+  }
+
+  .sk-auth-status-container {
+    max-width: 1400px;
+    margin: 24px auto 0 auto;
+    padding: 0 24px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .sk-auth-card {
+    background: #ffffff;
+    border: 1px solid #e0f2fe;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(2, 150, 224, 0.12);
+    padding: 14px 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    animation: fadeInDown 0.3s ease-out;
+
+    .sk-spinner-ring {
+      width: 26px;
+      height: 26px;
+      border: 3px solid #e0f2fe;
+      border-top-color: #0296e0;
+      border-radius: 50%;
+      animation: sk-spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+
+    .sk-auth-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .sk-auth-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+      }
+      .sk-auth-subtitle {
+        font-size: 12px;
+        color: #0284c7;
+        margin: 0;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .sk-main-body {
+    max-width: 1400px;
+    margin: 24px auto;
+    padding: 0 24px 60px 24px;
+    flex: 1;
+    width: 100%;
+  }
+
+  .sk-hero-banner {
+    height: 240px;
+    border-radius: 16px;
+    margin-bottom: 36px;
+  }
+
+  .sk-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+
+    .sk-section-title {
+      width: 200px;
+      height: 26px;
+      border-radius: 6px;
+    }
+    .sk-section-link {
+      width: 80px;
+      height: 18px;
+      border-radius: 4px;
+    }
+  }
+
+  .sk-product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+  }
+
+  .sk-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+    .sk-card-img {
+      height: 180px;
+      border-radius: 0;
+    }
+
+    .sk-card-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .sk-line {
+        height: 14px;
+        &.w-40 { width: 40%; height: 10px; }
+        &.w-85 { width: 85%; height: 16px; }
+        &.w-60 { width: 60%; height: 12px; }
+      }
+
+      .sk-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #f1f5f9;
+
+        .sk-price {
+          width: 70px;
+          height: 20px;
+          border-radius: 4px;
+        }
+        .sk-btn {
+          width: 80px;
+          height: 32px;
+          border-radius: 16px;
+        }
+      }
+    }
+  }
+}

@@ -35,6 +35,7 @@ export class AppKeycloakService {
   readonly currentUser = signal<KeycloakUserProfile | null>(null);
   readonly token = signal<string | null>(null);
   readonly isInitialized = signal<boolean>(false);
+  readonly isAuthenticating = signal<boolean>(typeof window !== 'undefined' ? this.hasAuthCallback() : false);
   readonly sessionExpiredMessage = signal<string | null>(null);
 
   private tokenCheckInterval: any = null;
@@ -138,6 +139,8 @@ export class AppKeycloakService {
     if (typeof window === 'undefined') return false;
     if (this.initPromise) return this.initPromise;
 
+    this.isAuthenticating.set(true);
+
     this.initPromise = (async () => {
       try {
         this.keycloakInstance = new Keycloak({
@@ -236,6 +239,8 @@ export class AppKeycloakService {
         console.warn('Keycloak initialization:', err?.message || err);
         this.isInitialized.set(true);
         return false;
+      } finally {
+        this.isAuthenticating.set(false);
       }
     })();
 
@@ -258,6 +263,7 @@ export class AppKeycloakService {
    */
   async loginWithKeycloak(targetPath: string = APP_ROUTES.ADMIN, targetRole: AppRole = 'Admin') {
     try {
+      this.isAuthenticating.set(true);
       const clientId = this.getClientIdForRole(targetRole);
       sessionStorage.setItem(STORAGE_KEYS.TARGET_PATH, targetPath);
       sessionStorage.setItem(STORAGE_KEYS.TARGET_ROLE, targetRole);

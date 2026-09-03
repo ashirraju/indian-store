@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { StoreStateService } from './services/store-state.service';
+import { AppKeycloakService } from './services/app-keycloak.service';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { CartDrawerComponent } from './components/cart-drawer/cart-drawer.component';
 import { WishlistDrawerComponent } from './components/wishlist-drawer/wishlist-drawer.component';
@@ -26,5 +27,6 @@ import { ToastComponent } from './components/toast/toast.component';
 })
 export class App {
   readonly store = inject(StoreStateService);
+  readonly keycloak = inject(AppKeycloakService);
 }
 
