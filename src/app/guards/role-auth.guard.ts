@@ -23,7 +23,16 @@ export const roleAuthGuard = (requiredRole: AppRole): CanActivateFn => {
       await keycloak.initKeycloak();
     }
 
-    // 1. If not authenticated, redirect directly to Keycloak Login Page
+    // 1. Check if token has expired
+    if (keycloak.isAuthenticated() && keycloak.isTokenExpired()) {
+      keycloak.forceLogout('Your session has expired. Please sign in again.');
+      store.showToast('warning', 'Session Expired', 'Your session has expired. Please sign in again.');
+      const targetPath = state.url || `/${requiredRole.toLowerCase()}`;
+      keycloak.loginWithKeycloak(targetPath, requiredRole);
+      return false;
+    }
+
+    // 2. If not authenticated, redirect directly to Keycloak Login Page
     if (!keycloak.isAuthenticated()) {
       const targetPath = state.url || `/${requiredRole.toLowerCase()}`;
       keycloak.loginWithKeycloak(targetPath, requiredRole);

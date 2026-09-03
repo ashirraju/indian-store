@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, inject } from '@angular/core';
+import { Injectable, signal, computed, inject, effect } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { AppRole, UserProfile } from '../models/user.model';
 import { Product, CartItem } from '../models/product.model';
@@ -69,7 +69,26 @@ export class StoreStateService {
   readonly totalSearchResults = signal<number>(0);
 
   constructor() {
+    // Reactively watch for session expiration
+    effect(() => {
+      const msg = this.keycloak.sessionExpiredMessage();
+      if (msg) {
+        this.showToast('warning', 'Session Expired', msg);
+        this.activeRole.set(AppRole.CUSTOMER);
+        this.navigateTo(APP_ROUTES.STORE);
+        setTimeout(() => this.keycloak.sessionExpiredMessage.set(null), 100);
+      }
+    });
+
     if (typeof window !== 'undefined') {
+      const savedReason = sessionStorage.getItem('logout_reason');
+      if (savedReason) {
+        sessionStorage.removeItem('logout_reason');
+        setTimeout(() => {
+          this.showToast('warning', 'Session Expired', savedReason);
+        }, 300);
+      }
+
       const getInitialPath = () => {
         const hash = window.location.hash.replace(/^#/, '').split('?')[0];
         return hash || window.location.pathname || APP_ROUTES.STORE;

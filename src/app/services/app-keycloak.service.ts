@@ -35,6 +35,9 @@ export class AppKeycloakService {
   readonly currentUser = signal<KeycloakUserProfile | null>(null);
   readonly token = signal<string | null>(null);
   readonly isInitialized = signal<boolean>(false);
+  readonly sessionExpiredMessage = signal<string | null>(null);
+
+  private tokenCheckInterval: any = null;
 
   constructor() {
     this.restoreSessionFromStorage();
@@ -43,6 +46,34 @@ export class AppKeycloakService {
     if (this.hasAuthCallback()) {
       this.initKeycloak();
     }
+    this.startTokenExpiryWatcher();
+  }
+
+  /**
+   * Watch for token expiration while user is active or tab regains focus
+   */
+  private startTokenExpiryWatcher() {
+    if (typeof window === 'undefined') return;
+    if (this.tokenCheckInterval) clearInterval(this.tokenCheckInterval);
+
+    const check = () => {
+      if (this.isAuthenticated()) {
+        const t = this.token();
+        if (t && this.isTokenExpired(t)) {
+          console.warn('Token expiry watcher: session expired, forcing logout.');
+          this.forceLogout('Your session has expired. Please sign in again.');
+        }
+      }
+    };
+
+    // Check periodically every 15 seconds
+    this.tokenCheckInterval = setInterval(check, 15000);
+
+    // Also check immediately when tab becomes visible or receives focus
+    window.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') check();
+    });
+    window.addEventListener('focus', check);
   }
 
   /**
@@ -64,6 +95,11 @@ export class AppKeycloakService {
       const savedUser = localStorage.getItem(STORAGE_KEYS.AUTH_USER);
       const savedToken = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       if (savedUser && savedToken) {
+        if (this.isTokenExpired(savedToken)) {
+          console.warn('Stored session token has expired, forcing logout.');
+          this.forceLogout('Your previous login session has expired.');
+          return;
+        }
         this.currentUser.set(JSON.parse(savedUser));
         this.token.set(savedToken);
         this.isAuthenticated.set(true);
@@ -120,6 +156,25 @@ export class AppKeycloakService {
           checkLoginIframe: false,
           pkceMethod: 'S256'
         });
+
+        // Listen for Keycloak token expiration event
+        this.keycloakInstance.onTokenExpired = async () => {
+          console.warn('Keycloak onTokenExpired event: attempting token refresh or force logout');
+          try {
+            const refreshed = await this.keycloakInstance?.updateToken(30);
+            if (refreshed && this.keycloakInstance?.token) {
+              this.token.set(this.keycloakInstance.token);
+              const user = this.currentUser();
+              if (user) {
+                this.saveSessionToStorage(user, this.keycloakInstance.token);
+              }
+              return;
+            }
+          } catch {
+            // Refresh failed or session terminated on Keycloak
+          }
+          this.forceLogout('Your session has expired. Please sign in again.');
+        };
 
         this.isInitialized.set(true);
 
@@ -256,9 +311,79 @@ export class AppKeycloakService {
   }
 
   /**
+   * Forcefully log out user when token expires or session is invalidated
+   */
+  forceLogout(reason = 'Your session has expired. Please sign in again.') {
+    this.clearSessionFromStorage();
+    this.currentUser.set(null);
+    this.token.set(null);
+    this.isAuthenticated.set(false);
+
+    if (this.keycloakInstance) {
+      try {
+        this.keycloakInstance.clearToken();
+      } catch {
+        // Ignore
+      }
+    }
+
+    this.sessionExpiredMessage.set(reason);
+
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem('logout_reason', reason);
+      } catch {}
+
+      // If user is currently on a protected staff route, redirect to customer store
+      const currentHash = window.location.hash.replace(/^#/, '');
+      const protectedPrefixes = ['/admin', '/manager', '/operations', '/delivery'];
+      if (protectedPrefixes.some(p => currentHash.startsWith(p))) {
+        window.location.hash = '#' + APP_ROUTES.STORE;
+      }
+    }
+  }
+
+  /**
+   * Check if a given token (or the active token) has expired
+   */
+  isTokenExpired(tokenStr?: string, minValiditySeconds = 0): boolean {
+    const t = tokenStr || this.token();
+    if (!t) return false;
+    if (t === 'dev-token') return false;
+
+    // 1. If keycloakInstance holds this token, use Keycloak's built-in validator
+    if (this.keycloakInstance && this.keycloakInstance.token === t) {
+      try {
+        return this.keycloakInstance.isTokenExpired(minValiditySeconds);
+      } catch {
+        // Fall through to JWT parse
+      }
+    }
+
+    // 2. Decode JWT payload
+    const payload = this.parseJwt(t);
+    if (!payload) {
+      // If it contains dots like a JWT but failed to parse, consider invalid
+      return t.includes('.');
+    }
+
+    if (!payload.exp) {
+      return false;
+    }
+
+    const nowSec = Math.floor(Date.now() / 1000);
+    return payload.exp <= (nowSec + minValiditySeconds);
+  }
+
+  /**
    * Check if access token contains the specified role
    */
   hasTokenRole(role: AppRole | string): boolean {
+    if (this.isTokenExpired()) {
+      this.forceLogout('Your session has expired. Please sign in again.');
+      return false;
+    }
+
     const targetRole = role.toString().toLowerCase();
     const user = this.currentUser();
     const tokenStr = this.token();
@@ -328,6 +453,11 @@ export class AppKeycloakService {
    * Get bearer token for API headers
    */
   getToken(): string {
-    return this.token() || 'dev-token';
+    const t = this.token();
+    if (t && this.isTokenExpired(t)) {
+      this.forceLogout('Your session has expired. Please sign in again.');
+      return '';
+    }
+    return t || 'dev-token';
   }
 }
